@@ -63,7 +63,6 @@ lvl_map = {
 	"lvl_0":lvl_0,
 }
 
-
 WIDTH = len(lvl_0[0])*SPACEMAP
 HEIGHT = len(lvl_0)*SPACEMAP
 
@@ -73,14 +72,15 @@ pg.display.set_caption(" Lemon Tank ")
 image = {	
 			"tank_0":pg.image.load(resolve_route("image/limonero_tank.png")),
 			"enemy":pg.image.load(resolve_route("image/uvadero_tank.png")),
-			"ball_0":pg.image.load(resolve_route("image/ball_a.png")),
+			"bullet_0":pg.image.load(resolve_route("image/bullet_a.png")),
+			"bullet_1":pg.image.load(resolve_route("image/bullet_e.png")),
 			"Rect":pg.image.load(resolve_route("image/Rect.png")),
 			"Box":pg.image.load(resolve_route("image/box.png")),
-
+			"wave_shot" : pg.image.load("image/effect_shot.png")
 }
 
 sound = { 
-			"show":pg.mixer.Sound(resolve_route("sound/show.wav")),	
+			"shot":pg.mixer.Sound(resolve_route("sound/shot.wav")),	
 			"box":pg.mixer.Sound(resolve_route("sound/box.wav")),
 }
 
@@ -97,13 +97,11 @@ class Mission:
 		}
 		self.mission_actual = self.objetivos[self.game.lvl]
 
-
 	def update(self):
 
 		self.mission_actual()
 		if self.mission_actual() == True:
 			print("¡Mission COMPLET!")
-
 
 	def All_kill(self):
 		if len(self.game.sprites) > 1:
@@ -118,27 +116,25 @@ class Animation:
 		self.limit = len(frames)
 		self.step = 15
 		self.cont = 0
-	def update(self):
 		
-		if self.cont == self.step:			
+	def update(self,condition):
+		
+		if self.cont >= self.step:			
 			if self.current_frames < self.limit:
 				self.current_frames +=1
-			
 			if self.current_frames == self.limit:
-				self.current_frames = 0
+				self.current_frames = 0 if condition == 1 else self.current_frames
 				
 			self.cont = 0
-
 		elif self.cont == 0:
 			self.current_frames = 0
 
 		self.cont +=1
 
 class Box(pg.sprite.Sprite):
-	def __init__(self,x,y,game):
+	def __init__(self,x,y):
 
 		pg.sprite.Sprite.__init__(self)
-		self.game = game
 		self.box_img = image["Box"]
 		self.image = self.box_img.subsurface((10,0),(10,10))
 		self.image = pg.transform.scale(self.image,(30,30))
@@ -154,28 +150,73 @@ class Box(pg.sprite.Sprite):
 	def update(self):
 
 		frame = self.animation.current_frames
-		self.animation.update()
+		self.animation.update(1)
 		self.image = self.box_img.subsurface(self.frames[frame],(10,10))
 		self.image = pg.transform.scale(self.image,(30,30))
+		
+class Effect(pg.sprite.Sprite):
+	def __init__(self,pos,angle):
+
+		pg.sprite.Sprite.__init__(self)
+		self.effect = image["wave_shot"]
+		self.image = self.effect.subsurface((0,0),(17,17))
+		self.image = pg.transform.scale(self.image,(17*2,17*2))
+		self.rect = self.image.get_rect()
+
+		self.radians = math.radians(angle)		
+		self.rect.x = (pos[0] - (20 * math.sin(self.radians))) - self.rect.width//2 
+		self.rect.y = pos[1] - (20 * math.cos(self.radians)) - self.rect.height //2
+		
+		self.pos = pos
+		self.frames = {
+			0:(0,0),
+			1:(0,17),
+			2:(0,34),
+			3:(0,51),
+			4:(0,68),
+		}
+
+		self.animation = Animation(self.frames)
+		self.animation.step = 2
+		self.limit = 0
+		self.pos = pos
+
+	def update(self):
+
+		frame = self.animation.current_frames
+		self.animation.update(0)
+		self.image = self.effect.subsurface(self.frames[frame],(17,17))
+		self.image = pg.transform.scale(self.image,(17*2,17*2))
+
+
+		if self.animation.current_frames >= len(self.frames):
+			self.limit = 1
+
+		self.rect.x = self.pos[0] - (20 * math.sin(self.radians)) - self.rect.width//2 
+		self.rect.y = self.pos[1] - (20 * math.cos(self.radians)) - self.rect.height //2
+
+
+		SCREEN.blit(self.image,self.rect)
+
 
 class Bala(pg.sprite.Sprite):
 
 	def __init__(self,point,angle,value,game):
 		
 		pg.sprite.Sprite.__init__(self)
-		self.image_b = image["ball_{}".format(value)]
+		self.image_b = image["bullet_{}".format(value)]
 		self.image = pg.transform.rotate(self.image_b,angle)
 		self.rect = self.image.get_rect()
 		self.game = game
 		radians = math.radians(angle)
-		self.rect.x = (point[0][0] + (2 * math.sin(radians))) - self.rect.width//2 
-		self.rect.y = point[0][1] + (2 * math.cos(radians)) - self.rect.height //2
+		self.rect.x = point[0] + (2 * math.sin(radians)) - self.rect.width//2 
+		self.rect.y = point[1] + (2 * math.cos(radians)) - self.rect.height //2
 		
 		self.vlx = -10 * math.sin(radians)
 		self.vly = -10 * math.cos(radians)
-
+	
 	def update(self):
-
+		
 		if  0 > self.rect.x or self.rect.x > WIDTH or  0 > self.rect.y or self.rect.y > HEIGHT:
 			self.kill() 
 
@@ -189,7 +230,7 @@ class Bala(pg.sprite.Sprite):
 
 class Sprite(pg.sprite.Sprite):
 	
-	def __init__(self,x,y,game):
+	def __init__(self,x,y,game,bullet):
 
 		pg.sprite.Sprite.__init__(self)
 		self.rect = self.image.get_rect()
@@ -201,53 +242,23 @@ class Sprite(pg.sprite.Sprite):
 		
 		self.angle = 0		
 		self.game = game
+		self.bullet = bullet
+
+
+		self.effect = []
+
 
 	def cannon(self,fire):
-		self.point_ball = ((self.rect.centerx,self.rect.centery),self.image.get_size())
-
+		self.point_ball = ((self.rect.centerx,self.rect.centery))
 		if fire == True:
-			sound["show"].stop()
-			sound["show"].play()
-			self.game.balls.add(Bala(self.point_ball,self.angle,self.value,self.game))
+
+			sound["shot"].stop()
+			sound["shot"].play()
+			self.effect.append(Effect(self.point_ball,self.angle))
+			self.bullet.add(Bala(self.point_ball,self.angle,self.value,self.game))
 
 	def collided(self):
 	
-		"""
-		
-			#colision_enemies = pg.sprite.collide_mask(self.game.player,self)
-			#if colision_enemies != None:
-			#	print("colisionamos!")
-			#colision = pg.sprite.spritecollide(self,self.game.obs,0)
-
-			#for block in colision:
-			#	if self.rect.x < block.rect.x:
-			#		self.rect.right = block.rect.x 
-			#	if self.rect.x +  self.rect.width > block.rect.x + block.rect.width:
-			#		self.rect.x = block.rect.x + block.rect.width
-				#if self.vlx > 0:
-				#	self.rect.right =   min(block.rect.left,self.rect.right)  
-				#self.rect.right =   max(block.rect.left,self.rect.right)  
-				#self.rect.top = max(block.rect.bottom,self.rect.top)
-
-
-				#self.rect.left = max(self.rect.left,-(block.rect.right))
-
-				#print(self.rect.x)
-				#if self.vlx > 0:
-				#	self.rect.right = block.rect.left
-				#elif self.vlx < 0:
-				#	self.rect.left = block.rect.right
-
-			 #colision = pg.sprite.spritecollide(self,self.game.obs,0)
-
-			#for block in colision:
-			#	if self.vly > 0:
-			#		self.rect.top = block.rect.bottom
-			#	elif self.vly < 0:
-			#		self.rect.bottom = block.rect.top
-	
-		"""
-
 		if self.rect.right >= WIDTH:
 			self.rect.right = WIDTH
 		elif self.rect.left <= 0:
@@ -282,86 +293,79 @@ class Sprite(pg.sprite.Sprite):
 
 class Enemy(Sprite):
 	
-	def __init__(self,x,y,game):
-		self.image = pg.transform.flip(image["enemy"],0,1)
-		self.image = pg.transform.scale(self.image,(40,40))
-		Sprite.__init__(self,x,y,game)		
-		#self.rect_camp = pg.Rect((self.rect.centerx,self.rect.centery),(50,50))
-		self.direcciony = 1
+	def __init__(self,x,y,game,bullet):
+		self.image_e = image["enemy"]
+		self.image = pg.transform.scale(self.image_e,(40,40))
+		Sprite.__init__(self,x,y,game,bullet)		
+		self.angle = 0
+		self.value = "1"
 
-
-		#self.vl = 1
+		self.cont_shot = 0 
 
 	def update(self):
-		self.kill() if pg.sprite.spritecollide(self,self.game.balls,1) else 0
-		self.move()
+		
+		self.kill() if pg.sprite.spritecollide(self,self.game.bullets_a,1) else 0
 
+		self.move()
 		self.collided()
-		#self.rect.x +=self.vlx
-		#self.rect.y += self.vly	
+		self.shot()
 
 	def move(self):
 		
-
-		for block in pg.sprite.spritecollide(self,self.game.obs,0):
-			if block.rect.bottom > self.rect.top and block.rect.bottom < self.rect.bottom:
-				print("ok")
-
-
 		colision = rect_group(self.rect ,self.game.obs)
 		
 		self.distance_x = math.sqrt((self.rect.centerx - self.game.player.rect.centerx)**2)
 		self.distance_y = math.sqrt((self.rect.centery - self.game.player.rect.centery)**2)
 
-		if self.distance_x > 0 and colision != True:
 
+		if self.distance_x > 0 or colision == 1:
+		
 			self.vly = 0
-
-
 			if self.game.player.rect.left < self.rect.left:
 				self.vlx = -2
 			elif self.game.player.rect.right > self.rect.right:
 				self.vlx = 2
 
-		elif self.distance_x <= 0 or colision == 1:
-
+		elif self.distance_x <= 0 and colision != True:
 			self.vlx = 0
-			
 			if self.game.player.rect.top > self.rect.top:
 				self.vly = 2
-
 			elif  self.game.player.rect.bottom < self.rect.bottom:
 				self.vly = -2
-
 			
+		if self.vlx > 0:		
+			self.angle = -90
+		elif self.vlx < 0:
+			self.angle = 90
+		if self.vly > 0:
+			self.angle = 180
+		elif self.vly < 0:
+			self.angle = 0
 
+		self.image = pg.transform.rotate(self.image_e,self.angle)
+		self.image = pg.transform.scale(self.image,(40,40))
 
-		#colision = pg.sprite.spritecollide(self,self.game.abs)
+	def shot(self):
 
-		#self.distanciax = math.sqrt((self.rect.centerx - self.game.player.rect.centerx)**2)
-		#self.distanciay = math.sqrt((self.rect.centery - self.game.player.rect.centery)**2)
-		
-		#if self.distanciax < 200 and self.distanciay <= 100:
-		
-	#	if self.game.player.rect.left < self.rect.left:
-	#		self.vlx = -self.vl
-	#	elif self.game.player.rect.right > self.rect.right:
-	#		self.vlx = self.vl
-	#	if self.game.player.rect.top > self.rect.top:
-	#		self.vly = self.vl
-	#	elif self.game.player.rect.bottom < self.rect.bottom:
-	#		self.vly = - self.vl
+		if self.rect.y == self.game.player.rect.y or self.rect.x == self.game.player.rect.x:
+			self.cont_shot +=1
+
+			if self.cont_shot >= 30:	
+				self.cannon(True)
+				self.cont_shot = 0
+		else:
+			self.cont_shot = 0
 
 class Tank(Sprite):
 
-	def __init__(self,x,y,game,value = 0):
+	def __init__(self,x,y,game,bullet,value = 0):
 		self.value = value
 		self.image_a = image["tank_{}".format(value)]
 		self.image = self.image_a
 		self.image = pg.transform.scale(self.image,(40,40))
 		self.mask = pg.mask.from_surface(self.image)
 
-		Sprite.__init__(self,x,y,game)
+		Sprite.__init__(self,x,y,game,bullet)
 	
 		self.joystick =  pg.joystick.Joystick(value)  if pg.joystick.get_count() > 0 else None
 		self.joystick.init() if self.joystick != None else None
@@ -377,36 +381,11 @@ class Tank(Sprite):
 		if pg.sprite.spritecollide(self,self.game.objs,1):
 			sound["box"].play()
 
-		#self.rect.x += self.vlx
-		#self.rect.y += self.vly
-		#self.rect.move_ip((self.vlx,self.vly))
-	
-	"""	def move(self):
-			move = pg.key.get_pressed()
-			if move[pg.K_LEFT] or self.direction[0] == -1:
-				self.angle += 90
-				self.image = pg.transform.rotate(self.image_a,self.angle)
-				#self.angle +=2
-				if self.angle >= 360:
-					self.angle = 0
-			if move[pg.K_RIGHT] or self.direction[0] == 1:
-				self.angle -=90
-				self.image = pg.transform.rotate(self.image_a,self.angle)
-				#self.angle -=2
-				if self.angle <= -360:
-					self.angle = 0
-			#radians = math.radians(self.angle) 
+		for effect in self.effect:
+			effect.update()
 
-			if move[pg.K_UP] or self.direction[1] == 1:
-				pass
-				#self.vlx =  4 *   -math.sin(radians)
-				#self.vly =  4 *   -math.cos(radians) 
-
-			#self.image = pg.transform.rotate(self.image_a,self.angle)
-			#self.rect = pg.Rect((self.rect.x,self.rect.y),(self.image.get_size()))		
-			self.point_ball = [self.rect.centerx,self.rect.centery]
-			self.mask = pg.mask.from_surface(self.image)
-		"""
+			if effect.limit == 1:
+				self.effect.remove(effect)
 
 	def rotate(self,xbool):
 
@@ -421,7 +400,6 @@ class Tank(Sprite):
 		
 		self.image = pg.transform.rotate(self.image_a,self.angle)
 		self.image = pg.transform.scale(self.image,(40,40))
-		#self.rect = pg.Rect((self.rect.x,self.rect.y),self.image.get_size())
 
 	def move(self):
 		
@@ -443,17 +421,13 @@ class Hexagons(pg.sprite.Sprite):
 		
 		r = 40
 		self.image = pg.Surface((r*2 + 3, r*2 + 2))
-		#self.image.fill((0,0,0))
 		self.image.set_colorkey((0,0,0))
 		self.width = self.image.get_width()
 		self.height = self.image.get_height()
 		self.pointlist = [ (  r + r*math.cos( math.radians(60*i)), r + r*math.sin( math.radians(60*i))) for i in range(6) ]
 		self.rect = pg.Rect((x,y),(self.width,self.height))
-		#self.pointlist = ((40,20),(45,0),(45,44),(0,40),(0,60))
-		#print(self.pointlist)
 		pg.draw.polygon(self.image,pg.Color("#838383"),self.pointlist,4)
 		surface.blit(self.image,(x,y))
-
 		self.game = game
 
 	def no_collided(self):
@@ -473,15 +447,9 @@ class Rect(pg.sprite.Sprite):
 		self.game = game
 		self.image = image["Rect"]
 		self.image =  self.image.subsurface((0,42),(width,height))
-		#self.image.set_colorkey((0,0,0))
-		#self.rect = self.image.get_rect()
-		self.rect = self.image.get_rect() #pg.Rect((x,y),(width,height))
+		self.rect = self.image.get_rect() 
 		self.rect.x = x
 		self.rect.y = y 
-		#pg.draw.rect(self.image,pg.Color("#838383"),self.rect,4)
-		#surface.blit(self.image,self.rect)
-		
-		#pg.draw.rect(surface,pg.Color("#838383"),self.rect,4)
 		self.rect.x,y= x,y
 		surface.blit(self.image,self.rect)
 
@@ -494,27 +462,22 @@ class Tiled:
 			
 	def make_map(self):
 		tmp_surface = pg.Surface((WIDTH,HEIGHT))
-		tmp_surface.fill(pg.Color("#E4E4DC"))
+		tmp_surface.fill(pg.Color("#06095A"))
 
 		for i,lista in enumerate(self.lvl):
 			for j,tile in enumerate(lista):
 
 				if tile == "0":
 					pass
-
 				elif tile == "1":
 					self.game.obs.add(Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
-								
 				elif tile == "2":
-					self.game.objs.add(Box(j*SPACEMAP,i *SPACEMAP,self.game))
-
+					self.game.objs.add(Box(j*SPACEMAP,i *SPACEMAP))
 				elif tile == "3":
-					self.game.sprites.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game))
-
+					self.game.sprites.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game,self.game.bullets_e))
 				elif tile == "4":
-					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game)
+					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game,self.game.bullets_a)
 					self.game.sprites.add(self.game.player)
-
 				elif tile == "5":
 					self.game.obs.add(Hexagons(j*SPACEMAP,i*SPACEMAP,tmp_surface,self.game))
 					
@@ -525,7 +488,6 @@ class Game:
 	def __init__(self):
 
 		self.player = None
-		self.enemies = [ Enemy(280,200,self)]#,Enemy(300,80,self)]
 		self.load()
 
 		#Temp
@@ -537,7 +499,10 @@ class Game:
 
 	def load(self):
 		#__GROUP__#
-		self.balls = pg.sprite.Group()
+		
+		self.bullets_a = pg.sprite.Group()
+		self.bullets_e = pg.sprite.Group()
+
 		self.sprites = pg.sprite.Group()
 		self.obs = pg.sprite.Group()
 		self.objs = pg.sprite.Group()
@@ -545,18 +510,20 @@ class Game:
 	def update(self):
 
 		self.sprites.update()
-		#self.obs.update()
 		self.objs.update()
-		self.balls.update()
+		self.bullets_a.update()
+		self.bullets_e.update()
 		self.mission.update()
 
 	def draw(self):
 		
 		SCREEN.blit(self.tile_image,(0,0))
-		self.balls.draw(SCREEN)
-		#self.obs.draw(SCREEN)
-		self.objs.draw(SCREEN)
 		self.sprites.draw(SCREEN)
+
+		self.bullets_a.draw(SCREEN)
+		self.bullets_e.draw(SCREEN)
+		
+		self.objs.draw(SCREEN)
 
 def loop():
 
@@ -600,8 +567,6 @@ def loop():
 			if event.type == pg.KEYUP:
 				if event.key == pg.K_UP:
 					game.player.move_bool = 0
-
-			
 
 		game.draw()
 		game.update()
