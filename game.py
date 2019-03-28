@@ -1,4 +1,4 @@
-import random,os,sys,math
+import random,os,sys,math,socket
 import pygame as pg
 
 pg.display.init()
@@ -37,40 +37,11 @@ def rect_group(rect2,group):
 			return 1
 
 
-#__CONSTANS__#
-
-SPACEMAP = 42
-
-
-lvl_0 = [
-
-			"11111111111111111111111",
-			"10000000000000000000001",
-			"10000000000000000000001",			
-			"10000000000000000000001",
-			"10011000111110030110001",
-			"10011000102011000110001",
-			"10000000000000000000001",
-			"10000000000000000000001",
-			"10000000000000000300001",
-			"10400000000000000000001",
-			"10000000000000000000001",
-			"11111111111111111111111",
-
-		]
-
-lvl_map = {
-	"lvl_0":lvl_0,
-}
-
-WIDTH = len(lvl_0[0])*SPACEMAP
-HEIGHT = len(lvl_0)*SPACEMAP
-
-SCREEN = pg.display.set_mode((WIDTH,HEIGHT))		
-pg.display.set_caption(" Lemon Tank ")
 
 image = {	
 			"tank_0":pg.image.load(resolve_route("image/limonero_tank.png")),
+			"tank_1":pg.image.load(resolve_route("image/uvadero_tank.png")),
+			
 			"enemy":pg.image.load(resolve_route("image/uvadero_tank.png")),
 			"bullet_0":pg.image.load(resolve_route("image/bullet_a.png")),
 			"bullet_1":pg.image.load(resolve_route("image/bullet_e.png")),
@@ -85,7 +56,6 @@ sound = {
 }
 
 pg.display.set_icon(image["tank_0"])
-
 
 
 class Mission:
@@ -132,7 +102,8 @@ class Animation:
 		self.cont +=1
 
 class Box(pg.sprite.Sprite):
-	def __init__(self,x,y):
+
+	def __init__(self,x,y,game):
 
 		pg.sprite.Sprite.__init__(self)
 		self.box_img = image["Box"]
@@ -146,6 +117,7 @@ class Box(pg.sprite.Sprite):
 		}
 
 		self.animation = Animation(self.frames)
+		self.game = game
 
 	def update(self):
 
@@ -154,6 +126,11 @@ class Box(pg.sprite.Sprite):
 		self.image = self.box_img.subsurface(self.frames[frame],(10,10))
 		self.image = pg.transform.scale(self.image,(30,30))
 		
+		for sprites in self.game.sprites:
+			if self.rect.colliderect(sprites.rect):
+				self.kill()
+				sound["box"].play
+
 class Effect(pg.sprite.Sprite):
 	def __init__(self,pos,angle):
 
@@ -178,7 +155,6 @@ class Effect(pg.sprite.Sprite):
 
 		self.animation = Animation(self.frames)
 		self.animation.step = 2
-		self.limit = 0
 		self.pos = pos
 
 	def update(self):
@@ -190,14 +166,10 @@ class Effect(pg.sprite.Sprite):
 
 
 		if self.animation.current_frames >= len(self.frames):
-			self.limit = 1
+			self.kill()
 
 		self.rect.x = self.pos[0] - (20 * math.sin(self.radians)) - self.rect.width//2 
 		self.rect.y = self.pos[1] - (20 * math.cos(self.radians)) - self.rect.height //2
-
-
-		SCREEN.blit(self.image,self.rect)
-
 
 class Bala(pg.sprite.Sprite):
 
@@ -215,9 +187,12 @@ class Bala(pg.sprite.Sprite):
 		self.vlx = -10 * math.sin(radians)
 		self.vly = -10 * math.cos(radians)
 	
+
+		self.value = value
+
 	def update(self):
 		
-		if  0 > self.rect.x or self.rect.x > WIDTH or  0 > self.rect.y or self.rect.y > HEIGHT:
+		if  0 > self.rect.x or self.rect.x > self.game.WIDTH or  0 > self.rect.y or self.rect.y > self.game.HEIGHT:
 			self.kill() 
 
 		# collided Rect--bals
@@ -230,7 +205,7 @@ class Bala(pg.sprite.Sprite):
 
 class Sprite(pg.sprite.Sprite):
 	
-	def __init__(self,x,y,game,bullet):
+	def __init__(self,x,y,game):
 
 		pg.sprite.Sprite.__init__(self)
 		self.rect = self.image.get_rect()
@@ -242,9 +217,6 @@ class Sprite(pg.sprite.Sprite):
 		
 		self.angle = 0		
 		self.game = game
-		self.bullet = bullet
-
-
 		self.effect = []
 
 
@@ -254,18 +226,18 @@ class Sprite(pg.sprite.Sprite):
 
 			sound["shot"].stop()
 			sound["shot"].play()
-			self.effect.append(Effect(self.point_ball,self.angle))
-			self.bullet.add(Bala(self.point_ball,self.angle,self.value,self.game))
+			self.game.effect.add(Effect(self.point_ball,self.angle))
+			self.game.bullets.add(Bala(self.point_ball,self.angle,self.value,self.game))
 
 	def collided(self):
 	
-		if self.rect.right >= WIDTH:
-			self.rect.right = WIDTH
+		if self.rect.right >= self.game.WIDTH:
+			self.rect.right = self.game.WIDTH
 		elif self.rect.left <= 0:
 			self.rect.left = 0
 
-		if self.rect.bottom >= HEIGHT:
-			self.rect.bottom = HEIGHT
+		if self.rect.bottom >= self.game.HEIGHT:
+			self.rect.bottom = self.game.HEIGHT
 		elif self.rect.top <= 0:
 			self.rect.top = 0
 
@@ -293,18 +265,21 @@ class Sprite(pg.sprite.Sprite):
 
 class Enemy(Sprite):
 	
-	def __init__(self,x,y,game,bullet):
+	def __init__(self,x,y,game):
 		self.image_e = image["enemy"]
 		self.image = pg.transform.scale(self.image_e,(40,40))
-		Sprite.__init__(self,x,y,game,bullet)		
+		Sprite.__init__(self,x,y,game)		
 		self.angle = 0
-		self.value = "1"
+		self.value = 1
 
 		self.cont_shot = 0 
 
 	def update(self):
 		
-		self.kill() if pg.sprite.spritecollide(self,self.game.bullets_a,1) else 0
+		for shot in self.game.bullets:
+			if shot.rect.colliderect(self.rect):
+				if shot.value != self.value:
+					self.kill()
 
 		self.move()
 		self.collided()
@@ -358,14 +333,14 @@ class Enemy(Sprite):
 
 class Tank(Sprite):
 
-	def __init__(self,x,y,game,bullet,value = 0):
+	def __init__(self,x,y,game,value = 0):
 		self.value = value
 		self.image_a = image["tank_{}".format(value)]
 		self.image = self.image_a
 		self.image = pg.transform.scale(self.image,(40,40))
 		self.mask = pg.mask.from_surface(self.image)
 
-		Sprite.__init__(self,x,y,game,bullet)
+		Sprite.__init__(self,x,y,game)
 	
 		self.joystick =  pg.joystick.Joystick(value)  if pg.joystick.get_count() > 0 else None
 		self.joystick.init() if self.joystick != None else None
@@ -378,14 +353,13 @@ class Tank(Sprite):
 
 		self.move()
 		self.collided()
-		if pg.sprite.spritecollide(self,self.game.objs,1):
-			sound["box"].play()
 
-		for effect in self.effect:
-			effect.update()
 
-			if effect.limit == 1:
-				self.effect.remove(effect)
+		for shot in self.game.bullets:
+			if shot.rect.colliderect(self.rect):
+				if shot.value != self.value:
+					self.kill()
+
 
 	def rotate(self,xbool):
 
@@ -460,8 +434,8 @@ class Tiled:
 		self.list_polygon = []
 		self.game = game
 			
-	def make_map(self):
-		tmp_surface = pg.Surface((WIDTH,HEIGHT))
+	def make_map(self,SPACEMAP):
+		tmp_surface = pg.Surface(self.game.surface.get_size())
 		tmp_surface.fill(pg.Color("#06095A"))
 
 		for i,lista in enumerate(self.lvl):
@@ -472,11 +446,11 @@ class Tiled:
 				elif tile == "1":
 					self.game.obs.add(Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
 				elif tile == "2":
-					self.game.objs.add(Box(j*SPACEMAP,i *SPACEMAP))
+					self.game.objs.add(Box(j*SPACEMAP,i *SPACEMAP,self.game))
 				elif tile == "3":
-					self.game.sprites.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game,self.game.bullets_e))
+					self.game.sprites.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game))
 				elif tile == "4":
-					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game,self.game.bullets_a)
+					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game)
 					self.game.sprites.add(self.game.player)
 				elif tile == "5":
 					self.game.obs.add(Hexagons(j*SPACEMAP,i*SPACEMAP,tmp_surface,self.game))
@@ -485,51 +459,99 @@ class Tiled:
 
 class Game:
 
-	def __init__(self):
+	def __init__(self,SURFACE,lvl_map):
 
 		self.player = None
 		self.load()
 
+		#Map
+		self.lvl_map = lvl_map
+		SPACEMAP = 42
+
 		#Temp
 		self.lvl = "lvl_0"
-		self.tile = Tiled(lvl_map[self.lvl],self)
+		self.tile = Tiled(self.lvl_map[self.lvl],self)
 		self.mission = Mission(self)
 
-		self.tile_image = self.tile.make_map()
+		#Surface
+		self.surface = SURFACE
+		self.WIDTH = self.surface.get_width()
+		self.HEIGHT =  self.surface.get_height()
+
+		self.tile_image = self.tile.make_map(SPACEMAP)
+
+		#Red
+		#self.server = Server()
+
 
 	def load(self):
 		#__GROUP__#
 		
-		self.bullets_a = pg.sprite.Group()
-		self.bullets_e = pg.sprite.Group()
+		self.bullets = pg.sprite.Group()
 
 		self.sprites = pg.sprite.Group()
 		self.obs = pg.sprite.Group()
 		self.objs = pg.sprite.Group()
+		self.effect = pg.sprite.Group()
 
 	def update(self):
 
 		self.sprites.update()
 		self.objs.update()
-		self.bullets_a.update()
-		self.bullets_e.update()
+		self.bullets.update()
 		self.mission.update()
+		self.effect.update()
+
 
 	def draw(self):
 		
-		SCREEN.blit(self.tile_image,(0,0))
-		self.sprites.draw(SCREEN)
+		self.surface.blit(self.tile_image,(0,0))
+		self.bullets.draw(self.surface)
+		self.objs.draw(self.surface)
+		self.sprites.draw(self.surface)
+		self.effect.draw(self.surface)
+		#self.send(SURFACE)
 
-		self.bullets_a.draw(SCREEN)
-		self.bullets_e.draw(SCREEN)
-		
-		self.objs.draw(SCREEN)
+	#def send(self,surface):
+		#self.server.send(surface)
 
 def loop():
 
+	#__CONSTANS__#
+
+	SPACEMAP = 42
+
+	lvl_0 = [
+
+				"11111111111111111111111",
+				"10000000000000000000001",
+				"10000000000000000000001",			
+				"10000000000000000000001",
+				"10011000111110030110001",
+				"10011000102011000110001",
+				"10000000000000000000001",
+				"10000000000000000000001",
+				"10000000000000000300001",
+				"10400000000000000000001",
+				"10000000000000000000001",
+				"11111111111111111111111",
+
+			]
+
+	lvl_map = {
+		"lvl_0":lvl_0,
+	}
+
+	WIDTH = len(lvl_0[0])*SPACEMAP
+	HEIGHT = len(lvl_0)*SPACEMAP
+
+	SCREEN = pg.display.set_mode((WIDTH,HEIGHT))		
+	pg.display.set_caption(" Lemon Tank ")
+
+
 	exit = False
 	clock = pg.time.Clock()
-	game = Game()
+	game = Game(SCREEN,lvl_map)
 	
 	while exit != True:
 		clock.tick(60)
@@ -538,39 +560,33 @@ def loop():
 				exit = True
 
 			if event.type == pg.KEYDOWN:
-
 				if event.key == pg.K_ESCAPE:
 					exit = True
-				
 				if event.key == pg.K_SPACE:
 					game.player.cannon(True)
-
 				elif event.key == pg.K_LEFT:
 					game.player.rotate(1)
-
 				elif event.key == pg.K_RIGHT:
 					game.player.rotate(-1)
-
 				elif event.key == pg.K_UP:
 					game.player.move_bool = 1
 
-			
 			elif event.type == pg.JOYBUTTONUP:
 				if event.button == 3:
 					game.player.cannon(True)
-			
+
 			if event.type == pg.JOYHATMOTION:
+				
 				game.player.rotate(event.value[0] * -1) if event.value[0] != 0 else 0 
 				game.player.move_bool = 1 if event.value[1] == 1 else 0
-
-
 			if event.type == pg.KEYUP:
 				if event.key == pg.K_UP:
 					game.player.move_bool = 0
 
-		game.draw()
-		game.update()
 		
+		game.update()
+		game.draw()
+
 		pg.display.flip()
 
 if __name__ == "__main__":
