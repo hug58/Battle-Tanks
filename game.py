@@ -1,9 +1,40 @@
+"""
+
+	Hecho por hug58
+
+
+	Ideas: bombas, difrentes formas de disparo, y escudos
+
+"""
+
+
 import random,os,sys,math,socket
 import pygame as pg
 
 pg.display.init()
 pg.mixer.init()
 pg.joystick.init()
+
+
+#__CONSTANS__#
+SPACEMAP = 42
+lvl_0 = [
+			"11111111111111111111111",
+			"10000000000000000000001",
+			"10000000000000000000001",			
+			"10000000000000000000001",
+			"10011000111110030110001",
+			"10011000102011000110001",
+			"10000000000000000000001",
+			"10000000000000000000001",
+			"10000000000000000000001",
+			"10400000000000000000001",
+			"10000000000000000000001",
+			"11111111111111111111111",
+		]
+lvl_map = {
+	"lvl_0":lvl_0,
+}
 
 def resolve_route(route_relative):
 	if hasattr(sys,"_MEIPASS"):
@@ -36,13 +67,10 @@ def rect_group(rect2,group):
 		if rect_collision(obs.rect,rect2):
 			return 1
 
-
-
 image = {	
 			"tank_0":pg.image.load(resolve_route("image/limonero_tank.png")),
 			"tank_1":pg.image.load(resolve_route("image/uvadero_tank.png")),
 			
-			"enemy":pg.image.load(resolve_route("image/uvadero_tank.png")),
 			"bullet_0":pg.image.load(resolve_route("image/bullet_a.png")),
 			"bullet_1":pg.image.load(resolve_route("image/bullet_e.png")),
 			"Rect":pg.image.load(resolve_route("image/Rect.png")),
@@ -57,24 +85,83 @@ sound = {
 
 pg.display.set_icon(image["tank_0"])
 
+class Life:
+	def __init__(self,x,y,value):
+		self.image = image[f"tank_{value}"]
+		self.x = x
+		self.y = y 
+
+class Tablero:
+	def __init__(self,game):
+		self.game = game
+		self.image = pg.Surface((self.game.WIDTH,42))
+		
+		self.vidas_player_1 = [ Life(40*(i+1),0,0) for i in range(3)]
+		self.vidas_player_2 = [Life(782 + 42*(i+1),0,1) for i in range(3)]
+		self.make_tablero(self.image)
+
+	def update(self):
+		for sprites in self.game.sprites:
+			if sprites.value == 0:
+
+				if len(self.vidas_player_1) > 0:
+
+					if sprites.vidas < len(self.vidas_player_1) or sprites.vidas > len(self.vidas_player_1):
+						if sprites.vidas < len(self.vidas_player_1):
+							self.vidas_player_1.pop()
+						elif sprites.vidas > len(self.vidas_player_1):
+							posx = self.vidas_player_1[-1].x
+							self.vidas_player_1.append(Life(posx + 42 ,0,0))
+						
+						self.make_tablero(self.image)
+
+				else:
+					print(f"Jugador {sprites.value + 1 } Perdió!")
+
+			if sprites.value == 1:
+
+				if len(self.vidas_player_2) > 0:
+				
+					if sprites.vidas < len(self.vidas_player_2) or sprites.vidas > len(self.vidas_player_2):
+						if sprites.vidas < len(self.vidas_player_2):
+							self.vidas_player_2.pop()
+						elif sprites.vidas > len(self.vidas_player_2):
+							posx = self.vidas_player_2[-1].x
+							self.vidas_player_2.append(Life(posx + 42 ,0,1))
+
+						self.make_tablero(self.image)
+
+				else:
+					print(f"Jugador {sprites.value + 1 } Perdió!")
+
+	def make_tablero(self,surface):
+
+		self.image.fill(pg.Color("#04441C"))
+
+		for vidas in self.vidas_player_1:
+			surface.blit(vidas.image,(vidas.x,vidas.y))
+		for vidas in self.vidas_player_2:
+			surface.blit(vidas.image,(vidas.x,vidas.y))
+
+
+
+
+	def draw(self,SCREEN):
+		SCREEN.blit(self.image,(0,self.game.HEIGHT))
 
 class Mission:
 	def __init__(self,game):
 		self.game = game
-		self.objetivos = {
-
-			"lvl_0": self.All_kill,
-		}
+		self.objetivos = {"lvl_0": self.All_kill,}
 		self.mission_actual = self.objetivos[self.game.lvl]
 
 	def update(self):
-
 		self.mission_actual()
 		if self.mission_actual() == True:
 			print("¡Mission COMPLET!")
 
 	def All_kill(self):
-		if len(self.game.sprites) > 1:
+		if len(self.game.enemies) > 0:
 			return False
 		else:
 			return True
@@ -266,7 +353,7 @@ class Sprite(pg.sprite.Sprite):
 class Enemy(Sprite):
 	
 	def __init__(self,x,y,game):
-		self.image_e = image["enemy"]
+		self.image_e = image["tank_1"]
 		self.image = pg.transform.scale(self.image_e,(40,40))
 		Sprite.__init__(self,x,y,game)		
 		self.angle = 0
@@ -349,6 +436,9 @@ class Tank(Sprite):
 		self.move_bool = 0
 		self.direction = (0,0)
 
+
+		self.vidas = 3
+
 	def update(self):
 
 		self.move()
@@ -358,7 +448,9 @@ class Tank(Sprite):
 		for shot in self.game.bullets:
 			if shot.rect.colliderect(self.rect):
 				if shot.value != self.value:
-					self.kill()
+					self.vidas -=1
+					self.game.bullets.remove(shot)
+					#self.kill()
 
 
 	def rotate(self,xbool):
@@ -448,7 +540,7 @@ class Tiled:
 				elif tile == "2":
 					self.game.objs.add(Box(j*SPACEMAP,i *SPACEMAP,self.game))
 				elif tile == "3":
-					self.game.sprites.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game))
+					self.game.enemies.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game))
 				elif tile == "4":
 					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game)
 					self.game.sprites.add(self.game.player)
@@ -480,15 +572,12 @@ class Game:
 
 		self.tile_image = self.tile.make_map(SPACEMAP)
 
-		#Red
-		#self.server = Server()
-
 
 	def load(self):
 		#__GROUP__#
 		
 		self.bullets = pg.sprite.Group()
-
+		self.enemies = pg.sprite.Group()
 		self.sprites = pg.sprite.Group()
 		self.obs = pg.sprite.Group()
 		self.objs = pg.sprite.Group()
@@ -496,6 +585,7 @@ class Game:
 
 	def update(self):
 
+		self.enemies.update()
 		self.sprites.update()
 		self.objs.update()
 		self.bullets.update()
@@ -509,38 +599,10 @@ class Game:
 		self.bullets.draw(self.surface)
 		self.objs.draw(self.surface)
 		self.sprites.draw(self.surface)
+		self.enemies.draw(self.surface)
 		self.effect.draw(self.surface)
-		#self.send(SURFACE)
-
-	#def send(self,surface):
-		#self.server.send(surface)
 
 def loop():
-
-	#__CONSTANS__#
-
-	SPACEMAP = 42
-
-	lvl_0 = [
-
-				"11111111111111111111111",
-				"10000000000000000000001",
-				"10000000000000000000001",			
-				"10000000000000000000001",
-				"10011000111110030110001",
-				"10011000102011000110001",
-				"10000000000000000000001",
-				"10000000000000000000001",
-				"10000000000000000300001",
-				"10400000000000000000001",
-				"10000000000000000000001",
-				"11111111111111111111111",
-
-			]
-
-	lvl_map = {
-		"lvl_0":lvl_0,
-	}
 
 	WIDTH = len(lvl_0[0])*SPACEMAP
 	HEIGHT = len(lvl_0)*SPACEMAP
@@ -586,6 +648,8 @@ def loop():
 		
 		game.update()
 		game.draw()
+		
+
 
 		pg.display.flip()
 

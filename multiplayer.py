@@ -1,6 +1,8 @@
 import game
 import pygame as pg
 
+
+
 class Tiled:
 
 	def __init__(self,lvl,game):
@@ -21,7 +23,6 @@ class Tiled:
 					self.game.obs.add(game.Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
 				elif tile == "2":
 					self.game.objs.add(game.Box(j*SPACEMAP,i *SPACEMAP,self.game))
-
 				elif tile == "3":
 					#Primer jugador
 					self.game.sprites.add(game.Tank(j*SPACEMAP,i *SPACEMAP,self.game))
@@ -30,9 +31,9 @@ class Tiled:
 					self.game.sprites.add(game.Tank(j*SPACEMAP,i *SPACEMAP,self.game,1))
 				elif tile == "5":
 					self.game.obs.add(game.Hexagons(j*SPACEMAP,i*SPACEMAP,tmp_surface,self.game))
-					
-		return tmp_surface
 
+
+		return tmp_surface
 
 class Load_game:
 
@@ -51,8 +52,7 @@ class Load_game:
 		#Surface
 		self.surface = SURFACE
 		self.WIDTH = self.surface.get_width()
-		self.HEIGHT =  self.surface.get_height()
-
+		self.HEIGHT =  self.surface.get_height() 
 		self.tile_image = self.tile.make_map(SPACEMAP)
 
 		#Red
@@ -63,7 +63,6 @@ class Load_game:
 		#__GROUP__#
 		
 		self.bullets = pg.sprite.Group()
-
 		self.sprites = pg.sprite.Group()
 		self.obs = pg.sprite.Group()
 		self.objs = pg.sprite.Group()
@@ -85,49 +84,25 @@ class Load_game:
 		self.objs.draw(self.surface)
 		self.sprites.draw(self.surface)
 		self.effect.draw(self.surface)
-		#self.send(SURFACE)
-
-	#def send(self,surface):
-		#self.server.send(surface)
 
 def loop():
 
-	#__CONSTANS__#
+	WIDTH = len(game.lvl_0[0])*game.SPACEMAP
+	HEIGHT = len(game.lvl_0)*game.SPACEMAP
 
-	SPACEMAP = 42
+	SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 42))		
+	SURFACE = pg.Surface((WIDTH,HEIGHT))
 
-	lvl_0 = [
-
-				"11111111111111111111111",
-				"10000000000000000000001",
-				"10000000000000000000001",			
-				"10000000000000000000001",
-				"10011000111110000110001",
-				"10011000102011000110001",
-				"10000000000000000000001",
-				"10000000000000000000001",
-				"10000000000000000000001",
-				"10400000000000000300001",
-				"10000000000000000000001",
-				"11111111111111111111111",
-
-			]
-
-	lvl_map = {
-		"lvl_0":lvl_0,
-	}
-
-	WIDTH = len(lvl_0[0])*SPACEMAP
-	HEIGHT = len(lvl_0)*SPACEMAP
-
-	SCREEN = pg.display.set_mode((WIDTH,HEIGHT))		
 	pg.display.set_caption(" Lemon Tank ")
 
 
 	exit = False
 	clock = pg.time.Clock()
-	game = Load_game(SCREEN,lvl_map)
+	load_game = Load_game(SURFACE,game.lvl_map)
+	tablero = game.Tablero(load_game)
 	
+
+
 	while exit != True:
 		clock.tick(60)
 
@@ -135,7 +110,7 @@ def loop():
 			if event.type == pg.QUIT:
 				exit = True
 
-			for sprites in game.sprites:
+			for sprites in load_game.sprites:
 
 				if event.type == pg.KEYDOWN:
 					if event.key == pg.K_ESCAPE:
@@ -183,8 +158,12 @@ def loop():
 			# 	game.player.rotate(event.value[0] * -1) if event.value[0] != 0 else 0 
 			# 	game.player.move_bool = 1 if event.value[1] == 1 else 0
 				
-		game.update()
-		game.draw()
+		load_game.update()
+		load_game.draw()
+
+		SCREEN.blit(SURFACE,(0,0))
+		tablero.update()
+		tablero.draw(SCREEN)
 
 		pg.display.flip()
 
