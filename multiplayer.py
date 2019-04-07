@@ -1,7 +1,12 @@
 import game
+
 import pygame as pg
+import threading as th
 
-
+pg.display.init()
+pg.mixer.init()
+pg.joystick.init()
+pg.font.init()
 
 class Tiled:
 
@@ -27,9 +32,18 @@ class Tiled:
 
 		return tmp_surface
 
-class Load_game:
+class Load_game(th.Thread):
 
-	def __init__(self,SURFACE,lvl_map):
+	def __init__(self,lvl_map):
+		th.Thread.__init__(self)
+
+
+		WIDTH = len(game.lvl_0[0])*game.SPACEMAP
+		HEIGHT = len(game.lvl_0)*game.SPACEMAP
+
+		self.SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 42))		
+		self.surface = pg.Surface((WIDTH,HEIGHT))
+		pg.display.set_caption(" Lemon Tank ")
 
 		self.load()
 
@@ -42,14 +56,9 @@ class Load_game:
 		self.tile = Tiled(self.lvl_map[self.lvl],self)
 
 		#Surface
-		self.surface = SURFACE
 		self.WIDTH = self.surface.get_width()
 		self.HEIGHT =  self.surface.get_height() 
 		self.tile_image = self.tile.make_map(SPACEMAP)
-
-		#Red
-		#self.server = Server()
-
 
 	def load(self):
 		#__GROUP__#
@@ -67,7 +76,6 @@ class Load_game:
 		
 		self.bullets.update()
 		self.effect.update()
-
 		self.draw()
 
 	def draw(self):
@@ -78,72 +86,69 @@ class Load_game:
 		self.sprites.draw(self.surface)
 		self.effect.draw(self.surface)
 
-def loop():
 
-	WIDTH = len(game.lvl_0[0])*game.SPACEMAP
-	HEIGHT = len(game.lvl_0)*game.SPACEMAP
-
-	SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 42))		
-	SURFACE = pg.Surface((WIDTH,HEIGHT))
-
-	pg.display.set_caption(" Lemon Tank ")
+	def run(self):
 
 
-	exit = False
-	clock = pg.time.Clock()
-	load_game = Load_game(SURFACE,game.lvl_map)
-	tablero = game.Tablero(load_game)
-	
+		exit = False
+		clock = pg.time.Clock()
+		#load_game = Load_game(SURFACE,game.lvl_map)
+		tablero = game.Tablero(self)
 
 
-	while exit != True:
-		clock.tick(60)
+		while exit != True:
+			clock.tick(60)
 
-		for event in pg.event.get():
-			if event.type == pg.QUIT: exit = True
+			for event in pg.event.get():
+				if event.type == pg.QUIT: exit = True
 
-			for sprites in load_game.sprites:
+				for sprites in self.sprites:
 
-				if event.type == pg.KEYDOWN:
-					if event.key == pg.K_ESCAPE: exit = True
-					
-					if sprites.value == 0:
-						if event.key == pg.K_t:
-							if sprites.cannon.load == True: sprites.cannon.fire = True
-						elif event.key == pg.K_a: sprites.rotate(1)
-						elif event.key == pg.K_d: sprites.rotate(-1)
-						elif event.key == pg.K_w: sprites.move_bool = 1
+					if event.type == pg.KEYDOWN:
+						if event.key == pg.K_ESCAPE: exit = True
+						
+						if sprites.value == 0:
+							if event.key == pg.K_t:
+								if sprites.cannon.load == True: sprites.cannon.fire = True
+							elif event.key == pg.K_a: sprites.rotate(1)
+							elif event.key == pg.K_d: sprites.rotate(-1)
+							elif event.key == pg.K_w: sprites.move_bool = 1
 
-					if sprites.value == 1:		
-						if event.key == pg.K_p:
-							if sprites.cannon.load == True: sprites.cannon.fire = True
-						elif event.key == pg.K_j: sprites.rotate(1)
-						elif event.key == pg.K_l: sprites.rotate(-1)
-						elif event.key == pg.K_i: sprites.move_bool = 1
-							
-				if event.type == pg.KEYUP:
-					if sprites.value == 0:
-						if event.key == pg.K_w: sprites.move_bool = 0
-					if sprites.value == 1:
-						if event.key == pg.K_i: sprites.move_bool = 0
+						if sprites.value == 1:		
+							if event.key == pg.K_p:
+								if sprites.cannon.load == True: sprites.cannon.fire = True
+							elif event.key == pg.K_j: sprites.rotate(1)
+							elif event.key == pg.K_l: sprites.rotate(-1)
+							elif event.key == pg.K_i: sprites.move_bool = 1
+								
+					if event.type == pg.KEYUP:
+						if sprites.value == 0:
+							if event.key == pg.K_w: sprites.move_bool = 0
+						if sprites.value == 1:
+							if event.key == pg.K_i: sprites.move_bool = 0
 
 
-			# elif event.type == pg.JOYBUTTONUP:
-			# 	if event.button == 3:
-			# 		game.player.cannon(True)
+					if sprites.joystick != None:
 
-			# if event.type == pg.JOYHATMOTION:
-			# 	game.player.rotate(event.value[0] * -1) if event.value[0] != 0 else 0 
-			# 	game.player.move_bool = 1 if event.value[1] == 1 else 0
-				
-		load_game.update()
+						if event.type == pg.JOYBUTTONUP:
+							if event.button == 3: sprites.cannon.fire = True
+						if event.type == pg.JOYHATMOTION:
+							sprites.rotate(event.value[0] * -1) if event.value[0] != 0 else 0 
+							sprites.move_bool = 1 if event.value[1] == 1 else 0
+						if event.type == pg.KEYUP:
+							if event.key == pg.K_UP:
+								sprites.move_bool = 0
 
-		SCREEN.blit(SURFACE,(0,0))
-		tablero.update()
-		tablero.draw(SCREEN)
 
-		pg.display.flip()
+			self.update()
+			self.SCREEN.blit(self.surface,(0,0))
+			tablero.update()
+			tablero.draw(self.SCREEN)
+			
+			pg.display.flip()
+
+		pg.quit()
 
 if __name__ == "__main__":
-	loop()
+	Load_game(game.lvl_map).run()
 	pg.quit()
