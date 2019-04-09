@@ -27,7 +27,6 @@ class Tiled:
 				elif tile == "1": self.game.obs.add(game.Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
 				elif tile == "2": self.game.obs.add(game.Box(j*SPACEMAP,i *SPACEMAP,self.game))
 				elif tile == "4": self.game.sprites.add(game.Tank(j*SPACEMAP,i *SPACEMAP,self.game,1)) #Segundo jugador
-				elif tile == "5": self.game.obs.add(game.Hexagons(j*SPACEMAP,i*SPACEMAP,tmp_surface,self.game))
 				elif tile == "6": self.game.sprites.add(game.Tank(j*SPACEMAP,i *SPACEMAP,self.game)) #Primer jugador
 
 		return tmp_surface

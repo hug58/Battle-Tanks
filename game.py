@@ -12,8 +12,6 @@
 import random,os,sys,math,socket
 import pygame as pg
 
-import server
-
 pg.display.init()
 pg.mixer.init()
 pg.joystick.init()
@@ -25,15 +23,16 @@ SPACEMAP = 42
 lvl_0 = [
 			"11111111111111111111111",
 			"10022000003000022000001",
-			"10022000000000022000001",			
-			"10000000000000000000001",
-			"10011000111111130110001",
+			"10022000222000022000001",			
+			"10000000000222000000001",
+			"10011022111111130110001",
 			"10011000100001100110001",
-			"10000000002200000022001",
-			"10000000002200000022001",
-			"10000000002200300000001",
+			"10011000002200000022001",
+			"10011000002200000022001",
+			"12221100002200322222221",
 			"10600000002200000040001",
-			"10000000002200000000001",
+			"10001100222222222222001",
+			"12222000002200000000001",
 			"11111111111111111111111",
 		]
 lvl_map = {
@@ -378,7 +377,7 @@ class Sprite(pg.sprite.Sprite):
 	def animation(self):
 		
 			self.image = self.image_a.subsurface(self.frames[self.position],self.size) 			
-			self.image = pg.transform.scale(self.image,(60,60))
+			self.image = pg.transform.scale(self.image,self.size_scale)
 			self.position +=1		
 			if self.position >= len(self.frames): self.position = 0						
 
@@ -386,7 +385,8 @@ class Enemy(Sprite):
 	
 	def __init__(self,x,y,game):
 		self.image_a = image["tank_1"]
-		self.image = pg.transform.scale(self.image_a.subsurface((0,0),(20,20)),(60,60))
+		self.size_scale = (30,30)
+		self.image = pg.transform.scale(self.image_a.subsurface((0,0),(20,20)),self.size_scale)
 		Sprite.__init__(self,x,y,game)		
 		self.angle = 0
 		self.value = 1
@@ -425,16 +425,16 @@ class Enemy(Sprite):
 		elif self.vly < 0: self.angle = 0
 
 		self.image = pg.transform.rotate(self.image,self.angle)
-		self.image = pg.transform.scale(self.image,(60,60))
+		self.image = pg.transform.scale(self.image,self.size_scale)
 
 class Tank(Sprite):
 
 	def __init__(self,x,y,game,value = 0):
 		self.value = value
 		self.image_a = image["tank_{}".format(value)]
-		self.image = pg.transform.scale(self.image_a.subsurface((0,0),(20,20)),(60,60))
+		self.size_scale = (30,30)
+		self.image = pg.transform.scale(self.image_a.subsurface((0,0),(20,20)),self.size_scale)
 		Sprite.__init__(self,x,y,game)
-	
 
 		if  pg.joystick.get_count() > 0 and  pg.joystick.get_count() < 2 and value == 0: self.joystick =  pg.joystick.Joystick(value)
 		elif pg.joystick.get_count() > 1 and value == 1: self.joystick =  pg.joystick.Joystick(value)
@@ -445,7 +445,6 @@ class Tank(Sprite):
 		self.angle = 0
 		self.move_bool = 0
 		self.direction = (0,0)
-
 		self.vidas = 3
 
 	def update(self):
@@ -472,15 +471,15 @@ class Tank(Sprite):
 		
 		self.image = self.image_a.subsurface(self.frames[0],self.size)
 		self.image = pg.transform.rotate(self.image,self.angle)
-		self.image = pg.transform.scale(self.image,(60,60))
+		self.image = pg.transform.scale(self.image,self.size_scale)
 
 	def move(self):
 		
 		radians = math.radians(self.angle)
 
 		if self.move_bool == 1:
-			self.vlx = 7 * - math.sin(radians)
-			self.vly = 7 * - math.cos(radians)
+			self.vlx = 3 * - math.sin(radians)
+			self.vly = 3 * - math.cos(radians)
 			self.animation()
 			self.image = pg.transform.rotate(self.image,self.angle)
 
