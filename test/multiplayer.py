@@ -67,6 +67,7 @@ class Load_game(th.Thread):
 		self.obs = pg.sprite.Group()
 		self.objs = pg.sprite.Group()
 		self.effect = pg.sprite.Group()
+		self.enemies = pg.sprite.Group()
 
 	def update(self):
 
