@@ -1,7 +1,4 @@
-import math
-import pygame as pg
-
-from script.resources import image 
+from script import * 
 
 class Animation:
 	
@@ -25,10 +22,10 @@ class Animation:
 		self.cont +=1
 
 class Effect(pg.sprite.Sprite):
-	def __init__(self,pos,angle,frames,size,key = "wave_shot"):
+	def __init__(self,pos,angle,frames,size,image):
 
 		pg.sprite.Sprite.__init__(self)
-		self.effect = image[key]
+		self.effect = image
 		self.size = size
 
 		self.image = self.effect.subsurface((0,0),self.size)
@@ -57,3 +54,10 @@ class Effect(pg.sprite.Sprite):
 
 		self.rect.x = self.pos[0] - (30 * math.sin(self.radians)) - self.rect.width//2 
 		self.rect.y = self.pos[1] - (35 * math.cos(self.radians)) - self.rect.height //2
+
+
+
+if __name__ == '__main__':
+    print("Este programa es independiente")
+else:
+    print("El modulo {name} ha sido importado".format(name = __name__))

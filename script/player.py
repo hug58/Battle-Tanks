@@ -1,8 +1,5 @@
-import math
-import pygame as pg
 
-
-from script.resources import image 
+from script import * 
 from script.sprite import Sprite
 
 class Tank(Sprite):
@@ -26,13 +23,20 @@ class Tank(Sprite):
 		self.move_bool = 0
 		self.vidas = 3
 
+		self.keys = {
+			'SPACE': False,
+			'LEFT': False,
+			'RIGHT': False,
+			'UP': False,
+		}
+
 
 	def update(self):
-
 
 		self.move()
 		self.collided()
 		self.cannon.update()
+
 		for shot in self.game.bullets:
 			if shot.rect.colliderect(self.rect):
 				if shot.value != self.value:
@@ -72,3 +76,10 @@ class Tank(Sprite):
 		else:
 			self.vlx = 0
 			self.vly = 0
+
+
+
+if __name__ == '__main__':
+	print("Este programa es independiente")
+else:
+	print("El modulo {name} ha sido importado".format(name = __name__))

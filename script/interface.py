@@ -1,6 +1,4 @@
-import pygame as pg 
-
-from script.resources import image 
+from script import *  
 
 Render_text =  lambda text: pg.font.Font("Pixel Digivolve.otf",30).render(text,2,pg.Color("#1CA4F4"))
 
@@ -9,15 +7,15 @@ class Life:
 		self.image = image["tank_{value}".format(value = value )]
 		self.image = self.image.subsurface((0,20),(20,20))
 		self.x = x
-		self.y = y 
+		self.y = y
 
 class Interface:
 	def __init__(self,game):
 		self.game = game
 		self.image = pg.Surface((self.game.WIDTH,42))
-		
+
 		self.vidas_player_1 = [ Life(120 + 40*(i+1),10,0) for i in range(3)]
-		self.vidas_player_2 = [Life(632 + 42*(i+1),10,1) for i in range(3)] if len(self.game.sprites) > 1 else [] 
+		self.vidas_player_2 = [Life(632 + 42*(i+1),10,1) for i in range(3)] if len(self.game.sprites) > 1 else []
 		self.make_tablero(self.image)
 
 	def update(self):
@@ -30,13 +28,13 @@ class Interface:
 						elif sprites.vidas > len(self.vidas_player_1):
 							posx = self.vidas_player_1[-1].x
 							self.vidas_player_1.append(Life(posx + 42 ,0,0))
-						
+
 						self.make_tablero(self.image)
 
 				else:
 
-					value = sprites.value + 1 
-					cadena = "Jugador {value} Perdió!".format(value = value)  
+					value = sprites.value + 1
+					cadena = "Jugador {value} Perdió!".format(value = value)
 
 					print(cadena) if len(self.game.sprites) > 1 else print("GAME OVER")
 					print(cadena) if len(self.game.sprites) > 1 else print("GAME OVER")
@@ -52,8 +50,8 @@ class Interface:
 						self.make_tablero(self.image)
 				else:
 
-					value = sprites.value + 1 
-					cadena = "Jugador {value} Perdió!".format(value = value)  
+					value = sprites.value + 1
+					cadena = "Jugador {value} Perdió!".format(value = value)
 
 					print(cadena)
 
@@ -76,3 +74,9 @@ class Interface:
 
 	def draw(self,SCREEN):
 		SCREEN.blit(self.image,(0,self.game.HEIGHT))
+
+
+if __name__ == '__main__':
+    print("Este programa es independiente")
+else:
+    print("El modulo {name} ha sido importado".format(name = __name__))

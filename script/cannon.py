@@ -1,8 +1,8 @@
-import math 
-import pygame as pg
+#import math 
+#import pygame as pg
 
-from script.resources import image,sound 
 from script.effect import Effect
+from script import *
 
 class Bala(pg.sprite.Sprite):
 
@@ -25,7 +25,8 @@ class Bala(pg.sprite.Sprite):
 
 	def update(self):
 		
-		if  0 > self.rect.x or self.rect.x > self.game.WIDTH or  0 > self.rect.y or self.rect.y > self.game.HEIGHT: self.kill() 
+		if  0 > self.rect.x or self.rect.x > self.game.WIDTH or  0 > self.rect.y or self.rect.y > self.game.HEIGHT: 
+			self.kill() 
 
 
 		#Eliminar balas que chocan entre si
@@ -39,7 +40,8 @@ class Bala(pg.sprite.Sprite):
 
 		# collided Rect--bals
 		#collided Box-balls#
-		if pg.sprite.spritecollide(self,self.game.obs,0) or pg.sprite.spritecollide(self,self.game.objs,0): self.explosion()
+		if pg.sprite.spritecollide(self,self.game.obs,0) or pg.sprite.spritecollide(self,self.game.objs,0): 
+			self.explosion()
 			
 		self.rect.x +=self.vlx
 		self.rect.y += self.vly
@@ -54,7 +56,9 @@ class Bala(pg.sprite.Sprite):
 			3:(0,42),
 		}
 		self.point_ball = ((self.rect.centerx,self.rect.centery))
-		self.game.effect.add(Effect(self.point_ball,self.angle,frames, size = (14,14), key = "explosion"))
+		effect = Effect(self.point_ball,self.angle,frames,(14,14),image["explosion"])
+		self.game.effect.add(effect)
+		
 		self.kill()
 
 class Cannon:
@@ -75,18 +79,67 @@ class Cannon:
 
 	def update(self,automatico = False):
 		
-		if self.cont < 40: 
-			self.cont +=1
-			self.fire = False
+		if self.sprite.gun != True:
 
-		else: self.load = True
+			limit = 40
 
-		if self.fire == True and self.cont >= 40 or automatico == True and self.cont >= 40:
-			self.point_ball = ((self.sprite.rect.centerx,self.sprite.rect.centery))
+			if self.cont < 40: 
+				self.cont +=1
+				self.fire = False
+
+			else: self.load = True
+		
+
+		else:
+
+			limit = 10
+
+			if self.cont < limit: 
+				self.cont +=1
+				self.fire = False
+
+			else: self.load = True
+
+
+		if self.fire == True and self.cont >= 10 or automatico == True and self.cont >= 40:
+			
+			# Codigo cutre, lo voy a mejorar pronto, lo prometo.
+
+			if self.sprite.gun != True:
+				self.queue_shot(1)
+				
+			else:
+				self.queue_shot(2)
+
+	def queue_shot(self,queue):
+
+		pos_gun = 0
+
+
+		for i in range(queue):
+
+			if queue > 1:
+				if i == 0:
+					pos_gun -= 10
+				elif i > 0:
+					pos_gun +=20
+
+
+
+			self.point_ball = ((self.sprite.rect.centerx - pos_gun,self.sprite.rect.centery-pos_gun))
+			
 			sound["shot"].stop()
 			sound["shot"].play()
-			self.game.effect.add(Effect(self.point_ball,self.sprite.angle,self.effect_frames,size = (16,15)))
+			
+			self.game.effect.add(Effect(self.point_ball,self.sprite.angle,self.effect_frames,(16,15),image["wave_shot"]))
 			self.game.bullets.add(Bala(self.point_ball,self.sprite.angle,self.sprite.value,self.game))
-			self.load = False
-			self.cont = 0
 
+
+		self.load = False
+		self.cont = 0
+
+
+if __name__ == '__main__':
+    print("Este programa es independiente")
+else:
+    print("El modulo {name} ha sido importado".format(name = __name__))
