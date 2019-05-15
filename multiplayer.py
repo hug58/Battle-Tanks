@@ -115,8 +115,6 @@ def loop():
 
 			if event.type == pg.KEYDOWN:
 
-				print(event.key)
-				
 
 				if event.key == pg.K_ESCAPE: 
 					exit = True
@@ -124,8 +122,7 @@ def loop():
 				if event.key == pg.K_SPACE:
 					game.player.teclas['SPACE'] = True
 					
-					if game.player.cannon.load == True: 
-						game.player.cannon.fire = True
+
 				
 				if event.key == pg.K_LEFT: 
 					game.player.teclas['LEFT'] = True
@@ -152,8 +149,8 @@ def loop():
 				 	game.player.teclas['LEFT'] = False
 
 				 if event.key == pg.K_UP:
-				 	game.player.teclas['UP'] = False
-
+					 game.player.teclas['UP'] = False
+					 game.player.move_bool = 0
 
 			# elif event.type == pg.JOYBUTTONUP:
 			# 	if event.button == 3: game.player.cannon.fire = True
@@ -162,30 +159,22 @@ def loop():
 			# 	game.player.rotate(event.value[0] * -1) if event.value[0] != 0 else 0 
 			# 	game.player.move_bool = 1 if event.value[1] == 1 else 0
 			
-			if event.type == pg.KEYUP:
-				if event.key == pg.K_UP:
-					game.player.move_bool = 0
-
-		
-
 
 		#-------------- Recibir los datos del jugador 2 y luego asignación correspondiente
 
-		#p2pos = n.send(make_pos((game.player.rect.x,game.player.rect.y)))
-		#p2pos = read_pos(p2pos)
-
-		#game.player_2.rect.x = p2pos[0]
-		#game.player_2.rect.y = p2pos[1]
-
 		p2key = n.send(game.player.teclas)
-		#game.player_2.teclas = p2key
+
+		if game.player.teclas['SPACE'] == True:
+
+			if game.player.cannon.load == True: 
+				game.player.cannon.fire = True
 
 		game.player_2.rect.x = p2key['x']
 		game.player_2.rect.y = p2key['y']
 
-
 		if p2key['SPACE'] == True:
-			if game.player_2.cannon.load == True: 
+			if p2key['fire_load'] == True:
+			#if game.player_2.cannon.load == True: 
 				game.player_2.cannon.fire = True
 
 		if p2key['angle'] != game.player_2.angle:

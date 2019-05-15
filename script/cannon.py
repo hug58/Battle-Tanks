@@ -25,7 +25,8 @@ class Bala(pg.sprite.Sprite):
 
 	def update(self):
 		
-		if  0 > self.rect.x or self.rect.x > self.game.WIDTH or  0 > self.rect.y or self.rect.y > self.game.HEIGHT: 
+		if  (0 > self.rect.x or self.rect.x > self.game.WIDTH 
+			or  0 > self.rect.y or self.rect.y > self.game.HEIGHT): 
 			self.kill() 
 
 
@@ -40,14 +41,14 @@ class Bala(pg.sprite.Sprite):
 
 		# collided Rect--bals
 		#collided Box-balls#
-		if pg.sprite.spritecollide(self,self.game.obs,0) or pg.sprite.spritecollide(self,self.game.objs,0): 
+		if (pg.sprite.spritecollide(self,self.game.obs,0) 
+		or pg.sprite.spritecollide(self,self.game.objs,0)): 
 			self.explosion()
 			
 		self.rect.x +=self.vlx
 		self.rect.y += self.vly
 
 	def explosion(self):
-
 
 		frames = {
 			0:(0,0),
@@ -56,7 +57,12 @@ class Bala(pg.sprite.Sprite):
 			3:(0,42),
 		}
 		self.point_ball = ((self.rect.centerx,self.rect.centery))
-		effect = Effect(self.point_ball,self.angle,frames,(14,14),image["explosion"])
+		
+		effect = Effect(self.point_ball,
+						self.angle,
+						frames,(14,14),
+						image["explosion"])
+
 		self.game.effect.add(effect)
 		
 		self.kill()
@@ -87,8 +93,11 @@ class Cannon:
 				self.cont +=1
 				self.fire = False
 
-			else: self.load = True
+			else: 
+				self.load = True
 		
+
+		#Arma 2 con tiempo de cargar menor
 
 		else:
 
@@ -98,12 +107,15 @@ class Cannon:
 				self.cont +=1
 				self.fire = False
 
-			else: self.load = True
+			else: 
+				self.load = True
 
 
-		if self.fire == True and self.cont >= 10 or automatico == True and self.cont >= 40:
+		if (self.fire == True and self.cont >= 10 
+			or automatico == True and self.cont >= 40):
 			
 			# Codigo cutre, lo voy a mejorar pronto, lo prometo.
+			#bueno tal vez no xD.
 
 			if self.sprite.gun != True:
 				self.queue_shot(1)
@@ -126,13 +138,22 @@ class Cannon:
 
 
 
-			self.point_ball = ((self.sprite.rect.centerx - pos_gun,self.sprite.rect.centery-pos_gun))
+			self.point_ball = ((self.sprite.rect.centerx - 
+								pos_gun,
+								self.sprite.rect.centery-pos_gun))
 			
 			sound["shot"].stop()
 			sound["shot"].play()
 			
-			self.game.effect.add(Effect(self.point_ball,self.sprite.angle,self.effect_frames,(16,15),image["wave_shot"]))
-			self.game.bullets.add(Bala(self.point_ball,self.sprite.angle,self.sprite.value,self.game))
+			self.game.effect.add(Effect(self.point_ball,
+										self.sprite.angle,
+										self.effect_frames,
+										(16,15),image["wave_shot"]))
+
+			self.game.bullets.add(Bala(self.point_ball,
+										self.sprite.angle,
+										self.sprite.value,
+										self.game))
 
 
 		self.load = False

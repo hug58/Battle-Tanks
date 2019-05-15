@@ -34,6 +34,7 @@ key = {
     'y': 300,
 
     'angle':0,
+    'fire_load':False,
 
 }
 
@@ -47,6 +48,8 @@ key_2 = {
     'y': 60,
 
     'angle':0,
+    'fire_load':False,
+
 
 }
 

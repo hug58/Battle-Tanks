@@ -34,6 +34,7 @@ class Tank(Sprite):
 			'y':200,
 
 			'angle':0,
+			'fire_load':False
 
 		}
 
@@ -55,6 +56,7 @@ class Tank(Sprite):
 		
 		self.teclas['x'] = self.rect.x
 		self.teclas['y'] = self.rect.y
+		self.teclas['fire_load'] = self.cannon.load
 		self.teclas['angle'] = self.angle
 		
 	def rotate(self,xbool):
