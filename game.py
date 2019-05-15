@@ -96,12 +96,17 @@ def loop():
 				exit = True
 
 			if event.type == pg.KEYDOWN:
-				if event.key == pg.K_ESCAPE: exit = True
+				if event.key == pg.K_ESCAPE: 
+					exit = True
 				if event.key == pg.K_SPACE:
-					if game.player.cannon.load == True: game.player.cannon.fire = True
-				elif event.key == pg.K_LEFT: game.player.rotate(1)
-				elif event.key == pg.K_RIGHT: game.player.rotate(-1)
-				elif event.key == pg.K_UP: game.player.move_bool = 1
+					if game.player.cannon.load == True: 
+						game.player.cannon.fire = True
+				elif event.key == pg.K_LEFT: 
+					game.player.rotate(1)
+				elif event.key == pg.K_RIGHT: 
+					game.player.rotate(-1)
+				elif event.key == pg.K_UP: 
+					game.player.move_bool = 1
 
 			elif event.type == pg.JOYBUTTONUP:
 				if event.button == 3: game.player.cannon.fire = True

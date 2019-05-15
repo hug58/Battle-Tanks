@@ -23,17 +23,25 @@ class Tank(Sprite):
 		self.move_bool = 0
 		self.vidas = 3
 
-		self.keys = {
-			'SPACE': False,
-			'LEFT': False,
-			'RIGHT': False,
-			'UP': False,
+		self.teclas = {
+
+			'RIGHT':False,
+			'LEFT':False,
+			'SPACE':False,
+			'UP':False,
+			
+			'x':200,
+			'y':200,
+
+			'angle':0,
+
 		}
 
 
 	def update(self):
 
 		self.move()
+
 		self.collided()
 		self.cannon.update()
 
@@ -44,8 +52,13 @@ class Tank(Sprite):
 					shot.explosion()
 					self.game.bullets.remove(shot)
 
-
+		
+		self.teclas['x'] = self.rect.x
+		self.teclas['y'] = self.rect.y
+		self.teclas['angle'] = self.angle
+		
 	def rotate(self,xbool):
+
 
 		if xbool == 1:
 			self.angle += 90
@@ -55,11 +68,8 @@ class Tank(Sprite):
 			if self.angle <= -360: self.angle = 0
 		
 		self.image = self.image_a.subsurface(self.frames[0],self.size)
-		self.image = pg.transform.scale(self.image,self.size_scale)
-		self.image = pg.transform.rotate(self.image,self.angle)
-
-
-		#self.rect.centery = self.pos[1]
+		
+		self.rotate_img()
 
 	def move(self):
 		
@@ -68,16 +78,22 @@ class Tank(Sprite):
 		if self.move_bool == 1:
 			self.vlx = 3 * - math.sin(radians)
 			self.vly = 3 * - math.cos(radians)
+
+
+			
 			self.animation()
 
-			self.image = pg.transform.scale(self.image,self.size_scale)
-			self.image = pg.transform.rotate(self.image,self.angle)
+			#rotar la animación angulo actual
+			self.rotate_img()
+
 
 		else:
 			self.vlx = 0
 			self.vly = 0
 
-
+	def rotate_img(self):
+		self.image = pg.transform.scale(self.image,self.size_scale)
+		self.image = pg.transform.rotate(self.image,self.angle)
 
 if __name__ == '__main__':
 	print("Este programa es independiente")
