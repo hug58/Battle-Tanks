@@ -12,11 +12,9 @@ from server_tcp.network import Network
 class Game:
 
 	def __init__(self,SURFACE,lvl_map):
-
 		self.player = None
 		self.player_2 = None
 		self.load()
-
 
 		#Map
 		self.lvl_map = lvl_map
@@ -113,6 +111,16 @@ class Game:
 
 
 def loop():
+
+	# -----------Iniciando  Cliente
+	HOST = input('ENTER IP OF THE SERVER: ')
+	PORT = input('ENTER PORT IP OF THE SERVER: ')
+    
+	print("\n")
+
+	n = Network(HOST,PORT)
+
+
 	map_tmp = lvl_map['lvl_0']
 
 	# -----calculando el ancho y alto de la superficie 
@@ -128,9 +136,8 @@ def loop():
 	clock = pg.time.Clock()
 	game = Game(SURFACE,lvl_map)
 	
-	# -----------Iniciando  Cliente
+	#-----------
 
-	n = Network()
 	start_key = n.get_key()
 
 	game.player.data = start_key
