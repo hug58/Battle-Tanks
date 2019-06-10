@@ -1,4 +1,5 @@
-from script import * 
+import pygame as pg 
+import math
 
 class Animation:
 	
@@ -58,6 +59,4 @@ class Effect(pg.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    print("Este programa es independiente")
-else:
-    print("El modulo {name} ha sido importado".format(name = __name__))
+	pass

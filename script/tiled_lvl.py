@@ -1,45 +1,34 @@
 
-from script import * 
+import pygame as pg
 
+from script import resolve_route
 from script.elements import Rect,Box,Gun
 from script.enemy import Enemy
 from script.player import Tank
 
-lvl_0 = [
-			"11111111111111111111111",
-			"10022000000000022000001",
-			"10022000220800022004001",			
-			"10000000000022000000001",
-			"10011022111111100110001",
-			"10011000100001100110001",
-			"10011000002200000022001",
-			"10011000002200000022001",
-			"12221100002200022222221",
-			"10000000002200000000001",
-			"10001100222222222222001",
-			"12222000002200000000001",
-			"11111111111111111111111",
-		]
+#----FILA == NUMERO DE ELEMENTOS[STRINGS] DEL ARRAY
+#----COLUMNA == NUMERO DE CARACTERES DEL STRING DEL ELEMENTO
 
-lvl_1 = [
-			"11111111111111111111111",
-			"10022000000000022000001",
-			"10022000222000022004001",			
-			"10000000000222000000001",
-			"10011022111111100110001",
-			"10011000100001100110001",
-			"10011000002200000022001",
-			"10011000002200000022001",
-			"12221006002200022222221",
-			"10000000002200000000001",
-			"10001100222222222222001",
-			"12222000002200000000001",
-			"11111111111111111111111",
-		]
+def quitar_ultimo_elemento(string):
+	if string[-1] == '\n':
+		return string[:-1]
+	else:
+		return string
+
+relative_route = resolve_route('maps','.',)
+archivo_0 = open(f'{relative_route}/map_0.txt','r')
+archivo_1 = open(f'{relative_route}/map_1.txt','r')
+
+map_0 = list(map(quitar_ultimo_elemento,archivo_0.readlines()))
+map_1 = list(map(quitar_ultimo_elemento,archivo_1.readlines()))
+
+archivo_0.close()
+archivo_1.close()
+
 
 lvl_map = {
-	"lvl_0":lvl_0,
-	"lvl_1":lvl_1,
+	"lvl_0":map_0,
+	"lvl_1":map_1,
 }
 
 #__CONSTANS__#
@@ -47,9 +36,9 @@ SPACEMAP = 42
 
 class Tiled:
 
-	def __init__(self,lvl,game):
-		self.lvl = lvl
-		self.list_polygon = []
+	def __init__(self,map_lvl,game):
+		self.map_lvl = map_lvl
+		#self.list_polygon = []
 		self.game = game
 			
 	def make_map(self,SPACEMAP):
@@ -58,26 +47,33 @@ class Tiled:
 		tmp_surface.fill(pg.Color("#000000"))
 		#tmp_surface.fill((0,0,0))
 
-		for i,lista in enumerate(self.lvl):
+
+		#Devuelve una fila[string] y numero de la fila actual
+		for i,lista in enumerate(self.map_lvl):
+			#Devuelve una columna[Caracter] y numero de la columna actual[Posicion del elemento]		
 			for j,tile in enumerate(lista):
 
 				if tile == "0": pass
-				elif tile == "1": self.game.obs.add(Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
-				elif tile == "2": self.game.obs.add(Box(j*SPACEMAP,i *SPACEMAP,self.game))
-				elif tile == "3": self.game.enemies.add(Enemy(j*SPACEMAP,i *SPACEMAP,self.game))
+				elif tile == "1": 
+					self.game.obs.add(Rect(j*SPACEMAP,i *SPACEMAP,self.game,tmp_surface))
+				elif tile == "2": 
+					box = Box(j*SPACEMAP,i *SPACEMAP)
+					self.game.obs.add(box)
+					self.game.objs.add(box)
+					
+				elif tile == "3": 
+					self.game.enemies.add(Enemy(j*SPACEMAP,i *SPACEMAP))
 				elif tile == "4": 
-					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP,self.game)
+					self.game.player = Tank(j*SPACEMAP,i *SPACEMAP)
 					self.game.sprites.add(self.game.player)
 				elif tile == "6":
-					self.game.player_2 = Tank(j*SPACEMAP,i *SPACEMAP,self.game,value=1)
+					self.game.player_2 = Tank(j*SPACEMAP,i *SPACEMAP,value=1)
 					self.game.sprites.add(self.game.player_2)
-
-				elif tile == "8": self.game.objs.add(Gun(j*SPACEMAP,i *SPACEMAP,self.game))
+				elif tile == "8": 
+					self.game.objs.add(Gun(j*SPACEMAP,i *SPACEMAP,self.game))
 
 		return tmp_surface
 
 
 if __name__ == '__main__':
-    print("Este programa es independiente")
-else:
-    print("El modulo {name} ha sido importado".format(name = __name__))
+    pass

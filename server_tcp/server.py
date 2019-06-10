@@ -1,11 +1,9 @@
 import socket
-import threading as th
 import sys 
 import json
-
 from _thread import * 
 
-import package
+from server_tcp import package
 
 HOST = "localhost"
 PORT = 10030
@@ -23,7 +21,6 @@ except socket.error as e:
 s.listen(2)
 print("Waiting for a connection, Server Started")
 
-#pos = [(300,300),(60,300)]
 key = {
 	'SPACE': False,
 	'LEFT': False,
@@ -35,7 +32,8 @@ key = {
 
     'angle':0,
     'fire_load':False,
-
+    'player': 0,
+    'lifes': 10,
 }
 
 key_2 = {
@@ -49,51 +47,40 @@ key_2 = {
 
     'angle':0,
     'fire_load':False,
-
+    'player': 1,
+    'lifes': 10,
 
 }
 
 keys_players = [key,key_2]
 
-# def read_pos(str):
-#     str = str.split(",")
-#     return int(str[0]),int(str[1])       
-
-# def make_pos(tup):
-#     return str(tup[0]) + "," + str(tup[1])
-
-
 def threaded_client(conn, player):
 
-    #data_s = package.pack(make_pos(pos[player]))
     data_s = package.pack(keys_players[player])
     conn.send(data_s)
-
     reply = ""
 
     while 1:
         try:
-            data_c = package.unpack(conn.recv(2048))
-            #data = read_pos(data_c)
 
-            #pos[player] = data 
-            data = data_c
-            keys_players[player] = data
+            try:
+                data_c = package.unpack(conn.recv(2048))            
+            except:
+                break
 
-            if not data:
+            keys_players[player] = data_c
+
+            if not data_c:
                 print("Disconected")
                 break
 
             else:
 
                 if player == 1:
-                    #reply = pos[0]
                     reply = keys_players[0]
                 else:
-                    #reply = pos[1]
                     reply = keys_players[1]
 
-            #data_s = package.pack(make_pos(reply))
             data_s = package.pack(reply)
             conn.send(data_s)
 
@@ -104,13 +91,22 @@ def threaded_client(conn, player):
     print("Lost Connection ")
     conn.close()
 
-currentPlayer = 0
 
-while 1:
 
-    conn,addr = s.accept()
-    print("Connectd to", addr)
+def main():
 
-    #th.Thread( target = threaded_client,args= (conn,)).start()
-    start_new_thread(threaded_client, (conn, currentPlayer))
-    currentPlayer += 1
+    currentPlayer = 0
+
+    while 1:
+
+        conn,addr = s.accept()
+        print("Connectd to", addr)
+
+        #th.Thread( target = threaded_client,args= (conn,)).start()
+        start_new_thread(threaded_client, (conn, currentPlayer))
+        currentPlayer += 1
+
+
+if __name__ == "__main__":
+    main()
+

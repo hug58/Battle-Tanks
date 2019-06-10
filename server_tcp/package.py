@@ -5,5 +5,5 @@ def unpack(data):
 
 def pack(data):
     data = json.dumps(data)
-    return bytes(data,"utf-8")
+    return bytes(data,'utf-8')
 

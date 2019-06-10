@@ -19,6 +19,6 @@ class Mission:
 
 
 if __name__ == '__main__':
-    print("Este programa es independiente")
-else:
-    print("El modulo {name} ha sido importado".format(name = __name__))
+    pass 
+
+	

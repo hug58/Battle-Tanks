@@ -1,22 +1,17 @@
-from script import * 
+import pygame as pg
+from script import image,sound
 
 class Box(pg.sprite.Sprite):
 
-	def __init__(self,x,y,game):
+	def __init__(self,x,y):
 
-		pg.sprite.Sprite.__init__(self,game.objs)
+		pg.sprite.Sprite.__init__(self)
 		self.box_img = image["rect"]
 		self.image = self.box_img.subsurface((0,0),(42,42))
 		self.rect = pg.Rect((x,y),self.image.get_size())
-		self.game = game
 
 	def update(self):
-
-		for bala in self.game.bullets:
-			if self.rect.colliderect(bala.rect):
-				bala.explosion()
-				self.kill()
-
+		pass
 
 class Gun(pg.sprite.Sprite):
 
@@ -33,12 +28,7 @@ class Gun(pg.sprite.Sprite):
 		for sprite in self.game.sprites:
 			if self.rect.colliderect(sprite.rect):
 				sprite.sprite_powerup('tank_0_gun')
-				
 				self.kill()
-
-		#for bala in self.game.bullets:
-		#	if self.rect.colliderect(bala.rect):
-		#		bala.explosion()
 
 
 class Rect(pg.sprite.Sprite):
@@ -59,6 +49,4 @@ class Rect(pg.sprite.Sprite):
 
 
 if __name__ == '__main__':
-    print("Este programa es independiente")
-else:
-    print("El modulo {name} ha sido importado".format(name = __name__))
+    pass 
