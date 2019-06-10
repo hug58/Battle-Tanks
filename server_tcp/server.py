@@ -5,21 +5,7 @@ from _thread import *
 
 from server_tcp import package
 
-HOST = "localhost"
-PORT = 10030
 
-
-s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-
-try:
-    s.bind((HOST,PORT))
-
-except socket.error as e:
-    print(str(e))
-
-s.listen(2)
-print("Waiting for a connection, Server Started")
 
 key = {
 	'SPACE': False,
@@ -93,7 +79,25 @@ def threaded_client(conn, player):
 
 
 
-def main():
+def main(port,IP= '127.0.0.1'):
+
+
+    HOST = IP
+    PORT = int(port)
+
+
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+
+    try:
+        s.bind((HOST,PORT))
+
+    except socket.error as e:
+        print(str(e))
+
+    s.listen(2)
+    print("Waiting for a connection, Server Started")
+
 
     currentPlayer = 0
 

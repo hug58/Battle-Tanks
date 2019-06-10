@@ -80,7 +80,7 @@ class Interface:
 						if lifes[-1].clear == True:
 							lifes.pop()
 					elif player.lifes_all > len(lifes):
-						posx = lifes[-1].x
+						posx = lifes[-1].rect.x
 						lifes.append(lifes(posx + 42 ,0,0))
 					self.make_tablero(self.image)
 			else:
