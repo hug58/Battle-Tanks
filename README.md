@@ -3,7 +3,6 @@
 <img src = "https://github.com/hug58/Lemon-Tank/blob/master/screenshot.png">
 
 
-<h3>Inicia el server.py de la carpeta server_tcp </h3>
 <br>
 
 <h2> <strong> Keys </strong> </h2>
