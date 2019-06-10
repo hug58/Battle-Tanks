@@ -3,7 +3,6 @@
 import pygame as pg
 #Package Game
 from script.tiled_lvl import Tiled,SPACEMAP,lvl_map
-from script.mission import Mission
 from script.interface import Interface
 
 #paquete script/sub paquete server
