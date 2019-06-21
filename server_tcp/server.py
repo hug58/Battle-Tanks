@@ -5,8 +5,6 @@ from _thread import *
 
 from server_tcp import package
 
-
-
 key = {
 	'SPACE': False,
 	'LEFT': False,
@@ -19,7 +17,7 @@ key = {
     'angle':0,
     'fire_load':False,
     'player': 0,
-    'lifes': 10,
+    'lifes': 3,
 }
 
 key_2 = {
@@ -34,7 +32,7 @@ key_2 = {
     'angle':0,
     'fire_load':False,
     'player': 1,
-    'lifes': 10,
+    'lifes': 3,
 
 }
 
@@ -61,7 +59,6 @@ def threaded_client(conn, player):
                 break
 
             else:
-
                 if player == 1:
                     reply = keys_players[0]
                 else:
@@ -96,7 +93,7 @@ def main(port,IP= '127.0.0.1'):
         print(str(e))
 
     s.listen(2)
-    print("Waiting for a connection, Server Started")
+    print('Waiting for a connection, Server Started')
 
 
     currentPlayer = 0
@@ -104,13 +101,13 @@ def main(port,IP= '127.0.0.1'):
     while 1:
 
         conn,addr = s.accept()
-        print("Connectd to", addr)
+        print('Connectd to', addr)
 
         #th.Thread( target = threaded_client,args= (conn,)).start()
         start_new_thread(threaded_client, (conn, currentPlayer))
         currentPlayer += 1
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
 

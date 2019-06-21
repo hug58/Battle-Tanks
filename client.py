@@ -112,9 +112,11 @@ class Game:
 def loop():
 
 	# -----------Iniciando  Cliente
+
 	HOST = input('ENTER IP OF THE SERVER: ')
-	PORT = input('ENTER PORT IP OF THE SERVER: ')
-    
+	#PORT = input('ENTER PORT IP OF THE SERVER: ')
+	PORT = 10030
+
 	print("\n")
 
 	n = Network(HOST,PORT)
@@ -127,6 +129,7 @@ def loop():
 	WIDTH = len(map_tmp[0])*SPACEMAP
 	HEIGHT = len(map_tmp)*SPACEMAP
 
+	#---- + 42 para la interface de abajo
 	SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 42))		
 	SURFACE = pg.Surface((WIDTH,HEIGHT))
 
@@ -139,39 +142,42 @@ def loop():
 
 	start_key = n.get_key()
 
-	game.player.data = start_key
-
-	game.player.rect.x = start_key['x']
-	game.player.rect.y = start_key['y']
-	
+	game.player.data = start_key	
 	game.player.value = start_key['player'] 
+	game.player.dict_socket(start_key)
 	game.player.value_player() 
+
 
 	p2key = n.send(game.player.data)
 	game.player_2.value = p2key['player'] 	
+	game.player.dict_socket(p2key)
 	game.player_2.value_player() 
 
 
 	interface = Interface(game)
-	pg.display.set_caption(f" Lemon Tank - PLAYER {start_key['player'] + 1} ")
+	pg.display.set_caption(" Lemon Tank - PLAYER {value} "
+						.format(value = start_key['player'] + 1))
+	
+	#pg.display.set_caption(f" Lemon Tank - PLAYER {start_key['player'] + 1} ")
 
 
 	while exit != True:
 		
 		clock.tick(60)
+
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
 				exit = True
 
 
 			if event.type == pg.KEYDOWN:
-
+				
 				if event.key == pg.K_ESCAPE: 
 					exit = True
 				
 				if event.key == pg.K_SPACE:
 					game.player.data['SPACE'] = True
-					
+
 				if event.key == pg.K_LEFT: 
 					game.player.data['LEFT'] = True
 					game.player.rotate(1)
@@ -179,25 +185,25 @@ def loop():
 				if event.key == pg.K_RIGHT: 
 					game.player.data['RIGHT'] = True
 					game.player.rotate(-1)
-				
+
 				if event.key == pg.K_UP: 
 					game.player.data['UP'] = True					
 					game.player.move_bool = 1
 
 			if event.type == pg.KEYUP:				
 
-				 if event.key == pg.K_SPACE:
-				 	game.player.data['SPACE'] = False
+				if event.key == pg.K_SPACE:
+					game.player.data['SPACE'] = False
 				 
-				 if event.key == pg.K_RIGHT:
-				 	game.player.data['RIGHT'] = False
+				if event.key == pg.K_RIGHT:
+					game.player.data['RIGHT'] = False
 				 
-				 if event.key == pg.K_LEFT:
-				 	game.player.data['LEFT'] = False
+				if event.key == pg.K_LEFT:
+					game.player.data['LEFT'] = False
 
-				 if event.key == pg.K_UP:
-					 game.player.data['UP'] = False
-					 game.player.move_bool = 0
+				if event.key == pg.K_UP:
+					game.player.data['UP'] = False
+					game.player.move_bool = 0
 
 
 		#-------------- Recibir los datos del jugador 2 y luego asignación correspondiente

@@ -20,6 +20,8 @@ class Tank(Sprite):
 		self.move_bool = 0
 		self.lifes_all = 10
 
+		self.dead_animation = None
+
 		self.data = {
 
 			'RIGHT':False,
@@ -33,7 +35,7 @@ class Tank(Sprite):
 			'angle':0,
 			'fire_load':False,
 			'player': None,
-			'lifes':self.lifes_all,
+			'lifes':0,
 		}
 
 
@@ -41,13 +43,14 @@ class Tank(Sprite):
 
 		if self.lifes_all == 0:
 			self.dead(self.value)
-			self.lifes_all = -1
-
-		elif self.lifes_all < 0:
-			self.animation()
+			self.dead_animation = True
 
 		elif  -1 < self.lifes_all > 0:	
 			self.move()
+
+
+		if self.dead_animation:
+			self.animation()
 		
 		self.update_cannon()
 
@@ -94,10 +97,21 @@ class Tank(Sprite):
 
 
 	def value_player(self):
-		self.image_a = image[f'tank_{self.value}']
+		#self.image_a = image[f'tank_{self.value}']
+		self.image_a = image['tank_{}'.format(self.value)]
+		
 		self.size_scale = (50,50)
 		self.image = self.image_a.subsurface((0,0),(20,20))
 		self.image = pg.transform.scale(self.image,self.size_scale)
+
+
+	def dict_socket(self,data):
+		self.rect.x = self.data['x']
+		self.rect.y = self.data['y']
+		self.load = self.data['fire_load']
+		self.angle = self.data['angle']
+		self.lifes_all = self.data['lifes']
+
 
 if __name__ == '__main__':
 	pass

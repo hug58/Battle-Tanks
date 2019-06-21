@@ -12,8 +12,8 @@ def Render_text(text):
 
 class Life:
 	def __init__(self,x,y,value):
-		#self.image = image['tank_{value}'.format(value = value )]
-		self.image_a = image[f'barra_{value}']
+		self.image = image['tank_{}'.format(value)]
+		self.image_a = image['barra_{}'.format(value)]
 		self.current_frames = 0
 		self.frames = { 0:(0,0),
 						1:(5,0),

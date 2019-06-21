@@ -8,7 +8,7 @@ class Bala(pg.sprite.Sprite):
 	def __init__(self,point,angle,value,effect):
 		
 		pg.sprite.Sprite.__init__(self)
-		self.image_b = image["bullet_{}".format(value)]
+		self.image_b = image['bullet_{}'.format(value)]
 		self.image = pg.transform.rotate(self.image_b,angle)
 		self.rect = self.image.get_rect()
 		radians = math.radians(angle)
@@ -39,7 +39,7 @@ class Bala(pg.sprite.Sprite):
 		effect = Effect(self.point_ball,
 						self.angle,
 						frames,(14,14),
-						image["explosion"])
+						image['explosion'])
 
 		self.effect.add(effect)
 		
@@ -111,13 +111,13 @@ class Cannon:
 								pos_gun,
 								self.rect.centery-pos_gun))
 			
-			sound["shot"].stop()
-			sound["shot"].play()
+			sound['shot'].stop()
+			sound['shot'].play()
 			
 			self.effect.add(Effect(self.point_ball,
 										self.angle,
 										self.effect_frames,
-										(16,15),image["wave_shot"]))
+										(16,15),image['wave_shot']))
 
 			self.bullets.add(Bala(self.point_ball,
 										self.angle,

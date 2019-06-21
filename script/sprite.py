@@ -79,7 +79,8 @@ class Sprite(pg.sprite.Sprite,Cannon):
 
 
 	def dead(self,value):
-		self.image_a = image[f'dead_{value}'] 
+		#self.image_a = image[f'dead_{value}'] 
+		self.image_a = image['dead_{}'.format(value)] 
 
 class Powerup:
 	def __init__(self,key_img):
