@@ -38,5 +38,6 @@
 <br>
 
 
- <h3> Rota con las flecha izquierda (LEFT) Y derecha(right) y 
-  avanza con la flecha de arriba (up),dispara en la barra de espacio (space) </h3>
+ <h3> Rota con las flecha izquierda (LEFT) Y derecha(right) </h3> 
+ <h3> avanza con la flecha de arriba (up) </h3>
+ <h3>dispara en la barra de espacio (space) </h3>
