@@ -93,8 +93,8 @@ class Game:
 	def draw(self):
 		self.surface.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 		
-		for objs in self.objs:
-			self.surface.blit(objs.image,self.camera.apply(objs))
+		#for objs in self.objs:
+		#	self.surface.blit(objs.image,self.camera.apply(objs))
 
 		for player in self.sprites:		
 			self.draw_bullet(player)

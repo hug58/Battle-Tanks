@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="35" height="25" tilewidth="32" tileheight="32" nextobjectid="130">
+<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="35" height="25" tilewidth="32" tileheight="32" nextobjectid="136">
  <tileset firstgid="1" source="tiles.tsx"/>
  <layer name="piso" width="35" height="25">
   <data encoding="csv">
@@ -48,7 +48,7 @@
   <object id="22" name="brick" x="255.5" y="383.5" width="32.5" height="32.75"/>
   <object id="23" name="brick" x="95.5" y="320" width="32.25" height="96"/>
   <object id="26" name="brick" x="672" y="192" width="32" height="32"/>
-  <object id="27" name="brick" x="703.75" y="64" width="32.375" height="32.125"/>
+  <object id="27" name="brick" x="799.625" y="96.125" width="128.125" height="32.125"/>
   <object id="30" name="brick" x="352.091" y="224" width="31.9091" height="31.6364"/>
   <object id="32" name="brick" x="192" y="256" width="32" height="32"/>
   <object id="34" name="brick" x="160" y="255.909" width="31.9091" height="32.0909"/>
@@ -144,9 +144,14 @@
   <object id="127" name="brick" x="767.47" y="511.966" width="31.875" height="32"/>
   <object id="128" name="brick" x="767.685" y="479.818" width="31.875" height="32"/>
   <object id="129" name="brick" x="735.595" y="480" width="31.875" height="32"/>
+  <object id="131" name="block" x="799.542" y="127.125" width="31.9167" height="31.75"/>
+  <object id="132" name="block" x="799.042" y="256.625" width="31.9167" height="287.75"/>
+  <object id="133" name="block" x="1055.04" y="96.625" width="63.9167" height="31.75"/>
+  <object id="134" name="block" x="800.042" y="640.625" width="31.9167" height="31.75"/>
+  <object id="135" name="block" x="800.042" y="672.125" width="128.917" height="31.75"/>
  </objectgroup>
  <objectgroup name="blocks"/>
- <layer name="ladrillos" width="35" height="25" visible="0">
+ <layer name="ladrillos" width="35" height="25">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
