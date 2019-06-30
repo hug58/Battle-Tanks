@@ -7,7 +7,8 @@
 
 <h3> REQUIERE PYTMX </h3>
 <p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
-	también si desea puede usar json, pero por comodidad prefiero este </p> 
+    La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
+</p> 
 
 
 <h3> Multijugador </h3>
