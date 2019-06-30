@@ -10,7 +10,7 @@
     pip install pygame
     pip install pytmx
     
-   Obviamente también se necesita python y pygame
+   
 </p> 
 
 
