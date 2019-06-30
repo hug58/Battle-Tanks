@@ -3,15 +3,18 @@
 
 <img src = "https://github.com/hug58/Lemon-Tank/blob/master/screenshot.png">
 
-<br>
-
-<h3> REQUIERE PYTMX </h3>
+## Dependencias 
 <p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
     La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
+
+    pip install pygame
+    pip install pytmx
+    
+   Obviamente también se necesita python y pygame
 </p> 
 
 
-<h3> Multijugador </h3>
+## Multijugador
 
 <p> Quería crear un juego que fuera multijugador pero que no se limitara a una sola pc, osea, crear un socket que transmitiera información de estado de un jugador al otro (red lan si prefieres), y el resultado a quedado bastante bien. </p> 
   
@@ -46,13 +49,18 @@
 </p>
 
 
-<h3> Más sobre el socket </h3>
+## Controles 
+
+* Izquierda: Rotar hacia la izquierda(-)  
+* Derecha: Rotar hacia la derecha(+)  
+* Space: Fuego!
+* Arriba: Mover   
+
+
+## Más sobre el socket
 
 <p>
  Gran parte del socket lo hice del tutorial de Tech With Tim:
 <a href="https://www.youtube.com/watch?v=F257x_E6H4k&t=2s">Tutorial</a>
 </p>
-
-<br>
-
 
