@@ -40,6 +40,16 @@
   El cliente lo vuelve a convertir en un dict de python, se comprueba qué teclas an sido pulsadas, y luego
   realiza la acción.
 
+
+
+</p>
+
+
+<h3> Más sobre el socket </h3>
+
+<p>
+ Gran parte del socket lo hice del tutorial de Tech With Tim:
+<a href="https://www.youtube.com/watch?v=F257x_E6H4k&t=2s">Tutorial</a>
 </p>
 
 <br>
