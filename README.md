@@ -5,6 +5,10 @@
 
 <br>
 
+<h3> REQUIERE PYTMX </h3>
+<p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
+	también si desea puede usar json, pero por comodidad prefiero este </p> 
+
 <p> Un juego bastante sencillo usando pygame, y el módulo socket para el multijugador,
   el cliente-servidor es bastante simple. </p> 
   
