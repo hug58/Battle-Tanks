@@ -11,8 +11,8 @@ key = {
 	'RIGHT': False,
 	'UP': False,
 
-    'x': 300,
-    'y': 300,
+    'x': 323,
+    'y': 677,
 
     'angle':0,
     'fire_load':False,
@@ -26,8 +26,8 @@ key_2 = {
 	'RIGHT': False,
 	'UP': False,
     
-    'x': 60,
-    'y': 60,
+    'x': 403,
+    'y': 160,
 
     'angle':0,
     'fire_load':False,

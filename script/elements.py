@@ -1,14 +1,14 @@
 import pygame as pg
 from script import image,sound
 
-class Box(pg.sprite.Sprite):
+class Brick(pg.sprite.Sprite):
 
-	def __init__(self,x,y):
+	def __init__(self,x,y,width,height):
 
 		pg.sprite.Sprite.__init__(self)
-		self.box_img = image['rect']
-		self.image = self.box_img.subsurface((0,0),(42,42))
-		self.rect = pg.Rect((x,y),self.image.get_size())
+		self.box_img = image['tiles']
+		self.image = self.box_img.subsurface((0,0),(32,32))
+		self.rect = pg.Rect((x,y),(width,height))
 
 	def update(self):
 		pass
@@ -31,7 +31,7 @@ class Gun(pg.sprite.Sprite):
 				self.kill()
 
 
-class Rect(pg.sprite.Sprite):
+class Block(pg.sprite.Sprite):
 
 	def __init__(self,x,y,game,surface):
 		pg.sprite.Sprite.__init__(self)

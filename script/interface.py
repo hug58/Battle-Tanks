@@ -43,13 +43,29 @@ class Life:
 		self.image = pg.transform.scale(self.image,(20,20))		
 
 
-class Interface:
+
+class GameOver:
 	def __init__(self,game):
 		self.game = game
-		self.image = pg.Surface((self.game.WIDTH,42))
+		self.surface = pg.Surface((self.game.WIDTH,self.game.HEIGHT))
 
+	def update(self):
+		pass 
+
+
+	def draw(self):
+		pass 
+
+
+class Interface:
+	def __init__(self,game,SIZE):
+		self.game = game
+		self.WIDTH = SIZE[0]
+		self.HEIGHT = SIZE[1]
+
+		self.image = pg.Surface((self.WIDTH,42))
+		
 		pos_x = [260,660]
-
 		if self.game.player.value != 0:
 			pos_x.reverse()
 
@@ -63,6 +79,7 @@ class Interface:
 		lifes_num = self.game.player.lifes_all
 		life_list = [Life(x + 20*(i+1),10,value) for i in range(lifes_num)]
 		return life_list
+
 
 	def update(self,SCREEN):
 		self.life_cont_player(self.game.player,self.player_lifes,self.game.player.value)
@@ -94,15 +111,16 @@ class Interface:
 		player1 = Render_text('Player 1')
 		surface.blit(player1,(100,0))
 		player2 = Render_text('Player 2')
-		surface.blit(player2,(500,0))
+		surface.blit(player2,(400,0))
 
 		for vidas in self.player_lifes:
 			surface.blit(vidas.image,vidas.rect)
 		for vidas in self.player2_lifes:
 			surface.blit(vidas.image,vidas.rect)
 
+
 	def draw(self,SCREEN):
-		SCREEN.blit(self.image,(0,self.game.HEIGHT))
+		SCREEN.blit(self.image,(0,self.HEIGHT))
 
 
 if __name__ == '__main__':

@@ -1,12 +1,14 @@
 
 import pygame as pg
+import pytmx 
 
 from script import resolve_route
-from script.elements import Rect,Box,Gun
-from script.player import Tank
+
+
 
 #----FILA == NUMERO DE ELEMENTOS[STRINGS] DEL ARRAY
 #----COLUMNA == NUMERO DE CARACTERES DEL STRING DEL ELEMENTO
+"""
 
 def quitar_ultimo_elemento(string):
 	if string[-1] == '\n':
@@ -37,7 +39,6 @@ lvl_map = {
 SPACEMAP = 42
 
 class Tiled:
-
 	def __init__(self,map_lvl,game):
 		self.map_lvl = map_lvl
 		#self.list_polygon = []
@@ -75,6 +76,32 @@ class Tiled:
 					self.game.objs.add(Gun(j*SPACEMAP,i *SPACEMAP,self.game))
 
 		return tmp_surface
+"""
+
+class TileMap:
+	def __init__(self,filename):
+		ruta = resolve_route(filename)
+		tm = pytmx.load_pygame(ruta,pixelaplha = True)
+		self.WIDTH = tm.width * tm.tilewidth
+		self.HEIGHT = tm.height * tm.tileheight
+		self.tmxdata = tm
+
+	def render(self,surface):
+		ti = self.tmxdata.get_tile_image_by_gid
+		for layer in self.tmxdata.visible_layers:
+			if isinstance(layer,pytmx.TiledTileLayer):
+				for x,y,gid in layer:
+					tile = ti(gid)
+					if tile: surface.blit(tile,(x* self.tmxdata.tilewidth,y* self.tmxdata.tileheight))
+						
+	def make_map(self):
+
+		temp_surface = pg.Surface((self.WIDTH,self.HEIGHT)) #pg.SRCALPHA
+		temp_surface.set_colorkey((0,0,0))	
+		self.render(temp_surface)
+		#temp_surface.convert_alpha()
+		
+		return temp_surface
 
 
 if __name__ == '__main__':
