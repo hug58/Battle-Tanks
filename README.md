@@ -7,9 +7,10 @@
 <p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
     La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
 
+```bash
     pip install pygame
     pip install pytmx
-    
+```
    
 </p> 
 
@@ -21,7 +22,7 @@
   <p> El socket funciona enviando y recibiendo un diccionario del jugador (Player 1) 
   al otro jugador (player 2) y viceversa, de esta forma cada jugador recibe información del contrario. <p>
   
- 
+ ```python
     key = {
 	  'SPACE': False,
 	  'LEFT': False,
@@ -36,8 +37,7 @@
     'lifes': 3,
     }
 
-
-
+```
 
  
 
