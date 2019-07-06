@@ -8,7 +8,7 @@ from script.tiled_lvl import TileMap
 from script.interface import Interface
 from script.camera import Camera
 from script.player import Tank
-from script.elements import Brick
+from script.elements import Brick,Block
 
 #paquete script/sub paquete server
 from server_tcp.network import Network
@@ -63,6 +63,14 @@ class Game:
 
 					self.obs.add(brick)
 					self.objs.add(brick)
+
+			elif tile_object.name == 'block':
+				block = Block(tile_object.x,
+								tile_object.y,
+								tile_object.width,
+								tile_object.height,)
+
+				self.obs.add(block)
 			
 			elif tile_object.name == 'Player_1': 
 				self.player = Tank(tile_object.x,tile_object.y)
@@ -93,8 +101,8 @@ class Game:
 	def draw(self):
 		self.surface.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 		
-		#for objs in self.objs:
-		#	self.surface.blit(objs.image,self.camera.apply(objs))
+		for objs in self.objs:
+			self.surface.blit(objs.image,self.camera.apply(objs))
 
 		for player in self.sprites:		
 			self.draw_bullet(player)
@@ -270,7 +278,6 @@ def loop():
 		if game.player.data['SPACE'] == True:
 
 			if game.player.load == True: 
-				print("FIRE!")
 				game.player.fire = True
 
 

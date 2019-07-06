@@ -1,5 +1,5 @@
 import pygame as pg
-import os.path
+import os.path,sys
 
 pg.display.init()
 pg.font.init()
@@ -9,6 +9,9 @@ pg.font.init()
 # resolve_route = lambda relative,route: os.path.join(os.path.abspath(relative),route)
 
 def resolve_route(rute,relative = '.'):
+	if hasattr(sys,'_MEIPASS'):
+		return os.path.join(sys._MEIPASS,rute)
+
 	return os.path.join(os.path.abspath(relative),rute)
 
 pg.mixer.init()

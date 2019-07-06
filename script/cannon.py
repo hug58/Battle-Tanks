@@ -48,7 +48,7 @@ class Bala(pg.sprite.Sprite):
 
 class Cannon:
 	def __init__(self):
-		self.cont = 30
+		self.cont = 10
 		self.fire = False
 		self.load = False
 
@@ -67,9 +67,9 @@ class Cannon:
 
 		if self.gun != True:
 
-			limit = 40
+			limit = 10
 
-			if self.cont < 40: 
+			if self.cont < limit: 
 				self.cont +=1
 				self.fire = False
 			else: 
@@ -78,7 +78,7 @@ class Cannon:
 		#Arma 2 con tiempo de cargar menor
 
 		else:
-			limit = 10
+			limit = 20
 			if self.cont < limit: 
 				self.cont +=1
 				self.fire = False
@@ -99,6 +99,8 @@ class Cannon:
 
 	def queue_shot(self,queue):
 		pos_gun = 0
+
+		"""Cantidad de balas que se disparan al mismo tiempo"""
 		for i in range(queue):
 
 			if queue > 1:

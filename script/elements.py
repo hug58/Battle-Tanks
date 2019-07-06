@@ -33,18 +33,9 @@ class Gun(pg.sprite.Sprite):
 
 class Block(pg.sprite.Sprite):
 
-	def __init__(self,x,y,game,surface):
+	def __init__(self,x,y,width,height):
 		pg.sprite.Sprite.__init__(self)
-		width = 42
-		height = 42
-		self.game = game
-		self.image = image['rect']
-		self.image =  self.image.subsurface((0,42),(width,height))
-		self.rect = self.image.get_rect()
-		self.rect.x = x
-		self.rect.y = y
-		self.rect.x,y= x,y
-		surface.blit(self.image,self.rect)
+		self.rect = pg.Rect((x,y),(width,height))
 
 
 
