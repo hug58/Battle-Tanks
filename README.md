@@ -1,17 +1,28 @@
 
-<<<<<<< HEAD
+
 
 <img src = "https://github.com/hug58/Lemon-Tank/blob/master/screenshot.png">
 
-<br>
+## Dependencias 
+<p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
+    La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
 
-<p> Un juego bastante sencillo usando pygame, y el módulo socket para el multijugador,
-  el cliente-servidor es bastante simple. </p> 
+```bash
+    pip install pygame
+    pip install pytmx
+```
+   
+</p> 
+
+
+## Multijugador
+
+<p> Quería crear un juego que fuera multijugador pero que no se limitara a una sola pc, osea, crear un socket que transmitiera información de estado de un jugador al otro (red lan si prefieres), y el resultado a quedado bastante bien. </p> 
   
   <p> El socket funciona enviando y recibiendo un diccionario del jugador (Player 1) 
   al otro jugador (player 2) y viceversa, de esta forma cada jugador recibe información del contrario. <p>
   
- 
+ ```python
     key = {
 	  'SPACE': False,
 	  'LEFT': False,
@@ -26,61 +37,30 @@
     'lifes': 3,
     }
 
-
-
-
- 
-
-  El cliente lo vuelve a convertir en un dict de python, se comprueba qué teclas an sido pulsadas, y luego
-  realiza la acción.
-
-</p>
-
-<br>
-
-=======
-
-<img src = "https://github.com/hug58/Lemon-Tank/blob/master/screenshot.png">
-
-<br>
-
-<p> Un juego bastante sencillo usando pygame, y el módulo socket para el multijugador,
-  el cliente-servidor es bastante simple. </p> 
-  
-  <p> El socket funciona enviando y recibiendo un diccionario del jugador (Player 1) 
-  al otro jugador (player 2) y viceversa, de esta forma cada jugador recibe información del contrario. <p>
-  
- 
-    key = {
-	  'SPACE': False,
-	  'LEFT': False,
-	  'RIGHT': False,
-	  'UP': False,
-    'x': 300,
-    'y': 300,
-
-    'angle':0,
-    'fire_load':False,
-    'player': 0,
-    'lifes': 3,
-    }
-
-
->>>>>>> 6a0995a616bddb2960b13117ce129f9ece4bb4f3
-
- <h3> Rota con las flecha izquierda (LEFT) Y derecha(right) y 
-  avanza con la flecha de arriba (up),dispara en la barra de espacio (space) </h3>
+```
 
  
 
   El cliente lo vuelve a convertir en un dict de python, se comprueba qué teclas an sido pulsadas, y luego
   realiza la acción.
 
+
+
 </p>
 
-<br>
+
+## Controles 
+
+* Izquierda: Rotar hacia la izquierda(-)  
+* Derecha: Rotar hacia la derecha(+)  
+* Space: Fuego!
+* Arriba: Mover   
 
 
- <h3> Rota con las flecha izquierda (LEFT) Y derecha(right) </h3> 
- <h3> avanza con la flecha de arriba (up) </h3>
- <h3>dispara en la barra de espacio (space) </h3>
+## Más sobre el socket
+
+<p>
+ Gran parte del socket lo hice del tutorial de Tech With Tim:
+<a href="https://www.youtube.com/watch?v=F257x_E6H4k&t=2s">Tutorial</a>
+</p>
+
