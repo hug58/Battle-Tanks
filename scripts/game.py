@@ -99,7 +99,11 @@ class Game(Client):
 
 		self._bullets = pg.sprite.Group()
 
-		self._text_damage = Text((self.WIDTH//2,self.HEIGHT -16),f'Damage: {self.player._damage} %')
+		#self._text_damage = Text((self.WIDTH//2,self.HEIGHT),f'Damage: {self.player._damage} %')
+
+
+	def _damage(self):
+		return self.player._damage
 
 
 	def _load(self):
@@ -129,20 +133,16 @@ class Game(Client):
 		actualizar self._players
 		'''
 
-		for bullet in self._bullets:
-			#self._collided_bullet(bullet)
-			self._collided_bullet_with_player(bullet)
-			bullet.update()
-
-
 		if self._data:
 			self._players = self._data
 		else:
 			pass
 
+
 		for i in self._players.keys():
 			player = self._players[i]
-			player.update()
+			#player.update()
+
 
 			if player._fire == True:
 				self._bullets.add(self._add_obj(Bullet,player))
@@ -150,23 +150,23 @@ class Game(Client):
 
 
 
+		for bullet in self._bullets:
+			self._collided_bullet(bullet)
+			bullet.update()
+			self._collided_bullet_with_player(bullet)
 
-		self.player.update()
-		#self._bullets.update()
 
-		self._move()
+
 		self._collided_player(self.player)
-		self._send(self.player)
+
 
 		if self.player._fire == True:
 			self._bullets.add(self._add_obj(Bullet,self.player)) 
-
-		self.player._fire = False
-
+			self.player._fire = False
 
 
-
-		self._text_damage.update(f'Damage: {self.player._damage} %')
+		self._move()
+		self._send(self.player)
 
 
 	def _move(self):
@@ -188,15 +188,25 @@ class Game(Client):
 				)
 
 
+		radians = math.radians(self.player._angle)
+		self.player.vlx = self.player._VL * - math.sin(radians)
+		self.player.vly = self.player._VL * - math.cos(radians)
+
 		if key[pg.K_w]:
-			radians = math.radians(self.player._angle)
-			self.player.vlx = self.player._VL * - math.sin(radians)
-			self.player.vly = self.player._VL * - math.cos(radians)
 
-			self.player.rect.x += self.player.vlx
-			self.player.rect.y += self.player.vly
+			self.player.rect.centerx += self.player.vlx
+			self.player.rect.centery += self.player.vly
 
-			self.player._rect_cannon.center = self.player.rect.center
+
+		if key[pg.K_s]:
+
+			self.player.rect.centerx -= self.player.vlx
+			self.player.rect.centery -= self.player.vly
+
+
+		self.player._rect_interno.center = self.player.rect.center
+		self.player._rect_cannon.center = self.player._rect_interno.center
+
 
 
 
@@ -221,6 +231,7 @@ class Game(Client):
 		#self.SCREEN.fill((0,0,0))
 
 
+
 		for i in self._players.keys():
 			player = self._players[i]
 
@@ -231,11 +242,15 @@ class Game(Client):
 			self.SCREEN.blit(cannon,self.camera.apply_rect(player._rect_cannon))
 
 
+			#pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
+			#pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(player._rect_cannon),1)
+
+
+
 		for brick in self._bricks:
 			self.SCREEN.blit(brick.image,self.camera.apply(brick))
 
 
-		self._bullets.draw(self.SCREEN)
 
 
 		'''
@@ -253,11 +268,12 @@ class Game(Client):
 		Debugenado los rectangulos
 		'''
 		
-		pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply(self.player),1)
-		pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player._rect_cannon),1)
+		#pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
+		#pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player._rect_cannon),1)
 
 
-		self._text_damage.draw(self.SCREEN)
+		for bullet in self._bullets:
+			self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
 
 
 	def _collided_player(self,player):
@@ -277,19 +293,19 @@ class Game(Client):
 
 	def _add_obj(self,Object,player):
 
-		_rect_cannon = self.camera.apply_rect(player._rect_cannon)
-		position = (_rect_cannon.center)
+		#_rect_cannon = self.camera.apply_rect(player._rect_cannon)
+		position = (player._rect_cannon.center)
 		return Object(position,player._angle_cannon,player._num_player)
 		 
 
 
 	def _collided_bullet(self,bullet):
 
-		if bullet.rect.left  <= 0 or bullet.rect.right >= (self.tile.WIDTH - 32):
+		if bullet.rect.left  <= 32 or bullet.rect.right >= (self.tile.WIDTH - 32):
 			if bullet._done != True:
 				bullet.explosion = True
 
-		if bullet.rect.top <= 0 or  bullet.rect.bottom >= (self.tile.HEIGHT - 32):
+		if bullet.rect.top <= 32 or  bullet.rect.bottom >= (self.tile.HEIGHT - 32):
 			if bullet._done != True:
 				bullet.explosion = True
 
@@ -305,10 +321,18 @@ class Game(Client):
 
 	def _collided_bullet_with_player(self,bullet):
 
-		if self.player._num_player != bullet._num_player:
-			if bullet.rect.colliderect(self.player.rect):
-				self.player._damage +=1
-				bullet.explosion = True
+
+
+		if self._number_player != bullet._num_player:
+
+			if len(self._bullets) > 0:
+				print(f"Bullet x,y: {bullet.rect.center} Player: {self.player._rect_interno}")
+
+			if self.player._rect_interno.colliderect(bullet.rect):
+				self.player._damage += 2.5
+				print("collision!")
+				bullet.kill()
+				#bullet.explosion = True
 
 
 		else:
@@ -316,6 +340,6 @@ class Game(Client):
 				player = self._players[i]
 
 				if player._num_player != bullet._num_player:
-					if bullet.rect.colliderect(player.rect):
+					if player._rect_interno.colliderect(bullet.rect):
 						bullet.explosion = True
 						break

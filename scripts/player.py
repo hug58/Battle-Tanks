@@ -54,16 +54,28 @@ class Bullet(pg.sprite.Sprite,Animation):
 		self.image = pg.transform.rotate(self.image,angle)
 
 		self.rect = self.image.get_rect()
-		self._VL = 16
+		self._VL = 20
 
 		self.rect.center = position
+
+
 		self.radians = math.radians(angle)
+
+
+		self.rect.centerx +=  math.sin(self.radians) * -30 
+		self.rect.centery +=  math.cos(self.radians) * -30
+
+
 		self.vlx = self._VL * - math.sin(self.radians)
 		self.vly = self._VL * - math.cos(self.radians)
 
 		self.explosion = False 
 
 		self._num_player = num_player
+
+
+		self._delay = 2
+
 
 	def update(self):
 
@@ -93,6 +105,10 @@ class Player(Cannon):
 	def __init__(self,position):
 
 		self.rect = pg.Rect(position,(64,64))
+
+		self._rect_interno = pg.Rect(0,0,40,40)
+		self._rect_interno.center = self.rect.center
+
 		self._angle = 0
 		self._VL = 12
 		self.vlx = 0
@@ -111,7 +127,8 @@ class Player(Cannon):
 
 
 	def update(self):
-		self._rect_cannon.center = self.rect.center 
+		self._rect_interno.center = self.rect.center 
+		self._rect_cannon.center = self._rect_interno.center
 
 
 	def rotate(self,xbool,angle,surface,rect):

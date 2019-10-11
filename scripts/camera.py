@@ -16,7 +16,7 @@ class Camera:
 	
 	def update(self,target):
 		#Targe en negativo para que en caso de llegar al extremo left (positivo) , el movimiento sea 0
-		x =-target.rect.x + int(self.screen_size[0]/2)
+		x = -target.rect.x + int(self.screen_size[0]/2)
 		y = -target.rect.y + int(self.screen_size[1]/2)
 		#print(x)
 		#limit scrolling to map size
@@ -28,3 +28,4 @@ class Camera:
 		x = max(-(self.width - self.screen_size[0]),x)#right
 		y = max(-(self.height-self.screen_size[1]),y)
 		self.camera = pg.Rect(x,y,self.width,self.height)
+
