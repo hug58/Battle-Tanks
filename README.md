@@ -12,17 +12,17 @@
     Python 3.6 +
 
 ```
+```
 
 <p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
     La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
-
-</p>
 
 ```bash
     pip install pygame
     pip install pytmx
 ```
    
+</p> 
 
 
 ## Multijugador

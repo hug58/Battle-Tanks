@@ -8,16 +8,14 @@ def loop():
 			
 	#HOST = input('IP: ')
 
-	host_name = socket.gethostname()
-	HOST = socket.gethostbyname(host_name)
-
+	pc_name = socket.gethostname()
+	HOST = socket.gethostbyname(pc_name)
 	PORT = 10030
 
 	print('\n')
-
 	map_tmp = 'ASSETS/maps/zone_0.tmx'
 
-	WIDTH,HEIGHT = 640,480
+	WIDTH,HEIGHT = 400,400
 	SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
 
 	exit = False
@@ -25,10 +23,8 @@ def loop():
 
 	SURFACE = pg.Surface((WIDTH,HEIGHT))
 	game = Game((HOST,PORT),map_tmp,SURFACE)
-	
 
 	text_damage = Text((WIDTH//2,HEIGHT +16 ),f'Damage: {game._damage()} %')
-
 
 
 	while exit != True:
@@ -49,8 +45,9 @@ def loop():
 
 		SCREEN.blit(SURFACE,(0,0))
 
-
 		pg.display.flip()
+
+
 
 if __name__ == '__main__':
 	loop()

@@ -3,7 +3,10 @@ import math
 
 from scripts import ROUTE
 
+
 class Animation:
+
+
 	def __init__(self,image,frames):
 		
 		self._frames = frames
@@ -28,8 +31,12 @@ class Animation:
 		if self._current_frame == len(self._frames): 
 			self._done =True
 
+
 class Cannon:
+
+
 	def __init__(self,position):
+
 		self._rect_cannon = pg.Rect(0,0,20*2,28*2)
 		self._rect_cannon.center = position
 		self._angle_cannon = 0 
@@ -48,7 +55,6 @@ class Bullet(pg.sprite.Sprite,Animation):
 		frames = {0:((0,0),size_e),1:((0,16),size_e),2:((0,32),size_e)}
 		Animation.__init__(self,explosion,frames)
 
-
 		self.image = pg.Surface((4,8))
 		self.image.fill((2,218,136)) if num_player == 0 else self.image.fill((188,2,218))
 		self.image = pg.transform.rotate(self.image,angle)
@@ -57,10 +63,7 @@ class Bullet(pg.sprite.Sprite,Animation):
 		self._VL = 20
 
 		self.rect.center = position
-
-
 		self.radians = math.radians(angle)
-
 
 		self.rect.centerx +=  math.sin(self.radians) * -30 
 		self.rect.centery +=  math.cos(self.radians) * -30

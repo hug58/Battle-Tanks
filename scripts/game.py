@@ -3,7 +3,7 @@
 import pygame as pg
 import pytmx 
 import math
-import numpy as np 
+#import numpy as np 
 
 #locals
 from scripts import ROUTE,Text
@@ -108,19 +108,20 @@ class Game(Client):
 
 	def _load(self):
 	
-		self._bricks= []
+		#self._bricks= []
+		self._bricks = pg.sprite.Group()
 
 		for tile_object in self.tile.tmxdata.objects:
 			
 			if tile_object.name == 'player':
 				self.POSITIONS[tile_object.id] = (tile_object.x,tile_object.y)
 			elif tile_object.name == 'brick':
-				self._bricks.append(
+				self._bricks.add(
 					Brick(	tile_object.x,tile_object.y,tile_object.width,tile_object.height)
 					)
 
 
-		self._bricks = np.array(self._bricks)
+		#self._bricks = np.array(self._bricks)
 			
 
 	def update(self):
@@ -167,6 +168,15 @@ class Game(Client):
 
 		self._move()
 		self._send(self.player)
+
+		sprites = pg.sprite.groupcollide(self._bricks,self._bullets,1,0)
+		if sprites:
+
+			for i in sprites.keys():
+				for bullet in sprites[i]:
+					bullet.explosion = True
+
+			sprites = {}
 
 
 	def _move(self):
@@ -268,8 +278,8 @@ class Game(Client):
 		Debugenado los rectangulos
 		'''
 		
-		#pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
-		#pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player._rect_cannon),1)
+		pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
+		pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player._rect_cannon),1)
 
 
 		for bullet in self._bullets:
@@ -321,16 +331,10 @@ class Game(Client):
 
 	def _collided_bullet_with_player(self,bullet):
 
-
-
 		if self._number_player != bullet._num_player:
-
-			if len(self._bullets) > 0:
-				print(f"Bullet x,y: {bullet.rect.center} Player: {self.player._rect_interno}")
 
 			if self.player._rect_interno.colliderect(bullet.rect):
 				self.player._damage += 2.5
-				print("collision!")
 				bullet.kill()
 				#bullet.explosion = True
 
@@ -343,3 +347,22 @@ class Game(Client):
 					if player._rect_interno.colliderect(bullet.rect):
 						bullet.explosion = True
 						break
+
+		
+
+	def _collided_object_with_player(self,object):
+
+
+		if self.player._rect_interno.colliderect(object.rect):
+
+			if self.player.rect.left <= object.rect.left:
+				self.player.rect.left = object.rect.left
+
+			elif self.player.rect.right >= object.rect.right:
+				self.player.rect.right = object.rect.left
+
+			if self.player.rect.top <= object.rect.top:
+				self.player.rect.top = object.rect.top
+
+			elif self.player.rect.bottom >= object.rect.bottom:
+				self.player.rect.bottom = object.rect.bottom
