@@ -6,10 +6,12 @@ import socket
 
 def loop():
 			
-	#HOST = input('IP: ')
+	HOST = input('IP: ')
+	
+	#pc_name = socket.gethostname()
+	#HOST = socket.gethostbyname(pc_name)
+		
 
-	pc_name = socket.gethostname()
-	HOST = socket.gethostbyname(pc_name)
 	PORT = 10030
 
 	print('\n')
