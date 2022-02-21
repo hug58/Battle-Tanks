@@ -1,28 +1,17 @@
 import json
 import pickle
 
-BUFFER_SIZE = 1024
+BUFFER_SIZE = 124
 
 
 
 def _unpack(data):
-
-
-
 	try:
 		return pickle.loads(data)
-		#return json.loads(data)	
 	except:
-		print("FINIS PATRIA")
-		#print("\n\n\n")
-		#print(data)
-
-	
+		return None
 
 def _pack(data):
-
 	data = pickle.dumps(data)
-
 	return data
-	#return bytes(data,'utf-8')
 

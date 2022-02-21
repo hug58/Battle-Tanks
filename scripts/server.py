@@ -57,15 +57,11 @@ class Server:
 				if len(self._clients) < 10:
 					conn,addr = self._socket.accept()
 					conn.setblocking(False)
-					
-					print(f'Conectado con {addr}')
-
+					print(f'Connect with {addr}')
 					"""
-					Numero del cliente
+					Number player
 					"""
-
 					conn.send(_pack(self._current_player))
-
 					client = (conn,[addr,self._current_player])
 
 					self._current_player +=1
@@ -81,9 +77,6 @@ class Server:
 
 
 	def _recevie(self):
-
-
-
 		while 1:
 			if len(self._clients) > 0:
 				for conn,addr in self._clients:
@@ -93,43 +86,32 @@ class Server:
 							data = _unpack(data)
 							data._num_player = addr[1]
 							self._data[data._num_player] = data
-
 							self._messages_client(data,conn)
 
 						else:
-
 							'''
 							Por el momento solo elimina el cliente cuando terminan todos, hay que repararlo.
 							'''
-
 							print(f'Ya no recibo datos de {addr[0]}')
 							print("Eliminando cliente...")
 							#conn.close()
 							
 							#Eliminando jugador...
 							self._data.pop(addr[1])
-							
-
 							self._clients.remove((conn,addr))
 							print(f'Numero de conexiones: {len(self._clients)}' )
-
-
 					except:
 						pass
 						
 
 	def _messages_client(self,data,client):
-		
 		data_pack = _pack(data)				
 		for conn,addr in self._clients:
 			try:
 				if conn != client:
 					conn.send(data_pack)
 			except:
-				#print(f"Error con el cliente {client[0]}")
-
 				if client in self._clients:
-					#print(f"¡El cliente {client[0]} Ha sido eliminado!")
 					self._clients.remove(client)
 
 
