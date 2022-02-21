@@ -125,10 +125,7 @@ class Game(Client):
 			
 
 	def update(self):
-
 		self.camera.update(self.player)
-
-
 		'''
 		Si self._data no está vacio,
 		actualizar self._players
@@ -156,8 +153,6 @@ class Game(Client):
 			bullet.update()
 			self._collided_bullet_with_player(bullet)
 
-
-
 		self._collided_player(self.player)
 
 
@@ -180,12 +175,10 @@ class Game(Client):
 
 
 	def _move(self):
-
 		key = pg.key.get_pressed()
 
 		if key[pg.K_d]:
 			self.player._rotate(-1, TANK[self._number_player][0])
-
 			self.player._angle_cannon,self.player._rect_cannon = self.player.rotate(
 				-1,self.player._angle_cannon,TANK[self._number_player][1],self.player._rect_cannon
 				)
@@ -236,32 +229,17 @@ class Game(Client):
 
 
 	def draw(self):
-
 		self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
-		#self.SCREEN.fill((0,0,0))
-
-
 
 		for i in self._players.keys():
 			player = self._players[i]
-
 			tank = player._draw(TANK[player._num_player][0],player._angle)
 			cannon = player._draw(TANK[player._num_player][1],player._angle_cannon)
-
 			self.SCREEN.blit(tank,self.camera.apply(player))
 			self.SCREEN.blit(cannon,self.camera.apply_rect(player._rect_cannon))
 
-
-			#pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
-			#pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(player._rect_cannon),1)
-
-
-
 		for brick in self._bricks:
 			self.SCREEN.blit(brick.image,self.camera.apply(brick))
-
-
-
 
 		'''
 		Dibujando el tank y el cannon por separado
@@ -269,8 +247,6 @@ class Game(Client):
 
 		tank = self.player._draw(TANK[self._number_player][0],self.player._angle)
 		cannon = self.player._draw(TANK[self._number_player][1],self.player._angle_cannon)
-
-
 		self.SCREEN.blit(tank,self.camera.apply(self.player))
 		self.SCREEN.blit(cannon,self.camera.apply_rect(self.player._rect_cannon))
 
@@ -281,13 +257,11 @@ class Game(Client):
 		pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
 		pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player._rect_cannon),1)
 
-
 		for bullet in self._bullets:
 			self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
 
 
 	def _collided_player(self,player):
-
 		if player.rect.left <= 0:
 			player.rect.left = 0
 
@@ -302,15 +276,12 @@ class Game(Client):
 
 
 	def _add_obj(self,Object,player):
-
-		#_rect_cannon = self.camera.apply_rect(player._rect_cannon)
 		position = (player._rect_cannon.center)
 		return Object(position,player._angle_cannon,player._num_player)
 		 
 
 
 	def _collided_bullet(self,bullet):
-
 		if bullet.rect.left  <= 32 or bullet.rect.right >= (self.tile.WIDTH - 32):
 			if bullet._done != True:
 				bullet.explosion = True
@@ -319,30 +290,14 @@ class Game(Client):
 			if bullet._done != True:
 				bullet.explosion = True
 
-
-		"""
-		if (bullet.rect.left <= 8 or bullet.rect.right >= (self.tile.WIDTH - 30) or
-		 bullet.rect.top <= 8 or bullet.rect.bottom >=(self.tile.HEIGHT-30)):
-			
-			if bullet._done != True:
-				bullet.explosion = True
-
-		"""
-
 	def _collided_bullet_with_player(self,bullet):
-
 		if self._number_player != bullet._num_player:
-
 			if self.player._rect_interno.colliderect(bullet.rect):
 				self.player._damage += 2.5
 				bullet.kill()
-				#bullet.explosion = True
-
-
 		else:
 			for i in self._players.keys():
 				player = self._players[i]
-
 				if player._num_player != bullet._num_player:
 					if player._rect_interno.colliderect(bullet.rect):
 						bullet.explosion = True
@@ -351,18 +306,12 @@ class Game(Client):
 		
 
 	def _collided_object_with_player(self,object):
-
-
 		if self.player._rect_interno.colliderect(object.rect):
-
 			if self.player.rect.left <= object.rect.left:
 				self.player.rect.left = object.rect.left
-
 			elif self.player.rect.right >= object.rect.right:
 				self.player.rect.right = object.rect.left
-
 			if self.player.rect.top <= object.rect.top:
 				self.player.rect.top = object.rect.top
-
 			elif self.player.rect.bottom >= object.rect.bottom:
 				self.player.rect.bottom = object.rect.bottom

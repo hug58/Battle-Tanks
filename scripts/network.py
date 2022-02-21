@@ -17,12 +17,10 @@ class Client:
 	def __init__(self,addr):
 
 		self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-		
 		self._socket.connect(addr)
 
 		#Desbloquea el puerto
 		self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-
 		self._data = {}
 
 
