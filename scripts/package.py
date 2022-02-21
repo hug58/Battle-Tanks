@@ -1,7 +1,7 @@
 import json
 import pickle
 
-BUFFER_SIZE = 124
+BUFFER_SIZE = 600
 
 
 
