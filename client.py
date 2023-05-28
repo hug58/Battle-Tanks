@@ -5,14 +5,16 @@ import pygame as pg
 import socket
 
 def loop():
-			
-	HOST = input('IP: ')
+	# host_name = socket.gethostname() 
+	# HOST = socket.gethostbyname(host_name)
+	HOST = input("IP SERVER:")
+ 
 	PORT = 10030
 
 	print('\n')
 	map_tmp = 'ASSETS/maps/zone_0.tmx'
 
-	WIDTH,HEIGHT = 400,600
+	WIDTH,HEIGHT = 800,600
 	SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
 
 	exit = False
@@ -24,7 +26,7 @@ def loop():
 
 	while exit != True:
 		#limit fps 60
-		clock.tick(90)
+		clock.tick(30)
 		for event in pg.event.get():
 			if event.type == pg.QUIT:
 				exit = True

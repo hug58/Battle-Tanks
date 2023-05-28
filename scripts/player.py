@@ -73,10 +73,7 @@ class Bullet(pg.sprite.Sprite,Animation):
 		self.vly = self._VL * - math.cos(self.radians)
 
 		self.explosion = False 
-
 		self._num_player = num_player
-
-
 		self._delay = 2
 
 

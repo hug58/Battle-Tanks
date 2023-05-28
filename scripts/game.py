@@ -36,20 +36,15 @@ for i in range(2):
 
 
 class Game(Client):
-
-
+	'''
+	Classs representing Game objects
+	'''
 	def __init__(self,addr,lvl_map,SCREEN):
-
 		Client.__init__(self,addr)
-
-
 		self._number_player = int(self._get_number_player())
-
-
 		'''
 		Iniciando el display antes de cargar el tilemap
 		'''
-
 		self.WIDTH,self.HEIGHT = SCREEN.get_size()
 		self.SCREEN = SCREEN
 		#self.SCREEN = pg.display.set_mode((self.WIDTH,self.HEIGHT))
@@ -107,7 +102,6 @@ class Game(Client):
 
 
 	def _load(self):
-	
 		#self._bricks= []
 		self._bricks = pg.sprite.Group()
 
@@ -126,10 +120,9 @@ class Game(Client):
 
 	def update(self):
 		self.camera.update(self.player)
-		'''
-		Si self._data no está vacio,
-		actualizar self._players
-		'''
+		#Si self._data no está vacio,
+		#actualizar self._players
+		
 
 		if self._data:
 			self._players = self._data
@@ -172,6 +165,41 @@ class Game(Client):
 					bullet.explosion = True
 
 			sprites = {}
+
+		for brock in self._bricks:
+
+			widthP = self.player.rect.w * self.player.rect.w
+			heightP = self.player.rect.h * self.player.rect.h
+   
+			widthO = brock.rect.w * brock.rect.w
+			heightO = brock.rect.h * brock.rect.h
+    
+			radiusPlayer = math.sqrt( widthP + heightP) / 2.0;
+			radiusOb = math.sqrt(widthO + heightO) / 2.0;
+
+
+			if self.player.rect.colliderect(brock.rect):
+				print(self.player.rect.x)
+				# Calcular la distancia euclidiana
+				# dx = abs( self.player.rect.x + self.player.rect.w / 2 - (brock.rect.x + brock.rect.w / 2))
+				dx = abs( brock.rect.x + brock.rect.w / 2 -( self.player.rect.x + self.player.rect.w / 2))
+				# dy = abs(self.player.rect.y + self.player.rect.h / 2 - (brock.rect.y + brock.rect.h / 2))
+				dy = abs(  brock.rect.y + brock.rect.h / 2 - (self.player.rect.y + self.player.rect.h / 2))
+
+				distance = math.sqrt(dx* dx  + dy*dx )
+				radiusSum = radiusOb + radiusPlayer;
+				
+				if distance >= radiusSum:
+					pass 
+
+				separation = radiusSum - distance;
+				if distance != 0:
+					dx /= distance
+					dy /= distance
+					self.player.rect.x -= dx * separation * 0.1
+					self.player.rect.y -= dy  * separation * 0.1
+
+		self.camera.update(self.player)
 
 
 	def _move(self):
