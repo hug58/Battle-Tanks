@@ -28,7 +28,7 @@ class Text:
 	def update(self,text):
 		self._surface = RENDER_TEXT(text,self._font,self._color)
 
-	def set_fill(self,color):
+	def set_fill(self,color,text):
 		self._color = color
 		self._surface = RENDER_TEXT(text,self._font,self._color)
 

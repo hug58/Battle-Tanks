@@ -1,7 +1,7 @@
 
 
 
-<img src = "https://github.com/hug58/Lemon-Tank/blob/master/Captura.png">
+<img src = "https://github.com/hug58/Lemon-Tank/blob/master/scrren.png">
 
 
 ## Dependencias 
