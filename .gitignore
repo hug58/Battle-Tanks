@@ -3,3 +3,5 @@
 scripts/__pycache__/*
 venv/*
 build/*
+scripts/server/__pycache__/*
+scripts/sprites/__pycache__/*

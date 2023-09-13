@@ -3,15 +3,9 @@ import pickle
 
 BUFFER_SIZE = 2024
 
-
-
 def _unpack(data):
-	try:
-		return pickle.loads(data)
-	except:
-		return None
+    return pickle.loads(data)
 
 def _pack(data):
-	data = pickle.dumps(data)
-	return data
+    return  pickle.dumps(data)
 
