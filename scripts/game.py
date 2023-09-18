@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-
 import math
+from typing import Tuple
 import pygame as pg
 
 from scripts.tile_map import TileMap
@@ -9,29 +9,22 @@ from scripts.sprites import Player,Bullet, Brick
 from scripts.network import Client
 from scripts import ROUTE
 
-
 TANK = {}
-
 for i in range(2):
-    _tank = pg.image.load(ROUTE(f'ASSETS/images/t_0{i}.png'))
-    cannon = pg.image.load(ROUTE(f'ASSETS/images/c_0{i}.png'))
     TANK[i] = {
-        0:pg.transform.scale(_tank,(64,64)),
-        1:pg.transform.scale(cannon,(20*2,28*2))
+        0:pg.transform.scale(pg.image.load(ROUTE(f'ASSETS/images/t_0{i}.png')),(64,64)),
+        1:pg.transform.scale(pg.image.load(ROUTE(f'ASSETS/images/c_0{i}.png')),(20*2,28*2))
     }
 
 
 class Game(Client):
-    '''
-        Class representing Game objects
-    '''
-    def __init__(self,addr,lvl_map,SCREEN):
-        
+    """Class representing Game objects"""
+
+    def __init__(self,addr:Tuple[str,int],lvl_map:str,SCREEN:Tuple[int,int]):
         Client.__init__(self,addr)
         self._number_player = int(self._get_number_player())
         pg.display.set_caption(f"Lemon Tank - Client {self._number_player}")
         pg.display.set_icon(pg.image.load(ROUTE('lemon.ico')))
-        
         self.WIDTH,self.HEIGHT = SCREEN.get_size()
         self.SCREEN = SCREEN
         self.tile = TileMap(lvl_map)
@@ -45,7 +38,6 @@ class Game(Client):
         self.player = Player(self.POSITIONS[self._number_player])
         self.player._num_player = self._number_player
         self._send(self.player)
-        
 
         if self._data:
             self._players = self._data
@@ -159,15 +151,14 @@ class Game(Client):
         key = pg.key.get_pressed()
 
         if key[pg.K_d]:
-            self.player._rotate(-1, TANK[self._number_player][0])
-            self.player._angle_cannon,self.player._rect_cannon = self.player.rotate(
+            self.player.rotate(-1, TANK[self._number_player][0])
+            self.player._angle_cannon,self.player._rect_cannon = self.player.cannon_rotate(
                 -1,self.player._angle_cannon,TANK[self._number_player][1],self.player._rect_cannon
                 )
 
         elif key[pg.K_a]:
-            self.player._rotate(1, TANK[self._number_player][0])
-
-            self.player._angle_cannon,self.player._rect_cannon = self.player.rotate(1,
+            self.player.rotate(1, TANK[self._number_player][0])
+            self.player._angle_cannon,self.player._rect_cannon = self.player.cannon_rotate(1,
                 self.player._angle_cannon,TANK[self._number_player][1],self.player._rect_cannon
                 )
 
@@ -177,13 +168,11 @@ class Game(Client):
         self.player.vly = self.player._VL * - math.cos(radians)
 
         if key[pg.K_w]:
-
             self.player.rect.centerx += self.player.vlx
             self.player.rect.centery += self.player.vly
 
 
         if key[pg.K_s]:
-
             self.player.rect.centerx -= self.player.vlx
             self.player.rect.centery -= self.player.vly
 
@@ -192,15 +181,13 @@ class Game(Client):
         self.player._rect_cannon.center = self.player._rect_interno.center
 
 
-
-
         if key[pg.K_i]:
-            self.player._angle_cannon,self.player._rect_cannon = self.player.rotate(-1,self.player._angle_cannon,
+            self.player._angle_cannon,self.player._rect_cannon = self.player.cannon_rotate(-1,self.player._angle_cannon,
             TANK[self._number_player][1],self.player._rect_cannon
             )
 
         elif key[pg.K_p]:
-            self.player._angle_cannon,self.player._rect_cannon = self.player.rotate(1,self.player._angle_cannon,
+            self.player._angle_cannon,self.player._rect_cannon = self.player.cannon_rotate(1,self.player._angle_cannon,
             TANK[self._number_player][1],self.player._rect_cannon
             )
 
@@ -210,6 +197,7 @@ class Game(Client):
 
 
     def draw(self):
+        """ Draw it all the way to the screen """
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self._players.items():
@@ -230,38 +218,34 @@ class Game(Client):
 
         for bullet in self._bullets:
             self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
+
     def _collided_player(self,player):
         if player.rect.left <= 0:
             player.rect.left = 0 
         elif player.rect.right >= self.tile.WIDTH:
             player.rect.right = self.tile.WIDTH
-        
         if player.rect.top <= 0:
             player.rect.top = 0
         elif player.rect.bottom >= self.tile.HEIGHT:
             player.rect.bottom = self.tile.HEIGHT
-                    
     def _add_obj(self,obj, player):
-        position = (player._rect_cannon.center)
-        return obj(position, player._angle_cannon, player._num_player)
-    
+        return obj((player._rect_cannon.center), player._angle_cannon, player._num_player)
+
     def _collided_bullet(self,bullet):
         if bullet.rect.left <= 32 or bullet.rect.right >= (self.tile.WIDTH - 32):
-            if bullet._done != True:
+            if bullet.done is not True:
                 bullet.explosion = True
-                
     def _collided_bullet_with_player(self,bullet):
-        if self._number_player != bullet._num_player:
+        if self._number_player != bullet.num_player:
             if self.player._rect_interno.collidedict(bullet.rect):
                 self.player._damage += 2.5
                 bullet.kill()
         else:
             for _,player in self._players.items():
                 if player._rect_interno.collidedict(bullet.rect):
-                    bullet.explosion = True 
+                    bullet.explosion = True
                     break
-    
-    
+
     def _collided_object_with_player(self, object):
         if self.player._rect_interno.colliderect(object.rect):
             if self.player.rect.left <= object.rect.left:

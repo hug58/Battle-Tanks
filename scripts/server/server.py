@@ -1,4 +1,3 @@
-
 import socket
 import threading as th 
 import time 
@@ -16,24 +15,23 @@ class Server:
         self._socket.listen(10)
         self._max_players = 2
         # self._socket.setblocking(False)
-        
         th_1 = th.Thread(target = self._conexions,daemon = True)
         th_1.start()
         th_2 = th.Thread(target = self._recevie,daemon = True)
         th_2.start()
         while True:
             try:
-                op = input("\n>")
-                if op == "users":
+                _op = input("\n>")
+                if _op == "users":
                     for _,addr in self._clients:
                         print(addr[0])
-                elif op == "data":
+                elif _op == "data":
                     for data in self._data.items():
                         print(data)
-                elif op == "exit":
+                elif _op == "exit":
                     self._socket.close()
                     break
-                elif op in ("help","h"): 
+                elif _op in ("help","h"): 
                     print("OPTIONS: users and data")
             except KeyboardInterrupt:
                 break

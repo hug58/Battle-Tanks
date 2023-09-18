@@ -25,17 +25,12 @@ class Player(Cannon):
         self._rect_interno.center = self.rect.center 
         self._rect_cannon.center = self._rect_interno.center
         
-    def rotate(self,xbool,angle,surface,rect):
-        """ rotate the player around 360"""
-        angle +=10*xbool
-        if math.sqrt( (angle)**2 ) >= 360:
-            angle = 0
-        surface = pg.transform.rotate(surface,angle)
-        _rect = pg.Rect(rect.topleft,surface.get_size())
-        _rect.center = rect.center
-        return (angle,_rect)
+    def cannon_rotate(self,xbool,angle,surface,rect):
+        """ rotate cannon around 360 """
+        return super().rotate(xbool,angle,surface,rect)
     
-    def _rotate(self,xbool,surface):
+    def rotate(self,xbool,surface):
+        """ rotate the player around 360"""
         self._angle += 10 * xbool
         angle = math.sqrt(   (self._angle)**2   )
         if angle >= 360:
@@ -44,6 +39,7 @@ class Player(Cannon):
         rect = pg.Rect(self.rect.topleft,surface.get_size())
         rect.center = self.rect.center
         self.rect = rect
+        
     def _draw(self,surface,angle):
         return pg.transform.rotate(surface,angle)
     
@@ -51,7 +47,6 @@ class Player(Cannon):
     def damage(self):
         """ return damage """
         return self._damage 
-    
     
     @property
     def fire(self):

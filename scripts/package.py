@@ -1,4 +1,3 @@
-import json
 import pickle
 
 BUFFER_SIZE = 2024
@@ -8,4 +7,3 @@ def _unpack(data):
 
 def _pack(data):
     return  pickle.dumps(data)
-

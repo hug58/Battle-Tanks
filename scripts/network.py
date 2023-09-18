@@ -9,7 +9,7 @@ class Client:
         self._socket.connect(addr)
         self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
         self._data = {}
-        
+
     def _send(self,player):
         print("initializing connection and sending player")
         try:
@@ -24,8 +24,6 @@ class Client:
         except socket.error as error:
             print(error)
             self._socket.close()
-            
+
     def _get_number_player(self):
         return _unpack(self._socket.recv(BUFFER_SIZE))
-
-
