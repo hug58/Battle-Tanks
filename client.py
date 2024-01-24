@@ -10,14 +10,10 @@ def main():
     try:
         HOST = input("IP SERVER:")
         PORT = input("PORT SERVER:")
-        
         #HOST = "10.30.0.107"
     except KeyboardInterrupt:
         pass
     print(HOST)
-    
-    
-    
     print('\n')
     map_tmp = 'ASSETS/maps/zone_0.tmx'
     WIDTH,HEIGHT = 800,600
