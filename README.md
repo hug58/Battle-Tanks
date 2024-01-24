@@ -6,7 +6,6 @@
 
 ## Dependencias 
 
-  
  ```python
 
     Python 3.6 +
