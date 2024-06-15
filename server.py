@@ -1,22 +1,14 @@
 #!/usr/bin/python3
 import socket
 import os
-from scripts.server import Server 
+from server import Server 
 
 
 if __name__ == '__main__':
-	port = 10030
-	if os.name != 'posix':
-		host_name = socket.gethostname()
-		host_ip = socket.gethostbyname(host_name)
-	else:
-		host_name = socket.gethostname()		
-		host_ip = socket.gethostbyname(host_name)
 
-		if host_ip == '127.0.1.1':
-			host_ip = input('INTRODUCE TO IP: ')
+	ip_bind = os.getenv("IP_BIND","0.0.0.0")
+	port = os.getenv("SERVER_PORT",8500)
 
-	print(host_name)
-	print('IP THE SERVER: {ip}'.format(ip = host_ip))
+	print('IP THE SERVER: {ip}'.format(ip = ip_bind))
 	print('PORT : {port}'.format(port = port))
-	Server((host_ip,port))
+	Server((ip_bind,port))
