@@ -3,7 +3,7 @@ import socket
 import threading as th 
 import time 
 import os
-from common import _unpack,_pack,BUFFER_SIZE
+from .common import _unpack,_pack,BUFFER_SIZE
 
 class Server:
     """Server made in socket TCP"""
