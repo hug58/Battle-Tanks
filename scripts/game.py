@@ -63,7 +63,7 @@ class Game(Client):
 
 
     def _load(self):
-        self._bricks = pg.sprite.Group()
+        self._bricks: Tuple[Brick] = pg.sprite.Group()
 
         for tile_object in self.tile.tmxdata.objects:
             if tile_object.name == 'player':
@@ -85,7 +85,6 @@ class Game(Client):
             if player.fire:
                 self._bullets.add(self._add_obj(Bullet,player))
                 player.fire = False
-
 
 
         for bullet in self._bullets:
@@ -116,37 +115,38 @@ class Game(Client):
 
             sprites = {}
 
-        # for brock in self._bricks:
+        for brock in self._bricks:
 
-        #     widthP = self.player.rect.w * self.player.rect.w
-        #     heightP = self.player.rect.h * self.player.rect.h
-   
-        #     widthO = brock.rect.w * brock.rect.w
-        #     heightO = brock.rect.h * brock.rect.h
+            widthP = self.player.rect.w * self.player.rect.w
+            heightP = self.player.rect.h * self.player.rect.h
+
+            radiusPlayer = math.sqrt( widthP  + heightP ) / 2.0;
+
+            widthO = brock.rect.w * brock.rect.w
+            heightO = brock.rect.h * brock.rect.h
     
-        #     radiusPlayer = math.sqrt( widthP + heightP) / 2.0;
-        #     radiusOb = math.sqrt(widthO + heightO) / 2.0;
+            radiusOb = math.sqrt(widthO + heightO) / 2.0;
 
+            radiusSum = radiusOb + radiusPlayer;
+            dx =  brock.rect.right / 2 -( self.player.rect.right / 2)
+            dy =   brock.rect.bottom / 2 - (self.player.rect.bottom / 2)
 
-        #     if self.player.rect.colliderect(brock.rect):
-        #         # Calcular la distancia euclidiana
-        #         # dx = abs( self.player.rect.x + self.player.rect.w / 2 - (brock.rect.x + brock.rect.w / 2))
-        #         dx = abs( brock.rect.x + brock.rect.w / 2 -( self.player.rect.x + self.player.rect.w / 2))
-        #         # dy = abs(self.player.rect.y + self.player.rect.h / 2 - (brock.rect.y + brock.rect.h / 2))
-        #         dy = abs(  brock.rect.y + brock.rect.h / 2 - (self.player.rect.y + self.player.rect.h / 2))
+            distance = math.sqrt(dx* dx  + dy*dy )
+            
+            separation = radiusSum - distance;
 
-        #         distance = math.sqrt(dx* dx  + dy*dx )
-        #         radiusSum = radiusOb + radiusPlayer;
+            if self.player.rect.colliderect(brock.rect):
+
                 
-        #         if distance >= radiusSum:
-        #             pass 
+                if distance >= radiusSum:
+                    pass 
 
-        #         separation = radiusSum - distance;
-        #         if distance != 0:
-        #             dx /= distance
-        #             dy /= distance
-        #             self.player.rect.x -= dx * separation * 0.1
-        #             self.player.rect.y -= dy  * separation * 0.1
+    
+                if distance != 0:
+                    dx /= distance
+                    dy /= distance
+                    self.player.rect.x -= dx * separation * 0.125
+                    self.player.rect.y -= dy  * separation * 0.125
 
         self.camera.update(self.player)
 

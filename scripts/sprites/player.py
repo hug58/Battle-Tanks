@@ -6,11 +6,11 @@ from .cannon import Cannon
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
     def __init__(self,position):
-        self.rect = pg.Rect(position,(64,64))
-        self._rect_interno = pg.Rect(0,0,40,40)
+        self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
+        self._rect_interno = pg.Rect(0,0,8*2,16*2)
         self._rect_interno.center = self.rect.center
         self._angle = 0
-        self._VL = 4
+        self._VL = 3
         self.vlx = 0
         self.vly = 0
         self._lifes = 10

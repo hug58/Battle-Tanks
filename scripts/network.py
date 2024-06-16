@@ -12,13 +12,10 @@ class Client:
         self._data = {}
         
     def _send(self,player):
-        print("initializing connection and sending player")
         try:
             player = _pack(player)
             self._socket.send(player)
-            print("connection established")
             data_server = self._socket.recv(BUFFER_SIZE)
-            print("data received")
             data = _unpack(data_server)
             if data:
                 self._data[data.num_player] = data

@@ -24,7 +24,7 @@ def main():
     text_damage = Text((WIDTH//2,HEIGHT +16 ),f'Damage: {game.damage} %')
     
     while True:
-        clock.tick(30)
+        clock.tick(25)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
