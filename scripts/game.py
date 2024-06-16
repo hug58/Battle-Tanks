@@ -10,15 +10,18 @@ from scripts.network import Client
 from scripts import ROUTE
 
 
-from typing import Tuple
+from typing import Tuple,Dict
 TANK = {}
 
 for i in range(2):
     _tank = pg.image.load(ROUTE(f'ASSETS/images/t_0{i}.png'))
     cannon = pg.image.load(ROUTE(f'ASSETS/images/c_0{i}.png'))
     TANK[i] = {
-        0:pg.transform.scale(_tank,(64,64)),
-        1:pg.transform.scale(cannon,(20*2,28*2))
+        # 0:pg.transform.scale(_tank,(64,64)),
+        # 1:pg.transform.scale(cannon,(20*2,28*2))
+        0:pg.transform.scale(_tank,(30,30)),
+        1:pg.transform.scale(cannon,(8*2,16*2))
+
     }
 
 
@@ -38,7 +41,7 @@ class Game(Client):
         self.tile_image = self.tile.make_map()
         self.tile_rect = self.tile_image.get_rect()
 
-        self._players = {}
+        self._players: Dict[int,Player] = {}
         self.POSITIONS = {}
         self._damage = 0
         self._load()
@@ -50,13 +53,7 @@ class Game(Client):
         if self._data:
             self._players = self._data
 
-        self.camera = Camera(self.tile.WIDTH,
-                            self.tile.HEIGHT,
-                            (self.WIDTH,self.HEIGHT),
-                            )
-
-
-
+        self.camera = Camera(self.tile.WIDTH,self.tile.HEIGHT,(self.WIDTH,self.HEIGHT))
         self._bullets = pg.sprite.Group()
 
     @property
@@ -72,9 +69,8 @@ class Game(Client):
             if tile_object.name == 'player':
                 self.POSITIONS[tile_object.id] = (tile_object.x,tile_object.y)
             elif tile_object.name == 'brick':
-                self._bricks.add(
-                    Brick(  tile_object.x,tile_object.y,tile_object.width,tile_object.height)
-                    )
+                block = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
+                self._bricks.add(block)
 
             
 
@@ -85,10 +81,7 @@ class Game(Client):
         if self._data:
             self._players = self._data
         
-
-
         for _,player in self._players.items():
-            print(player)
             if player.fire:
                 self._bullets.add(self._add_obj(Bullet,player))
                 player.fire = False
@@ -115,47 +108,45 @@ class Game(Client):
         if sprites:
             for sprite in sprites.items():
                 if isinstance(sprite,Brick):
-                    print("Es un bloque")
-                print(sprite)
+                    print("It's a brick")
+
                 for bullet in sprite:
                     if isinstance(bullet,Bullet):
-                        print("Es una bala")
                         bullet.explosion = True
 
             sprites = {}
 
-        for brock in self._bricks:
+        # for brock in self._bricks:
 
-            widthP = self.player.rect.w * self.player.rect.w
-            heightP = self.player.rect.h * self.player.rect.h
+        #     widthP = self.player.rect.w * self.player.rect.w
+        #     heightP = self.player.rect.h * self.player.rect.h
    
-            widthO = brock.rect.w * brock.rect.w
-            heightO = brock.rect.h * brock.rect.h
+        #     widthO = brock.rect.w * brock.rect.w
+        #     heightO = brock.rect.h * brock.rect.h
     
-            radiusPlayer = math.sqrt( widthP + heightP) / 2.0;
-            radiusOb = math.sqrt(widthO + heightO) / 2.0;
+        #     radiusPlayer = math.sqrt( widthP + heightP) / 2.0;
+        #     radiusOb = math.sqrt(widthO + heightO) / 2.0;
 
 
-            if self.player.rect.colliderect(brock.rect):
-                print(self.player.rect.x)
-                # Calcular la distancia euclidiana
-                # dx = abs( self.player.rect.x + self.player.rect.w / 2 - (brock.rect.x + brock.rect.w / 2))
-                dx = abs( brock.rect.x + brock.rect.w / 2 -( self.player.rect.x + self.player.rect.w / 2))
-                # dy = abs(self.player.rect.y + self.player.rect.h / 2 - (brock.rect.y + brock.rect.h / 2))
-                dy = abs(  brock.rect.y + brock.rect.h / 2 - (self.player.rect.y + self.player.rect.h / 2))
+        #     if self.player.rect.colliderect(brock.rect):
+        #         # Calcular la distancia euclidiana
+        #         # dx = abs( self.player.rect.x + self.player.rect.w / 2 - (brock.rect.x + brock.rect.w / 2))
+        #         dx = abs( brock.rect.x + brock.rect.w / 2 -( self.player.rect.x + self.player.rect.w / 2))
+        #         # dy = abs(self.player.rect.y + self.player.rect.h / 2 - (brock.rect.y + brock.rect.h / 2))
+        #         dy = abs(  brock.rect.y + brock.rect.h / 2 - (self.player.rect.y + self.player.rect.h / 2))
 
-                distance = math.sqrt(dx* dx  + dy*dx )
-                radiusSum = radiusOb + radiusPlayer;
+        #         distance = math.sqrt(dx* dx  + dy*dx )
+        #         radiusSum = radiusOb + radiusPlayer;
                 
-                if distance >= radiusSum:
-                    pass 
+        #         if distance >= radiusSum:
+        #             pass 
 
-                separation = radiusSum - distance;
-                if distance != 0:
-                    dx /= distance
-                    dy /= distance
-                    self.player.rect.x -= dx * separation * 0.1
-                    self.player.rect.y -= dy  * separation * 0.1
+        #         separation = radiusSum - distance;
+        #         if distance != 0:
+        #             dx /= distance
+        #             dy /= distance
+        #             self.player.rect.x -= dx * separation * 0.1
+        #             self.player.rect.y -= dy  * separation * 0.1
 
         self.camera.update(self.player)
 
@@ -218,16 +209,16 @@ class Game(Client):
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self._players.items():
-            tank = player._draw(TANK[player._num_player][0],player._angle)
-            cannon = player._draw(TANK[player._num_player][1],player._angle_cannon)
+            tank = player.draw(TANK[player._num_player][0], player._angle)
+            cannon = player.draw(TANK[player._num_player][1], player._angle_cannon)
             self.SCREEN.blit(tank,self.camera.apply(player))
             self.SCREEN.blit(cannon,self.camera.apply_rect(player._rect_cannon))
 
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
 
-        tank = self.player._draw(TANK[self._number_player][0],self.player._angle)
-        cannon = self.player._draw(TANK[self._number_player][1],self.player._angle_cannon)
+        tank = self.player.draw(TANK[self._number_player][0],self.player._angle)
+        cannon = self.player.draw(TANK[self._number_player][1],self.player._angle_cannon)
         self.SCREEN.blit(tank,self.camera.apply(self.player))
         self.SCREEN.blit(cannon,self.camera.apply_rect(self.player._rect_cannon))
         pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player._rect_interno),1)
@@ -235,6 +226,8 @@ class Game(Client):
 
         for bullet in self._bullets:
             self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
+
+
     def _collided_player(self,player):
         if player.rect.left <= 0:
             player.rect.left = 0 
@@ -245,20 +238,21 @@ class Game(Client):
             player.rect.top = 0
         elif player.rect.bottom >= self.tile.HEIGHT:
             player.rect.bottom = self.tile.HEIGHT
-                    
+
+
     def _add_obj(self,obj, player):
         position = (player._rect_cannon.center)
         return obj(position, player._angle_cannon, player._num_player)
     
+
     def _collided_bullet(self,bullet):
         if bullet.rect.left <= 32 or bullet.rect.right >= (self.tile.WIDTH - 32):
             if bullet._done != True:
                 bullet.explosion = True
-                
+
+
     def _collided_bullet_with_player(self,bullet):
         if self._number_player != bullet._num_player:
-            print(self.player._rect_interno)
-            print(bullet.rect)
             if self.player._rect_interno.colliderect(bullet.rect):
                 self.player._damage += 2.5
                 bullet.kill()

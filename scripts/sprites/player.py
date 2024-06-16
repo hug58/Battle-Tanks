@@ -10,7 +10,7 @@ class Player(Cannon):
         self._rect_interno = pg.Rect(0,0,40,40)
         self._rect_interno.center = self.rect.center
         self._angle = 0
-        self._VL = 12
+        self._VL = 4
         self.vlx = 0
         self.vly = 0
         self._lifes = 10
@@ -44,7 +44,8 @@ class Player(Cannon):
         rect = pg.Rect(self.rect.topleft,surface.get_size())
         rect.center = self.rect.center
         self.rect = rect
-    def _draw(self,surface,angle):
+
+    def draw(self,surface,angle):
         return pg.transform.rotate(surface,angle)
     
     @property

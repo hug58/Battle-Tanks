@@ -27,6 +27,7 @@ class Client:
             self._socket.close()
             
     def _get_number_player(self):
+        print("getting number")
         return _unpack(self._socket.recv(BUFFER_SIZE))
 
 

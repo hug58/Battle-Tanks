@@ -5,6 +5,7 @@ import time
 import os
 from .common import _unpack,_pack,BUFFER_SIZE
 
+
 class Server:
     """Server made in socket TCP"""
     def __init__(self,addr):
@@ -49,7 +50,6 @@ class Server:
                     continue    
                                 
                 conn,addr = self._socket.accept()
-                
                 #reconnect player if connection  is established
                 current  = list(set(range(self._max_players)) - set([addr[1] for _,addr in self._clients]))[0]
                 
@@ -72,7 +72,7 @@ class Server:
                         self._data[data.num_player] = data
                         self._messages_client(data,conn)
                     except ConnectionResetError as error:
-                        print(f"error: {error}")
+                        print(f"error in conexion, deleting player: {error}")
                         self._data.pop(addr[1])
                         self._clients.remove((conn,addr))
                     except BlockingIOError as error:
@@ -82,11 +82,17 @@ class Server:
                     except EOFError as error:
                         print(f"error in data: {error}")
                         time.sleep(3)
-                        self._data.pop(addr[1])
+                        try:
+                            self._data.pop(addr[1])
+                        except KeyError as e:
+                            print(f"error in delete player {e}")
                         self._clients.remove((conn,addr))
                     except ConnectionAbortedError as error:
                         print(f"error connect {error}")
-                        
+                    except BrokenPipeError as e:
+                        print(f"Connection aborted: {e}")
+                        print("Conexions List: " + str(self._clients) )
+
 
                     
     def _messages_client(self,data,client):
