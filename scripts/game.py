@@ -10,6 +10,7 @@ from scripts.network import Client
 from scripts import ROUTE
 
 
+from typing import Tuple
 TANK = {}
 
 for i in range(2):
@@ -25,8 +26,7 @@ class Game(Client):
     '''
         Class representing Game objects
     '''
-    def __init__(self,addr,lvl_map,SCREEN):
-        
+    def __init__(self,addr:Tuple[str,int],lvl_map,SCREEN):
         Client.__init__(self,addr)
         self._number_player = int(self._get_number_player())
         pg.display.set_caption(f"Lemon Tank - Client {self._number_player}")
@@ -114,8 +114,13 @@ class Game(Client):
         sprites = pg.sprite.groupcollide(self._bricks,self._bullets,1,0)
         if sprites:
             for sprite in sprites.items():
+                if isinstance(sprite,Brick):
+                    print("Es un bloque")
+                print(sprite)
                 for bullet in sprite:
-                    bullet.explosion = True
+                    if isinstance(bullet,Bullet):
+                        print("Es una bala")
+                        bullet.explosion = True
 
             sprites = {}
 
@@ -252,12 +257,14 @@ class Game(Client):
                 
     def _collided_bullet_with_player(self,bullet):
         if self._number_player != bullet._num_player:
-            if self.player._rect_interno.collidedict(bullet.rect):
+            print(self.player._rect_interno)
+            print(bullet.rect)
+            if self.player._rect_interno.colliderect(bullet.rect):
                 self.player._damage += 2.5
                 bullet.kill()
         else:
             for _,player in self._players.items():
-                if player._rect_interno.collidedict(bullet.rect):
+                if player._rect_interno.colliderect(bullet.rect):
                     bullet.explosion = True 
                     break
     

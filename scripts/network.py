@@ -1,10 +1,11 @@
 import socket
 from scripts.package import _unpack,_pack,BUFFER_SIZE
-
+from typing import Tuple
 
 class Client:
     """ Client TCP connection """
-    def __init__(self,addr):
+    def __init__(self,addr:Tuple[str,int]):
+        print(f"Connecting to {addr}")
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.connect(addr)
         self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)

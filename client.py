@@ -13,14 +13,14 @@ def main():
         #HOST = "10.30.0.107"
     except KeyboardInterrupt:
         pass
-    print(HOST)
+    HOST="0.0.0.0"
     print('\n')
     map_tmp = 'ASSETS/maps/zone_0.tmx'
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()
     SURFACE = pg.Surface((WIDTH,HEIGHT))
-    game = Game((HOST,PORT),map_tmp,SURFACE)
+    game = Game((HOST,int(PORT)),map_tmp,SURFACE)
     text_damage = Text((WIDTH//2,HEIGHT +16 ),f'Damage: {game.damage} %')
     
     while True:
