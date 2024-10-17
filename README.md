@@ -1,7 +1,7 @@
 
 
 
-<img src = "https://github.com/hug58/Lemon-Tank/blob/master/scrren.png">
+<img src = "https://github.com/hug58/Lemon-Tank/blob/master/screen.png">
 
 
 
