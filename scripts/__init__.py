@@ -19,23 +19,24 @@ ROUTE = lambda route: os.path.join(os.path.abspath("."),route)
 
 class Text:
     """Surface for text rendering """
-    def __init__(self,position,text):
+    def __init__(self,position,text, color = None):
         self._font = ROUTE('ASSETS/Pixel Digivolve.otf')
-        self._color:Tuple = (255,0,0) #default
-        self._surface = self.render(text,self._font,self._color)
+        self._color:Tuple = color if color is not None else (255,0,0)  #default
+        self.size_font =  16
+        self._surface = self.render(text,self._font,self._color, self.size_font)
         self._rect = self._surface.get_rect()
         self._rect.center = position
         self._text = text
 
     @staticmethod
-    def render(text:str, font: pg.font, color: Tuple[int,int] ):
+    def render(text:str, font: pg.font, color: Tuple[int,int], size):
         """ Render text """
-        return pg.font.Font(font,16).render(text,1,color)
+        return pg.font.Font(font,size).render(text,1,color)
 
 
     def update(self):
         """ Updates the surface """
-        self._surface = self.render(self._text,self._font,self._color)
+        self._surface = self.render(self._text,self._font,self._color, self.size_font)
 
     @property
     def color(self):
@@ -46,6 +47,8 @@ class Text:
     def color(self,color:Tuple):
         """color set"""
         self._color = color
+        self._surface = self.render(self._text,self._font,self._color, self.size_font)
+
 
     @property
     def text(self):

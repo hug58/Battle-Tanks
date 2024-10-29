@@ -18,7 +18,7 @@ class Server:
         self._socket.listen(10)
         self._max_players = 2
         # self._socket.setblocking(False)
-        
+
         th_1 = th.Thread(target = self._conexions,daemon = True)
         th_1.start()
         th_2 = th.Thread(target = self._recevie,daemon = True)
@@ -39,27 +39,38 @@ class Server:
                     print("OPTIONS: users and data")
             except KeyboardInterrupt:
                 break
-       
-                    
+
+
     def _conexions(self):
         print("Waiting conexions ...")
         while True:
             try:
                 if len(self._clients) >= self._max_players:
+                    print(self._clients)
                     time.sleep(3)
-                    continue    
-                                
+                    continue
+
                 conn,addr = self._socket.accept()
-                #reconnect player if connection  is established
-                current  = list(set(range(self._max_players)) - set([addr[1] for _,addr in self._clients]))[0]
-                
-                conn.send(_pack(current))
-                client = (conn,[addr,current])
-                self._clients.append(client)
-                self._current_player +=1
+                print("testeando")
+                conn.send(_pack("OK"))
+                data = conn.recv(BUFFER_SIZE)
+                data = _unpack(data)
+
+                print("client: " + data)
+
+                if data == "CONNECT_PARTY":
+                    current = list(set(range(self._max_players))
+                                   -set([addr[1] for _,addr in self._clients]))[0]
+                    conn.send(_pack(current))
+                    client = (conn,[addr,current])
+                    self._clients.append(client)
+                    self._current_player +=1
+                    # self._clients.append((conn,addr))
+
+
             except BlockingIOError as error:
                 print(f"error waiting for connections {error}")
-                
+
 
     def _recevie(self):
         while True:
@@ -94,22 +105,21 @@ class Server:
                         print("Conexions List: " + str(self._clients) )
 
 
-                    
+
     def _messages_client(self,data,client):
         data_pack = _pack(data)		
         for conn,i in self._clients:
             if conn == client:
                 continue
-            
+
             conn.send(data_pack)
 
 
 
-
 if __name__ == '__main__':
-	ip_bind = os.getenv("IP_BIND","0.0.0.0")
-	port = os.getenv("SERVER_PORT",8500)
+    ip_bind = os.getenv("IP_BIND","0.0.0.0")
+    port = os.getenv("SERVER_PORT",8500)
 
-	print('IP THE SERVER: {ip}'.format(ip = ip_bind))
-	print('PORT : {port}'.format(port = port))
-	Server((ip_bind,port))
+    print('IP THE SERVER: {ip}'.format(ip = ip_bind))
+    print('PORT : {port}'.format(port = port))
+    Server((ip_bind,port))

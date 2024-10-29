@@ -30,9 +30,9 @@ for i in range(2):
     }
 
 type_guns = {
-    "MEDIUM": CannonType(10, pg.image.load(ROUTE(f'ASSETS/images/bullets/bullet_basic.png'))),
-    "BIG": CannonType(10, pg.image.load(ROUTE(f'ASSETS/images/bullets/big_bullet.png'))),
-    "BASIC": CannonType(10, pg.image.load(ROUTE(f'ASSETS/images/bullets/bullet_medium.png')))
+    "MEDIUM": CannonType(10,'ASSETS/images/bullets/bullet_basic.png',(8,10)),
+    "BIG": CannonType(10,'ASSETS/images/bullets/big_bullet.png',(8,10)),
+    "BASIC": CannonType(10,'ASSETS/images/bullets/bullet_medium.png',(7,8))
 }
 
 
@@ -42,8 +42,7 @@ class Game(Client):
     '''
     def __init__(self,addr:Tuple[str,int],lvl_map,SCREEN):
         Client.__init__(self,addr)
-
-        self._number_player = int(self._get_number_player()) if addr is not None else 0
+        self._number_player = self.get_number_player if addr is not None else 0
 
         pg.display.set_caption(f"Lemon Tank - Client {self._number_player}")
         pg.display.set_icon(pg.image.load(ROUTE('lemon.ico')))
@@ -58,11 +57,12 @@ class Game(Client):
         self.POSITIONS = {}
         self._damage = 0
         self.load()
-        self.player = Player(self.POSITIONS[self._number_player], 
-                             canno_type= type_guns.get("BASIC"))
+        self.player = Player(self.POSITIONS[self._number_player]
+                             ,canno_type= type_guns.get("BASIC"))
         self.player._num_player = self._number_player
 
         if addr is not None:
+            print(self.player)
             self._send(self.player)
 
 
@@ -229,8 +229,6 @@ class Game(Client):
 
         self.SCREEN.blit(main_tank,self.camera.apply(self.player))
         self.SCREEN.blit(main_cannon,self.camera.apply_rect(self.player.rect_cannon))
-        # pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player.body_rect),1)
-        # pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player.rect_cannon),1)
 
         for bullet in self._bullets:
             self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
