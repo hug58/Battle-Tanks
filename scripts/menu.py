@@ -1,9 +1,11 @@
 """Menu"""
 
 import sys
+import socket
 import pygame as pg
 from scripts import Text
 from scripts.game import Game
+from scripts.package import _unpack,_pack,BUFFER_SIZE
 
 class Menu:
     """Menu """
@@ -29,7 +31,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
-        user_text =  ""
+        user_text =  "8500"
         option_select = 0
 
         while user_enter is not True:
@@ -51,8 +53,21 @@ class Menu:
                         else:
                             ip_text = ip_text[:-1]
                     elif event.key ==  pg.K_RETURN:
-                        if len(user_text) > 0:
-                            user_enter = True
+                        try:
+                            if len(user_text) > 0:
+                                _socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                                _socket.connect((ip_text, int(user_text)))
+                                _socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+                                ok = _unpack(_socket.recv(BUFFER_SIZE))
+                                _socket.send(_pack("NO_PARTY"))
+                                print(f"RESPONSE: {ok}")
+                                if ok == "OK":
+                                    user_enter = True
+                                    _socket.close()
+
+                        except ConnectionRefusedError as e:
+                            print(e)
+
                     else:
                         if len(user_text) <= 7:
                             if option_select == 1:
@@ -90,6 +105,8 @@ class Menu:
 
             pg.display.flip()
             self.clock.tick(60)
+
+
 
         return Game((ip_text, int(user_text)), self.map_tmp, game_screen)
 
