@@ -3,6 +3,7 @@
 import socket
 import sys
 import pygame as pg
+import asyncio
 
 from scripts import Text, ROUTE
 from scripts.menu import Menu
@@ -24,7 +25,7 @@ def load_bullet(bullet):
     """ load image from file """
     return (pg.image.load(ROUTE(bullet[0])),bullet[1])
 
-def main():
+async def main():
     """ Client game of server"""
 
     map_tmp = 'ASSETS/maps/zone_0.tmx'
@@ -70,5 +71,5 @@ def main():
         pg.display.flip()
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
     pg.quit()
