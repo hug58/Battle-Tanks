@@ -5,61 +5,41 @@
 
 
 
-## Dependencias 
+## Dependencies 
 
  ```python
 
     Python 3.6 +
 
 ```
-```
-
-<p> Para trabajar con Tiled se necesita este módulo para leer archivos tmx, 
-    La ventaja que ofrece es la capacidad de poder leer superficies (capas) fácilmente, algo que es un problema en json
 
 ```bash
-    pip install pygame
-    pip install pytmx
+    pip install -r requirements.txt
 ```
    
-</p> 
 
+## Multiplayer
 
-## Multijugador
-
-<p> Quería crear un juego que fuera multijugador pero que no se limitara a una sola pc, osea, crear un socket que transmitiera información de estado de un jugador al otro (red lan si prefieres), y el resultado a quedado bastante bien. </p> 
+<p> I wanted to create a game that was multiplayer but not limited to a single pc, that is, to create a socket that would transmit status information from one player to the other (lan network if you prefer), and the result is quite good. </p> 
   
-  <p> El socket funciona recibiendo la clase Player de los demás jugadores, mientras se actualiza todo los atributos de
-  esos jugadores. Un jugador solo puede enviar el objecto de la clase correspondiente, por lo tal deben de haber minimo 2 jugadores para que haya un intercambio de información.<p>
-  
- 
-
+  <p> The socket works by receiving the Player class from the other players, while updating all the attributes of those players. 
+   A player can only send the object of the corresponding class, so there must be a minimum of 2 players for there to be an exchange of information.<p>
 </p>
 
 
-## Controles 
+## Controls 
 
+** Movement
 
-** Movimiento
-
-* Izquierda: A  
-* Derecha: D  
-* Arriba: W
-* Abajo: S
+* Left: A  
+* Right: D  
+* Up: W
+* Down: S
    
-** Torreta
+** Tank turret
 
-* Izquieda: I
-* Derecha: P
-* Disparar: O
+* Left: I
+* Right: P
+* Shot: O
 
-
-
-
-## Más sobre el socket
-
-<p>
- Gran parte del socket lo hice del tutorial de Tech With Tim:
-<a href="https://www.youtube.com/watch?v=F257x_E6H4k&t=2s">Tutorial</a>
-</p>
 
