@@ -22,7 +22,7 @@ jobs:
             echo "Successfully build the game and complied to WebAssembly"
 
     - name : "Upload to GitHub pages branch gh-pages testing"
-      uses: hug58/Battle-Tanks
+      uses: hug58/github-pages-deploy-action@4.1.7
       with:
         branch: gh-pages
         folder: battle_tanks/build/web
