@@ -17,7 +17,7 @@ class Cannon:
         return "BULLETS AVAILABLE: " + str(self.type_gun.count_available)
 
     def check_available_bullets(self):
-        """check available """
+        """ check available """
         if self.type_gun.count_available > 0 or self.type_gun.limit is True:
             return True
         return False

@@ -1,6 +1,5 @@
 """ Client and Single Game"""
 
-import socket
 import sys
 import pygame as pg
 from scripts import Text, ROUTE
@@ -9,12 +8,12 @@ from scripts.menu import Menu
 
 def load_bullet(bullet):
     """ load image from file """
-    return (pg.image.load(ROUTE(bullet[0])),bullet[1])
+    return pg.image.load(ROUTE(bullet[0])),bullet[1]
 
 def main():
     """ Client game of server"""
 
-    map_tmp = 'ASSETS/maps/zone_0.tmx'
+    map_tmp = "ASSETS/maps/zone_0.tmx"
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()
@@ -22,7 +21,7 @@ def main():
     menu = Menu(SCREEN,map_tmp)
     game = menu.update(main_surface)
 
-    text_damage = Text((WIDTH//2,HEIGHT +16 ),f'Damage: {game.damage} %')
+    text_damage = Text((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
     bullets = pg.Surface((WIDTH,36))
 
     while True:
@@ -40,7 +39,7 @@ def main():
                         game.player.fire = True
 
 
-        text_damage.text = f'Damage: {game.damage} %'
+        text_damage.text = f"Damage: {game.damage} %"
         text_damage.draw(SCREEN)
 
         game.update()
@@ -55,5 +54,5 @@ def main():
 
         pg.display.flip()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

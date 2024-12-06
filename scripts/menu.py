@@ -5,7 +5,7 @@ import socket
 import pygame as pg
 from scripts import Text
 from scripts.game import Game
-from scripts.package import _unpack,_pack,BUFFER_SIZE
+from scripts.commons.package import JOIN_MESSAGE,OK_MESSAGE,BUFFER_SIZE_INIT_PLAYER
 
 class Menu:
     """Menu """
@@ -31,7 +31,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
-        user_text =  "8500"
+        user_text =  "8010"
         option_select = 0
 
         while user_enter is not True:
@@ -58,10 +58,9 @@ class Menu:
                                 _socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                                 _socket.connect((ip_text, int(user_text)))
                                 _socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-                                ok = _unpack(_socket.recv(BUFFER_SIZE))
-                                _socket.send(_pack("NO_PARTY"))
-                                print(f"RESPONSE: {ok}")
-                                if ok == "OK":
+                                ok = _socket.recv(BUFFER_SIZE_INIT_PLAYER)
+                                _socket.send(JOIN_MESSAGE)
+                                if ok == OK_MESSAGE:
                                     user_enter = True
                                     _socket.close()
 
