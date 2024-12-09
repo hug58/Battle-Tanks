@@ -15,9 +15,8 @@ from scripts.commons.package import (Struct,
 
 q = queue.Queue()
 logger = logging.getLogger()
-# Setting the threshold of logger to DEBUG
 logger.setLevel(logging.DEBUG)
-
+lock = th.Lock()
 
 def generate_random_numbers_from_time(n=5):
     random.seed(int(time.time()))
@@ -120,9 +119,11 @@ class Server:
 
 
                         self._filter_name.append(player.get("name"))
-
                         player["conn"] = conn
-                        self._data[current] = player
+
+                        with lock:
+                            self._data[current] = player
+
                         """Current Player in Queue"""
                         q.put(current)
                         self._current_player +=1
@@ -135,27 +136,32 @@ class Server:
     def _receive(self):
         while True:
             if len(self._data) > 0 and q.empty():
-                for position,player in self._data.items():
-                    try:
-                        conn = player.get("conn")
-                        data:bytes = conn.recv(BUFFER_SIZE_EVENT)
-                        if data != b'':
-                            self._messages_client(data,position)
-                    except ConnectionResetError as e:
-                        logger.warning(f"ConnectionResetError: [{e}]")
-                        self._data.pop(position)
-                    except BlockingIOError as e:
-                        logger.warning(f"BlockingIOError: [{e}]")
-                        self._data.pop(position)
-                    except EOFError as e:
-                        logger.warning(f"EOFError: [{e}]")
-                        self._data.pop(position)
-                    except ConnectionAbortedError as e:
-                        logger.warning(f"ConnectionAbortedError: [{e}]")
-                        self._data.pop(position)
-                    except BrokenPipeError as e:
-                        logger.warning(f"BrokenPipeError: [{e}]")
-                        self._data.pop(position)
+                with lock:
+                    for position,player in self._data.items():
+                        try:
+                            conn = player.get("conn")
+                            data:bytes = conn.recv(BUFFER_SIZE_EVENT)
+                            if data != b'':
+                                self._messages_client(data,position)
+                        except ConnectionResetError as e:
+                            logger.warning(f"ConnectionResetError: [{e}]")
+                            self._data.pop(position)
+                        except BlockingIOError as e:
+                            logger.warning(f"BlockingIOError: [{e}]")
+                            self._data.pop(position)
+                        except EOFError as e:
+                            logger.warning(f"EOFError: [{e}]")
+                            self._data.pop(position)
+                        except ConnectionAbortedError as e:
+                            logger.warning(f"ConnectionAbortedError: [{e}]")
+                            self._data.pop(position)
+                        except BrokenPipeError as e:
+                            logger.warning(f"BrokenPipeError: [{e}]")
+                            self._data.pop(position)
+                        except RuntimeError as e:
+                            logger.warning(f"[LOG] ERROR IN dict {e}")
+
+
 
             elif not q.empty():
                 current:int = q.get()
