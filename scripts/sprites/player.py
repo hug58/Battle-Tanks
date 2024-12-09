@@ -11,12 +11,17 @@ class Player(Cannon):
     """ This class represents to tank (more cannon) """
 
     SPEED = 3
+    ANGLE = 10
+    ANGLE_RIGHT = 1
+    ANGLE_LEFT = -1
+
 
     def __init__(self,position, cannon_type: CannonType):
         self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
         self.body_rect = pg.Rect(0,0,16,16)
         self.body_rect.center = self.rect.center
         self.angle = 0
+
         self.vl = 3
         self.vlx = 0
         self.vly = 0
@@ -30,7 +35,7 @@ class Player(Cannon):
     @staticmethod
     def rotate_external(xbool, angle, surface, rect):
         """ rotate the player around 360"""
-        angle += 10 * xbool
+        angle += Player.ANGLE * xbool
         if math.sqrt(angle ** 2) >= 360:
             angle = 0
         surface = pg.transform.rotate(surface, angle)

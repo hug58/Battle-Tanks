@@ -2,50 +2,104 @@
 from typing import Union
 import pickle
 import struct
+import math
 from scripts.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
-BUFFER_SIZE_PLAYER = 6
+BUFFER_SIZE_PLAYER = 13
 BUFFER_SIZE_EVENT = 1
-
-OK_MESSAGE = b'\x01'
-JOIN_MESSAGE = b'\x02'
+BUFFER_SIZE_NAME = 32
 
 
 class Struct:
     """
         Class for packing and unpacking data
     """
+    OK_MESSAGE = b'\x01'
+    JOIN_MESSAGE = b'\x02'
+    USER_NOT_AVAILABLE = b'\x09'
+
+
     LEFT_EVENT_PLAYER:bytes  = b'\x03'
     RIGHT_EVENT_PLAYER:bytes = b'\x04'
     UP_EVENT_PLAYER:bytes    = b'\x05'
     DOWN_EVENT_PLAYER:bytes  = b'\x06'
+    SHOOT_EVENT_PLAYER:bytes = b'\x06'
+
+    LEFT_ANGLE_EVENT_PLAYER:bytes  = b'\x07'
+    RIGHT_ANGLE_EVENT_PLAYER:bytes = b'\x08'
+
 
     UPDATE_PLAYER:int = 1
+    NEW_PLAYER:int = 2
+    OLD_PLAYER:int = 3
 
-    MOVES = [LEFT_EVENT_PLAYER, RIGHT_EVENT_PLAYER, UP_EVENT_PLAYER,DOWN_EVENT_PLAYER]
+    MOVES = [LEFT_EVENT_PLAYER, RIGHT_EVENT_PLAYER,
+             UP_EVENT_PLAYER,DOWN_EVENT_PLAYER,
+
+             #TOWERS MOVES
+             LEFT_ANGLE_EVENT_PLAYER,
+             RIGHT_ANGLE_EVENT_PLAYER
+             ]
+
+
+    @staticmethod
+    def unpack_single_data(data:bytes) -> tuple:
+        """ :param data: bytes"""
+        return struct.unpack('B', data)
+
+
+    @staticmethod
+    def pack_single_data(data) -> bytes:
+        """ :param data: example: 1"""
+        return struct.pack('B', data)
+
 
     @staticmethod
     def unpack_player(data:bytes):
-        return struct.unpack('BBhh', data)
+        """ :param data: bytes. a player is 6 bytes"""
+        return struct.unpack('BBhhhhh', data)
+
 
     @staticmethod
-    def pack_player(data: Union[bytes,None], player_data:dict):
-        """ pack only the basics (max 6 bytes). """
+    def pack_player(data: Union[bytes,None], player_data:dict, status = None):
+        """ pack only the basics (max 6 bytes).
+
+        :param data: moves or fire on bytes.
+        :param player_data: Player
+        :param status: default is UPDATE_PLAYER
+        """
+
+        angle = player_data["angle"]
+
         if data in Struct.MOVES:
             if data == Struct.RIGHT_EVENT_PLAYER:
                 player_data["x"] = player_data.get("x") + Player.SPEED
+                angle += Player.ANGLE * Player.ANGLE_RIGHT
+
             elif data == Struct.LEFT_EVENT_PLAYER:
                 player_data["x"] = player_data.get("x") - Player.SPEED
+                angle += Player.ANGLE * Player.ANGLE_RIGHT
+
             elif data == Struct.UP_EVENT_PLAYER:
                 player_data["y"] = player_data.get("y") - Player.SPEED
             elif data == Struct.DOWN_EVENT_PLAYER:
                 player_data["y"] = player_data.get("y") + Player.SPEED
 
+
         current = player_data["position"]
         pos_x = player_data["x"]
         pos_y = player_data["y"]
-        return struct.pack('BBhh', Struct.UPDATE_PLAYER, current, pos_x, pos_y)
+        cannon_x = player_data["cannon_x"]
+        cannon_y = player_data["cannon_y"]
+
+        if math.sqrt(angle ** 2) >= 360:
+            angle = 0
+
+        player_data["angle"] = angle
+
+        return struct.pack('BBhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
+                           current, pos_x, pos_y, cannon_x, cannon_y, angle)
 
 
     @staticmethod
@@ -59,7 +113,7 @@ class Struct:
 
     @staticmethod
     def pack(data: Union[str,dict]):
-        """ encode data """
+        """:param data: str or object.  encode data. deprecate. """
         try:
             return pickle.dumps(data)
         except pickle.PicklingError as e:

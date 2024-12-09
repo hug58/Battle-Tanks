@@ -1,7 +1,6 @@
 from pymongo import MongoClient
-from typing import Literal, Optional
-
-import uuid
+from typing import List
+import json
 
 class SingletonMeta(type):
     """
@@ -23,37 +22,94 @@ class SingletonMeta(type):
 
 
 class BasicDb:
-    def save(self, collection:str, data: dict):
-        """ Implement save method """
+    def __init__(self, file_path: str):
+        """
+        Constructor to initialize the local JSON database.
+        :param file_path: Path to the JSON file used for storing data.
+        """
+        self.file_path = file_path
+        self._initialize_file()
+
+    def _initialize_file(self):
+        """
+        Creates the JSON file if it does not exist, initializing it with an empty object.
+        """
+        try:
+            with open(self.file_path, 'x') as file:
+                json.dump({}, file)
+        except FileExistsError:
+            pass  # Do nothing if the file already exists.
+
+    def _load_data(self) -> dict:
+        """
+        Loads data from the JSON file.
+        :return: Dictionary with the loaded data.
+        """
+        with open(self.file_path, 'r') as file:
+            return json.load(file)
+
+    def _save_data(self, data: dict):
+        """
+        Saves the data to the JSON file.
+        :param data: Dictionary containing the data to save.
+        """
+        with open(self.file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+
+    def save(self, collection: str, data: dict) -> dict:
+        """
+        Saves a document to the specified collection.
+        :param collection: Name of the collection (key in the JSON).
+        :param data: Document (dictionary) to save.
+        :return: The saved document.
+        """
+        db = self._load_data()
+        if collection not in db:
+            db[collection] = []
+        db[collection].append(data)
+        self._save_data(db)
         return data
 
-    def find(self, collection:str, data: dict):
-        """ Implement find method"""
-        return {}
+    def find(self, collection: str, query: dict) -> List[dict]:
+        """
+        Searches for documents in the collection that match the query.
+        :param collection: Name of the collection.
+        :param query: Dictionary representing the search criteria.
+        :return: List of matching documents.
+        """
+        db = self._load_data()
+        if collection not in db:
+            return []
+        return [item for item in db[collection] if all(item.get(k) == v for k, v in query.items())]
 
-class ConnectMongo(BasicDb):
+
+class ConnectMongo:
     def __init__(self, data:dict):
         self.client = MongoClient(host=data.get("host"), port=data.get("port"))
         self.db = self.client[data.get("db")]
 
     def save(self, collection:str, data: dict):
         collection = self.db[collection]
-        return collection.insert_one(data)
+        collection.insert_one(data)
+        return data
 
-    def find (self, collection:str, data: dict) -> list:
+    def find(self, collection:str, data: dict) -> list:
         collection = self.db[collection]
         return collection.find(data).to_list()
+
 
 class DatabaseManager:
     _db:BasicDb = None
 
     @classmethod
     def configure(cls, data:dict=None):
+
         if isinstance(data, dict) :
             if data.get("database_name") in ["mongo","mongodb"]:
                 cls._db = ConnectMongo(data)
-        else:
-            cls._db = BasicDb()
+            else:
+                cls._db = BasicDb(data.get("database_name"))
+
 
 
     @classmethod

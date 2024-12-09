@@ -7,3 +7,4 @@ scripts/server/__pycache__/*
 scripts/sprites/__pycache__/*
 .idea
 __pycache__
+database.json
