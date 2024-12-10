@@ -7,7 +7,13 @@ import json
 class ServerUDP:
     def __init__(self, addr, max_players=10):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+
         self.server_socket.bind(addr)
+        local_address = self.server_socket.getsockname()
+
+        print(local_address)
+
         self.clients = {}  # {addr: player_data}
         self.max_players = max_players
         self.lock = threading.Lock()
@@ -38,6 +44,6 @@ class ServerUDP:
 
 
 if __name__ == "__main__":
-    server = ServerUDP(("localhost", 8030))
+    server = ServerUDP(("localhost", 25565))
     while True:
         time.sleep(1)
