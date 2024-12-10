@@ -18,6 +18,8 @@ q = queue.Queue()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 lock = th.Lock()
+TICK_INTERVAL = 0.05  # 50 ms por tick (20 ticks/segundo)
+
 
 def generate_random_numbers_from_time(n=5):
     random.seed(int(time.time()))
@@ -32,7 +34,7 @@ class Server:
         self._data:Dict[int,dict] = {}
         self._filter_name:list = []
         self._current_player = 0
-        self._socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
 
         self._socket.bind(addr)
@@ -128,15 +130,10 @@ class Server:
                             player = searching_player[0]
                             player["addr"] = addr
 
-
                         self._filter_name.append(player.get("name"))
                         player["conn"] = conn
 
-                        # with lock:
-                        #     self._data[current] = player
-
                         """Current Player in Queue"""
-                        # q.put(current)
                         q.put(player)
                         self._current_player +=1
 
@@ -147,41 +144,28 @@ class Server:
 
     def _receive(self):
         while True:
+            start_time = time.time()
+
             if  len(self._data) > 0:
-                readable, _, _ = select.select(self.sockets, [], [], 0)
+                readable, _, erros = select.select(self.sockets, [], [], 0)
                 available: List[socket.socket] = readable
                 for sock in available:
-                    # sock.send(Struct.OK_MESSAGE)
-                    data = sock.recv(BUFFER_SIZE_EVENT)
-                    if data != b'':
-                        position = self._get_player_position(sock)
-                        if position >= 0:
-                            self._messages_client(data, position)
+                    try:
+                        data = sock.recv(BUFFER_SIZE_EVENT)
+                        if data != b'':
+                            position = self._get_player_position(sock)
+                            if position >= 0:
+                                self._messages_client(data, position)
+                    except Exception as e:
+                        logger.error(f"LOG ERROR: {e}")
+                        for position, player in self._data.items():
+                            if isinstance(sock,player.get("conn")):
+                                del self._data[position]
+                        self.sockets.remove(sock)
 
-                    # for position,player in self._data.items():
-                    #     try:
-                    #         conn = player.get("conn")
-                    #         data:bytes = conn.recv(BUFFER_SIZE_EVENT)
-                    #         if data != b'':
-                    #             self._messages_client(data,position)
-                    #     except ConnectionResetError as e:
-                    #         logger.warning(f"ConnectionResetError: [{e}]")
-                    #         self._data.pop(position)
-                    #     except BlockingIOError as e:
-                    #         logger.warning(f"BlockingIOError: [{e}]")
-                    #         self._data.pop(position)
-                    #     except EOFError as e:
-                    #         logger.warning(f"EOFError: [{e}]")
-                    #         self._data.pop(position)
-                    #     except ConnectionAbortedError as e:
-                    #         logger.warning(f"ConnectionAbortedError: [{e}]")
-                    #         self._data.pop(position)
-                    #     except BrokenPipeError as e:
-                    #         logger.warning(f"BrokenPipeError: [{e}]")
-                    #         self._data.pop(position)
-                    #     except RuntimeError as e:
-                    #         logger.warning(f"[LOG] ERROR IN dict {e}")
 
+            elapsed_time = time.time() - start_time
+            time.sleep(max(0, TICK_INTERVAL - elapsed_time))
 
             if not q.empty():
                 new_player:dict = q.get()
