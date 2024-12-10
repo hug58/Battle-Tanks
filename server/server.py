@@ -33,7 +33,7 @@ class Server:
         self._filter_name:list = []
         self._current_player = 0
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
+        self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
 
         self._socket.bind(addr)
         self._max_players = 10
@@ -87,7 +87,13 @@ class Server:
                     continue
 
                 conn,addr = self._socket.accept()
+                # Activar TCP_NODELAY y aumentar buffers
+                conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                conn.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+                conn.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
+
                 conn.send(Struct.OK_MESSAGE)
+
                 data = Struct.unpack(conn.recv(BUFFER_SIZE_NAME))
 
                 try:
@@ -100,6 +106,7 @@ class Server:
                             if data in self._filter_name:
                                 conn.send(Struct.USER_NOT_AVAILABLE)
                                 continue
+
 
                         conn.send(Struct.JOIN_MESSAGE)
 
@@ -141,14 +148,12 @@ class Server:
     def _receive(self):
         while True:
             if  len(self._data) > 0:
-                readable, _, _ = select.select(self.sockets, [], [], 1.1)
+                readable, _, _ = select.select(self.sockets, [], [], 0)
                 available: List[socket.socket] = readable
-                print(available)
                 for sock in available:
                     # sock.send(Struct.OK_MESSAGE)
                     data = sock.recv(BUFFER_SIZE_EVENT)
-                    if data:
-                        print(f"DATA: {data}")
+                    if data != b'':
                         position = self._get_player_position(sock)
                         if position >= 0:
                             self._messages_client(data, position)
