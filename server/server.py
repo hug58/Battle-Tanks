@@ -5,9 +5,10 @@ import time
 import sys
 import os
 import queue
+import select
 import logging
 import random
-from typing import  Union,Dict
+from typing import Union, Dict, List, Optional
 from .conexions import DatabaseManager
 from scripts.commons.package import (Struct,
                                      BUFFER_SIZE_NAME,
@@ -32,10 +33,13 @@ class Server:
         self._filter_name:list = []
         self._current_player = 0
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+        self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_KEEPALIVE,1)
+
         self._socket.bind(addr)
         self._max_players = 10
         self._socket.listen(self._max_players)
+
+        self.sockets = []
 
         # DatabaseManager.configure({"database_name":"mongo",
         #                            "db":"testing",
@@ -121,11 +125,12 @@ class Server:
                         self._filter_name.append(player.get("name"))
                         player["conn"] = conn
 
-                        with lock:
-                            self._data[current] = player
+                        # with lock:
+                        #     self._data[current] = player
 
                         """Current Player in Queue"""
-                        q.put(current)
+                        # q.put(current)
+                        q.put(player)
                         self._current_player +=1
 
                 except EOFError as e:
@@ -135,43 +140,48 @@ class Server:
 
     def _receive(self):
         while True:
-            if len(self._data) > 0 and q.empty():
-                with lock:
-                    for position,player in self._data.items():
-                        try:
-                            conn = player.get("conn")
-                            data:bytes = conn.recv(BUFFER_SIZE_EVENT)
-                            if data != b'':
-                                self._messages_client(data,position)
-                        except ConnectionResetError as e:
-                            logger.warning(f"ConnectionResetError: [{e}]")
-                            self._data.pop(position)
-                        except BlockingIOError as e:
-                            logger.warning(f"BlockingIOError: [{e}]")
-                            self._data.pop(position)
-                        except EOFError as e:
-                            logger.warning(f"EOFError: [{e}]")
-                            self._data.pop(position)
-                        except ConnectionAbortedError as e:
-                            logger.warning(f"ConnectionAbortedError: [{e}]")
-                            self._data.pop(position)
-                        except BrokenPipeError as e:
-                            logger.warning(f"BrokenPipeError: [{e}]")
-                            self._data.pop(position)
-                        except RuntimeError as e:
-                            logger.warning(f"[LOG] ERROR IN dict {e}")
+            if  len(self._data) > 0:
+                readable, _, _ = select.select(self.sockets, [], [], 1.1)
+                available: List[socket.socket] = readable
+                print(available)
+                for sock in available:
+                    # sock.send(Struct.OK_MESSAGE)
+                    data = sock.recv(BUFFER_SIZE_EVENT)
+                    if data:
+                        print(f"DATA: {data}")
+                        position = self._get_player_position(sock)
+                        if position >= 0:
+                            self._messages_client(data, position)
+
+                    # for position,player in self._data.items():
+                    #     try:
+                    #         conn = player.get("conn")
+                    #         data:bytes = conn.recv(BUFFER_SIZE_EVENT)
+                    #         if data != b'':
+                    #             self._messages_client(data,position)
+                    #     except ConnectionResetError as e:
+                    #         logger.warning(f"ConnectionResetError: [{e}]")
+                    #         self._data.pop(position)
+                    #     except BlockingIOError as e:
+                    #         logger.warning(f"BlockingIOError: [{e}]")
+                    #         self._data.pop(position)
+                    #     except EOFError as e:
+                    #         logger.warning(f"EOFError: [{e}]")
+                    #         self._data.pop(position)
+                    #     except ConnectionAbortedError as e:
+                    #         logger.warning(f"ConnectionAbortedError: [{e}]")
+                    #         self._data.pop(position)
+                    #     except BrokenPipeError as e:
+                    #         logger.warning(f"BrokenPipeError: [{e}]")
+                    #         self._data.pop(position)
+                    #     except RuntimeError as e:
+                    #         logger.warning(f"[LOG] ERROR IN dict {e}")
 
 
+            if not q.empty():
+                new_player:dict = q.get()
+                current = new_player.get("position")
 
-            elif not q.empty():
-                current:int = q.get()
-
-                if current not in self._data:
-                    logger.warning("[LOG] current disconnect")
-                    continue
-
-                new_player:dict = self._data[current]
-                self._data.pop(current)
                 others_players:Dict[int,dict] = self._data.copy()
                 self._data[current] = new_player
 
@@ -189,6 +199,9 @@ class Server:
                         encoded_message = Struct.pack_player(None, player, Struct.OLD_PLAYER)
                         conn_new_player.send(encoded_message)
 
+                self.sockets: List[socket.socket] = [player["conn"] for _, player in self._data.items()]
+
+
     def _messages_client(self,data:Union[bytes,None], player_number:int) -> None:
         """ :param data: events player[const bytes] or add new player
             :param player_number: player position in self._data
@@ -201,6 +214,12 @@ class Server:
         for position, player in self._data.items():
             conn:socket.socket = player.get("conn")
             conn.send(encoded_message)
+
+    def _get_player_position(self, conn) -> int:
+        for position, player in self._data.items():
+            if player.get("conn") == conn:
+                return position
+        return -1
 
 
 
