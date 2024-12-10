@@ -32,7 +32,7 @@ class Server:
         self._data:Dict[int,dict] = {}
         self._filter_name:list = []
         self._current_player = 0
-        self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self._socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
 
         self._socket.bind(addr)
