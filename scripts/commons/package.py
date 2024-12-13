@@ -79,6 +79,9 @@ class Struct:
         angle = player_data["angle"]
         angle_cannon = player_data["angle_cannon"]
 
+        radians = math.radians(angle)
+
+
         if data in Struct.MOVES:
             if data == Struct.RIGHT_EVENT_PLAYER:
                 player_data["x"] = player_data.get("x") + Player.SPEED
@@ -88,10 +91,18 @@ class Struct:
                 player_data["x"] = player_data.get("x") - Player.SPEED
                 angle += Player.ANGLE * Player.ANGLE_RIGHT
 
-            elif data == Struct.UP_EVENT_PLAYER:
-                player_data["y"] = player_data.get("y") - Player.SPEED
-            elif data == Struct.DOWN_EVENT_PLAYER:
-                player_data["y"] = player_data.get("y") + Player.SPEED
+            if data == Struct.UP_EVENT_PLAYER or data == Struct.DOWN_EVENT_PLAYER:
+                vlx = Player.SPEED * - math.sin(radians)
+                vly = Player.SPEED * - math.cos(radians)
+
+                if data == Struct.UP_EVENT_PLAYER:
+                    player_data["y"] += vly
+                    player_data["x"] += vlx
+
+
+                elif data == Struct.DOWN_EVENT_PLAYER:
+                    player_data["y"] -= vly
+                    player_data["x"] -= vlx
 
             if data == Struct.LEFT_ANGLE_EVENT_PLAYER:
                 angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
@@ -114,8 +125,9 @@ class Struct:
         player_data["angle"] = angle
         player_data["angle_cannon"] = angle_cannon
 
+
         return struct.pack('BBhhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
-                           current, pos_x, pos_y, cannon_x, cannon_y, angle, angle_cannon)
+                           current, int(pos_x), int(pos_y), cannon_x, cannon_y, angle, angle_cannon)
 
 
     @staticmethod

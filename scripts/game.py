@@ -41,7 +41,7 @@ class Game(Client):
         Client.__init__(self,addr,player_name)
         self._number_player = self.player_number if addr is not None else 0
 
-        pg.display.set_caption(f"Lemon Tank - Client {self._number_player}")
+        pg.display.set_caption(f"Lemon Tank - Client {self._number_player} - User: {player_name}")
         pg.display.set_icon(pg.image.load(ROUTE('lemon.ico')))
 
         self.WIDTH,self.HEIGHT = screen.get_size()
@@ -51,7 +51,6 @@ class Game(Client):
         self.tile_rect = self.tile_image.get_rect()
 
         self._players: Dict[int,Player] = {}
-        self.POSITIONS = {}
         self._damage = 0
 
         self._bricks = pg.sprite.Group()
@@ -61,6 +60,8 @@ class Game(Client):
         self.load()
 
         position = (self.player_data["x"],self.player_data["y"])
+        print(f"POSITION: {position}")
+
         self.player = Player(position, cannon_type=type_guns.get("BASIC"))
         self.player._num_player = self._number_player
         self._players[self._number_player] = self.player
@@ -77,7 +78,8 @@ class Game(Client):
         """Load blocks, positions and players """
         for tile_object in self.tile.tmxdata.objects:
             if tile_object.name == 'player':
-                self.POSITIONS[tile_object.id] = (tile_object.x,tile_object.y)
+                pass
+                # self.POSITIONS[tile_object.id] = (tile_object.x,tile_object.y)
             elif tile_object.name == 'brick':
                 block: pg.sprite.Sprite = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
                 self._bricks.add(block)
@@ -87,7 +89,9 @@ class Game(Client):
         """ Update Game"""
         self.camera.update(self.player)
 
-        for _,player in self._players.items():
+
+        for key,player in self._players.items():
+
             if player.fire:
                 self._bullets.add(self._add_obj(Bullet,player))
                 player.fire = False
@@ -108,8 +112,9 @@ class Game(Client):
         self._move()
         recv:dict = self.recv_move_player()
 
+
         if recv.get("status") == Struct.NEW_PLAYER:
-            print("NUEVO JUGADOR")
+            print(f"NUEVO JUGADOR {recv['position']}")
             position = recv["position"]
             player = Player(self.POSITIONS[position],cannon_type = type_guns.get("BASIC"))
             player.number_player = position
@@ -194,15 +199,16 @@ class Game(Client):
         self.player.vly = self.player.vl * - math.cos(radians)
 
         if key[pg.K_w]:
-            self.player.rect.centerx += self.player.vlx
-            self.player.rect.centery += self.player.vly
+            self.send_move(Struct.UP_EVENT_PLAYER)
+
 
         if key[pg.K_s]:
-            self.player.rect.centerx -= self.player.vlx
-            self.player.rect.centery -= self.player.vly
+            self.send_move(Struct.DOWN_EVENT_PLAYER)
+            # self.player.rect.centerx -= self.player.vlx
+            # self.player.rect.centery -= self.player.vly
 
-        self.player.body_rect.center = self.player.rect.center
-        self.player.rect_cannon.center = self.player.body_rect.center
+        # self.player.body_rect.center = self.player.rect.center
+        # self.player.rect_cannon.center = self.player.body_rect.center
 
         if key[pg.K_i]:
             self.send_move(Struct.LEFT_ANGLE_EVENT_PLAYER)
@@ -231,14 +237,12 @@ class Game(Client):
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
 
 
-        main_tank = self.player.draw(TANK[self._number_player][0],self.player.angle)
-        main_cannon = self.player.draw(TANK[self._number_player][1],self.player.angle_cannon)
-
-        self.SCREEN.blit(main_tank,self.camera.apply(self.player))
-        self.SCREEN.blit(main_cannon,self.camera.apply_rect(self.player.rect_cannon))
-
-        pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player.rect),1)
-        pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player.body_rect),1)
+        # main_tank = self.player.draw(TANK[self._number_player][0],self.player.angle)
+        # main_cannon = self.player.draw(TANK[self._number_player][1],self.player.angle_cannon)
+        # self.SCREEN.blit(main_tank,self.camera.apply(self.player))
+        # self.SCREEN.blit(main_cannon,self.camera.apply_rect(self.player.rect_cannon))
+        # pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player.rect),1)
+        # pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player.body_rect),1)
 
         for bullet in self._bullets:
             self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
@@ -292,6 +296,6 @@ class Game(Client):
 
 
     def __str__(self):
-        return (f"Player Number: {self.player_number} "
-                f"\n Player Name: {self.name} "
-                f"\n Status: {'Multiplayer' if self.addr else 'Single'}")
+        return (f"\n\nPlayer Number: {self.player_number} "
+                f"\nPlayer Name: {self.name} "
+                f"\nStatus: {'Multiplayer' if self.addr else 'Single'}\n\n")

@@ -32,6 +32,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
+        ip_text = "165.227.197.37"
         name = "John"
         user_text =  "8010"
         option_select = 0
@@ -135,7 +136,7 @@ class Menu:
             self.clock.tick(60)
 
 
-        return Game((ip_text, int(user_text)), self.map_tmp, game_screen)
+        return Game((ip_text, int(user_text)), self.map_tmp, game_screen, name)
 
 
     def single_local_mode(self, game_screen) -> Game:

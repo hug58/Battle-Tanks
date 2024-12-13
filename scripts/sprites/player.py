@@ -94,3 +94,7 @@ class Player(Cannon):
     @number_player.setter
     def number_player(self, value):
         self._num_player = value
+
+
+    def __str__(self):
+        return f"NUMBER: {self.number_player}  POS: {self.rect.center}"

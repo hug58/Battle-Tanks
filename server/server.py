@@ -142,7 +142,7 @@ class Server:
 
     def _receive(self):
         while True:
-            start_time = time.time()
+            # start_time = time.time()
 
             if  len(self._data) > 0:
                 readable, _, _ = select.select(self.sockets, [], [], 0)
@@ -154,10 +154,10 @@ class Server:
                             position = self._get_player_position(sock)
                             if position >= 0:
                                 self._messages_client(data, position)
-                    except:
-                        logger.error(f"LOG ERROR")
-                        for position, player in self._data.items():
 
+                    except ConnectionRefusedError as e:
+                        logger.error(f"LOG ERROR: {e}")
+                        for position, player in self._data.items():
                             if sock == player.get("conn"):
                                 player["deleted"] = True
                                 q.put(player)
@@ -165,8 +165,8 @@ class Server:
                         self.sockets.remove(sock)
 
 
-            elapsed_time = time.time() - start_time
-            max_time = max(0, TICK_INTERVAL - elapsed_time)
+            # elapsed_time = time.time() - start_time
+            # max_time = max(0, TICK_INTERVAL - elapsed_time)
             # time.sleep(max_time)
 
             if not q.empty():
@@ -176,6 +176,7 @@ class Server:
 
                 if new_player.get("deleted"):
                     del self._data[current]
+                    self._filter_name.remove(new_player.get("name"))
                     continue
 
                 others_players:Dict[int,dict] = self._data.copy()
@@ -206,7 +207,6 @@ class Server:
         player_data:dict = self._data[player_number]
         encoded_message = Struct.pack_player(data, player_data)
 
-        print(f"SIZE: {len(encoded_message)}")
 
         for position, player in self._data.items():
             conn:socket.socket = player.get("conn")

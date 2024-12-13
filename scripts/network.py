@@ -53,7 +53,6 @@ class Client:
 
 
             if data != b'':
-                print(f"DATA LLEGADA: {len(data)}" )
                 data = Struct.unpack_player(data)
                 if (data[0] == Struct.UPDATE_PLAYER or
                         data[0] == Struct.NEW_PLAYER):
@@ -68,7 +67,8 @@ class Client:
                         "angle_cannon": data[7]
                     }
         except BlockingIOError:
-            print("No hay datos disponibles para recibir en este momento.")
+            pass
+            # print("No hay datos disponibles para recibir en este momento.")
 
         return {
         }
