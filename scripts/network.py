@@ -1,61 +1,94 @@
 """Server TCP connection"""
 
 import socket
+import sys
 from typing import Tuple
 from scripts.commons.package import (Struct,
                                      BUFFER_SIZE_INIT_PLAYER,
-                                     BUFFER_SIZE_EVENT,
-                                     BUFFER_SIZE_PLAYER,
-                                     OK_MESSAGE,
-                                     JOIN_MESSAGE)
+                                     )
 
 class Client:
     """ Client TCP connection """
-    def __init__(self,addr:Tuple[str,int]):
-        print(f"Connecting to {addr}")
-        self._get_number_player = None
-        self._data = {}
+    def __init__(self,addr:Tuple[str,int], name:str="John"):
+        print(f"Connecting to {addr}, Player: {name}")
+        self._player_data:dict = {}
+        self._data:dict = {}
+        self.name = name
+        self.addr = addr
 
         if addr is not None:
-            self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self._socket.connect(addr)
-            self._socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-            ok = self._socket.recv(BUFFER_SIZE_INIT_PLAYER)
-            if ok == OK_MESSAGE:
-                self._socket.send(JOIN_MESSAGE)
-                self._get_number_player = Struct.unpack(self._socket.recv(BUFFER_SIZE_INIT_PLAYER))
-                print(f"getting {self._get_number_player}")
-                self._get_number_player = int(self._get_number_player)
+            self._socket_tcp = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            self._socket_tcp.connect(addr)
+            self._socket_tcp.setsockopt(socket.SOL_SOCKET,socket.TCP_NODELAY,1)
+
+            ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
+            if ok == Struct.OK_MESSAGE:
+                self._socket_tcp.send(Struct.pack(self.name))
+                join = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
+                if  join == Struct.USER_NOT_AVAILABLE:
+                    print("USER NO AVAILABLE")
+                    sys.exit(1)
+
+                data = Struct.unpack_player(self._socket_tcp.recv(16))
+                self._player_data = {
+                    "position": data[1],
+                    "x": data[2],
+                    "y": data[3],
+                    "cannon_x": data[4],
+                    "cannon_y": data[5],
+                    "angle": data[6],
+                    "angle_cannon": data[7]
+                }
+
         else:
             self._socket = None
 
-    def send(self,player):
+
+    def recv_move_player(self) -> dict:
+        """ get data player """
         try:
-            player = Struct.pack(player)
-            self._socket.send(player)
-            data_server = self._socket.recv(BUFFER_SIZE_EVENT)
-            data = Struct.unpack(data_server)
-            if data:
-                self._data[data.num_player] = data
-        except socket.error as error:
-            print(error)
-            self._socket.close()
+            self._socket_tcp.setblocking(False)
+            data = self._socket_tcp.recv(18)
+            self._socket_tcp.setblocking(True)
+
+
+            if data != b'':
+                print(f"DATA LLEGADA: {len(data)}" )
+                data = Struct.unpack_player(data)
+                if (data[0] == Struct.UPDATE_PLAYER or
+                        data[0] == Struct.NEW_PLAYER):
+                    return {
+                        "status": data[0],
+                        "position": data[1],
+                        "x": data[2],
+                        "y": data[3],
+                        "cannon_x": data[4],
+                        "cannon_y": data[5],
+                        "angle": data[6],
+                        "angle_cannon": data[7]
+                    }
+        except BlockingIOError:
+            print("No hay datos disponibles para recibir en este momento.")
+
+        return {
+        }
+
 
     def send_move(self, move:bytes):
         """ Send player moves"""
         try:
-            self._socket.send(move)
-            recv = self._socket.recv(BUFFER_SIZE_PLAYER)
-            if recv != 'b':
-                data_server = Struct.unpack_player(recv)
-
-
+            self._socket_tcp.send(move)
         except socket.error as e:
-            self._socket.close()
+            self._socket_tcp.close()
+
 
     @property
-    def get_number_player(self):
+    def player_data(self):
         """ get number of player """
-        return self._get_number_player
+        return self._player_data
 
+    @property
+    def player_number(self):
+        """ get number of player """
+        return self._player_data["position"] if self._player_data != {} else 0
 

@@ -6,7 +6,6 @@ import math
 from scripts.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
-BUFFER_SIZE_PLAYER = 13
 BUFFER_SIZE_EVENT = 1
 BUFFER_SIZE_NAME = 32
 
@@ -15,10 +14,13 @@ class Struct:
     """
         Class for packing and unpacking data
     """
+    BUFFER_SIZE_PLAYER = 16
+    BUFFER_SIZE_NAME = 32
+    BUFFER_SIZE_EVENT = 1
+
     OK_MESSAGE = b'\x01'
     JOIN_MESSAGE = b'\x02'
     USER_NOT_AVAILABLE = b'\x09'
-
 
     LEFT_EVENT_PLAYER:bytes  = b'\x03'
     RIGHT_EVENT_PLAYER:bytes = b'\x04'
@@ -26,6 +28,7 @@ class Struct:
     DOWN_EVENT_PLAYER:bytes  = b'\x06'
     SHOOT_EVENT_PLAYER:bytes = b'\x06'
 
+    """ LEFT TOWERS """
     LEFT_ANGLE_EVENT_PLAYER:bytes  = b'\x07'
     RIGHT_ANGLE_EVENT_PLAYER:bytes = b'\x08'
 
@@ -58,19 +61,23 @@ class Struct:
     @staticmethod
     def unpack_player(data:bytes):
         """ :param data: bytes. a player is 6 bytes"""
-        return struct.unpack('BBhhhhh', data)
+        return struct.unpack('BBhhhhhh', data)
 
 
     @staticmethod
-    def pack_player(data: Union[bytes,None], player_data:dict, status = None):
-        """ pack only the basics (max 6 bytes).
+    def pack_player(data: Union[bytes,None], player_data:dict, status = None) -> bytes:
+        """
+        pack only the basics (max 6 bytes).
 
         :param data: moves or fire on bytes.
         :param player_data: Player
         :param status: default is UPDATE_PLAYER
+
+        :return: bytes (STATUS, POSITION, POSX, POSY, CANNONX, CANNONY, ANGLE)
         """
 
         angle = player_data["angle"]
+        angle_cannon = player_data["angle_cannon"]
 
         if data in Struct.MOVES:
             if data == Struct.RIGHT_EVENT_PLAYER:
@@ -86,6 +93,11 @@ class Struct:
             elif data == Struct.DOWN_EVENT_PLAYER:
                 player_data["y"] = player_data.get("y") + Player.SPEED
 
+            if data == Struct.LEFT_ANGLE_EVENT_PLAYER:
+                angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
+            elif data == Struct.RIGHT_ANGLE_EVENT_PLAYER:
+                angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
+
 
         current = player_data["position"]
         pos_x = player_data["x"]
@@ -96,10 +108,14 @@ class Struct:
         if math.sqrt(angle ** 2) >= 360:
             angle = 0
 
-        player_data["angle"] = angle
+        if math.sqrt(angle_cannon ** 2) >= 360:
+            angle_cannon = 0
 
-        return struct.pack('BBhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
-                           current, pos_x, pos_y, cannon_x, cannon_y, angle)
+        player_data["angle"] = angle
+        player_data["angle_cannon"] = angle_cannon
+
+        return struct.pack('BBhhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
+                           current, pos_x, pos_y, cannon_x, cannon_y, angle, angle_cannon)
 
 
     @staticmethod

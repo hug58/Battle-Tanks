@@ -103,6 +103,10 @@ class DatabaseManager:
 
     @classmethod
     def configure(cls, data:dict=None):
+        # DatabaseManager.configure({"database_name":"mongo",
+        #                            "db":"testing",
+        #                            "host":"localhost",
+        #                            "port":27017})
 
         if isinstance(data, dict) :
             if data.get("database_name") in ["mongo","mongodb"]:

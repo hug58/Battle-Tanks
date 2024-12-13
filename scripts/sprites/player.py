@@ -86,8 +86,11 @@ class Player(Cannon):
         if self._fire is True:
             self.type_gun.count_available -=1
 
-
     @property
     def number_player(self):
         """ get number of player client network """
         return self._num_player
+
+    @number_player.setter
+    def number_player(self, value):
+        self._num_player = value

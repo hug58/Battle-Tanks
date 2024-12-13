@@ -5,7 +5,8 @@ import socket
 import pygame as pg
 from scripts import Text
 from scripts.game import Game
-from scripts.commons.package import JOIN_MESSAGE,OK_MESSAGE,BUFFER_SIZE_INIT_PLAYER
+from scripts.commons.package import BUFFER_SIZE_INIT_PLAYER, Struct
+
 
 class Menu:
     """Menu """
@@ -31,6 +32,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
+        name = "John"
         user_text =  "8010"
         option_select = 0
 
@@ -42,16 +44,23 @@ class Menu:
 
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_DOWN:
-                        option_select = 1
+                        option_select -= 1
+                        if option_select < 0:
+                            option_select = 0
 
                     if event.key == pg.K_UP:
-                        option_select = 0
+                        option_select += 1
+                        if option_select > 2:
+                            option_select = 2
 
                     if event.key ==  pg.K_BACKSPACE:
-                        if option_select == 1:
-                            user_text = user_text[:-1]
-                        else:
+                        if option_select == 2:
+                            name = name[:-1]
+                        elif option_select == 1:
                             ip_text = ip_text[:-1]
+                        else:
+                            user_text = user_text[:-1]
+
                     elif event.key ==  pg.K_RETURN:
                         try:
                             if len(user_text) > 0:
@@ -59,8 +68,7 @@ class Menu:
                                 _socket.connect((ip_text, int(user_text)))
                                 _socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
                                 ok = _socket.recv(BUFFER_SIZE_INIT_PLAYER)
-                                _socket.send(JOIN_MESSAGE)
-                                if ok == OK_MESSAGE:
+                                if ok == Struct.OK_MESSAGE:
                                     user_enter = True
                                     _socket.close()
 
@@ -69,42 +77,62 @@ class Menu:
 
                     else:
                         if len(user_text) <= 7:
-                            if option_select == 1:
-                                user_text += event.dict.get("unicode")
-                            else:
+                            if option_select == 2:
+                                name += event.dict.get("unicode")
+                            elif option_select == 1:
                                 ip_text += event.dict.get("unicode")
+                            elif option_select == 0:
+                                user_text += event.dict.get("unicode")
 
             self.main_surface.fill((0,50,0))
-            surface_input = pg.Surface((100,40))
+            surface_input_port = pg.Surface((100,40))
             surface_input_ip = pg.Surface((110,40))
+            surface_input_name = pg.Surface((120,40))
 
             text_input = Text((50,20), user_text, (255,255,255))
-            text_input.draw(surface_input)
-
+            text_input.draw(surface_input_port)
             text_input_ip = Text((55,20), ip_text, (255,255,255))
             text_input_ip.draw(surface_input_ip)
 
-            text_ip = Text((70,60), "IP: ")
-            text_port = Text((70,120), "PORT: ")
-            text_enter = Text((240,120), "ENTER", (255,255,255))
+            text_input_name = Text((50,20), name, (255,255,255))
+            text_input_name.draw(surface_input_name)
 
-            if option_select == 0:
-                text_ip.color = (255,255,255)
+            text_name = Text((70,60), "NAME: ")
+            text_ip = Text((70,120), "IP: ")
+            text_port = Text((70,180), "PORT: ")
+            text_enter = Text((240,180), "ENTER", (255,255,255))
+
+            if option_select == 2:
+                text_name.color = (255,255,255)
+                text_ip.color   = (255,0,0)
                 text_port.color = (255,0,0)
+            elif option_select == 1:
+                text_ip.color   = (255,255,255)
+                text_port.color = (255,0,0)
+                text_name.color = (255,0,0)
             else:
-                text_ip.color = (255,0,0)
                 text_port.color = (255,255,255)
+                text_ip.color = (255,0,0)
+                text_name.color = (255,0,0)
 
+
+            """
+            LABELS: IP, PORT AND NAME
+            """
             text_ip.draw(self.main_surface)
             text_port.draw(self.main_surface)
+            text_name.draw(self.main_surface)
             text_enter.draw(self.main_surface)
-            self.main_surface.blit(surface_input, (100,100))
-            self.main_surface.blit(surface_input_ip, (100,40))
 
+            """
+            INPUT
+            """
+            self.main_surface.blit(surface_input_port, (100,160))
+            self.main_surface.blit(surface_input_ip, (100,100))
+            self.main_surface.blit(surface_input_name,(100,40))
 
             pg.display.flip()
             self.clock.tick(60)
-
 
 
         return Game((ip_text, int(user_text)), self.map_tmp, game_screen)
@@ -115,10 +143,8 @@ class Menu:
         return Game(None,self.map_tmp,game_screen)
 
 
-
     def  update(self, main_game) -> Game:
         """ getting game state"""
-        print("init")
         while self.select_option is None:
             for event in pg.event.get():
                 if event.type == pg.KEYDOWN:
@@ -138,7 +164,6 @@ class Menu:
                         self.select_option = select_option.get("action")
 
 
-
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
@@ -154,8 +179,9 @@ class Menu:
             game_select = self.single_local_mode(main_game)
 
         print("FUN")
-        return game_select
+        print(f"GAME SELECT: {game_select}")
 
+        return game_select
 
 
     def draw(self):

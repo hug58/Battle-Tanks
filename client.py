@@ -19,6 +19,8 @@ def main():
     clock = pg.time.Clock()
     main_surface = pg.Surface((WIDTH,HEIGHT))
     menu = Menu(SCREEN,map_tmp)
+
+
     game = menu.update(main_surface)
 
     text_damage = Text((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
@@ -26,6 +28,7 @@ def main():
 
     while True:
         SCREEN.fill((110,0,0))
+
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -49,9 +52,8 @@ def main():
         bullets.fill((0,0,0))
         bullets_renders = list(map(load_bullet,game.player.type_gun.render()))
         bullets.blits(bullets_renders)
+
         clock.tick(30)
-
-
         pg.display.flip()
 
 if __name__ == "__main__":
