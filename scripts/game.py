@@ -116,7 +116,9 @@ class Game(Client):
         if recv.get("status") == Struct.NEW_PLAYER:
             print(f"NUEVO JUGADOR {recv['position']}")
             position = recv["position"]
-            player = Player(self.POSITIONS[position],cannon_type = type_guns.get("BASIC"))
+            pos = (recv["x"],recv["y"])
+
+            player = Player(pos,cannon_type = type_guns.get("BASIC"))
             player.number_player = position
             self._players[position] = player
 

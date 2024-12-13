@@ -48,9 +48,9 @@ class Client:
         """ get data player """
         try:
             self._socket_tcp.setblocking(False)
-            data = self._socket_tcp.recv(18)
+            data = self._socket_tcp.recv(14)
             self._socket_tcp.setblocking(True)
-
+            print(f"SIZE: {len(data)}")
 
             if data != b'':
                 data = Struct.unpack_player(data)
@@ -91,4 +91,9 @@ class Client:
     def player_number(self):
         """ get number of player """
         return self._player_data["position"] if self._player_data != {} else 0
+
+    @property
+    def socket_tcp(self):
+        self._socket_tcp.send(Struct.CLOSE_CONN)
+        return self._socket_tcp
 

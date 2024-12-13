@@ -151,10 +151,27 @@ class Server:
                     try:
                         data = sock.recv(BUFFER_SIZE_EVENT)
                         if data != b'':
+
+                            if data == Struct.CLOSE_CONN:
+                                for position, player in self._data.items():
+                                    if sock == player.get("conn"):
+                                        player["deleted"] = True
+                                        q.put(player)
+                                self.sockets.remove(sock)
+                                print("Closed...")
+
+
                             position = self._get_player_position(sock)
                             if position >= 0:
                                 self._messages_client(data, position)
 
+                    except ConnectionResetError as e:
+                        logger.error(f"LOG ERROR: {e}")
+                        for position, player in self._data.items():
+                            if sock == player.get("conn"):
+                                player["deleted"] = True
+                                q.put(player)
+                        self.sockets.remove(sock)
                     except ConnectionRefusedError as e:
                         logger.error(f"LOG ERROR: {e}")
                         for position, player in self._data.items():

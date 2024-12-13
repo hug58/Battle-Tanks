@@ -33,6 +33,7 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
+                game.socket_tcp.close()
                 sys.exit()
 
             if event.type == pg.KEYUP:

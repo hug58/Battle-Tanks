@@ -21,6 +21,8 @@ class Struct:
     OK_MESSAGE = b'\x01'
     JOIN_MESSAGE = b'\x02'
     USER_NOT_AVAILABLE = b'\x09'
+    CLOSE_CONN = b'\x10'
+
 
     LEFT_EVENT_PLAYER:bytes  = b'\x03'
     RIGHT_EVENT_PLAYER:bytes = b'\x04'
@@ -83,13 +85,15 @@ class Struct:
 
 
         if data in Struct.MOVES:
+            print(data)
+
             if data == Struct.RIGHT_EVENT_PLAYER:
-                player_data["x"] = player_data.get("x") + Player.SPEED
+                # player_data["x"] = player_data.get("x") + Player.SPEED
                 angle += Player.ANGLE * Player.ANGLE_RIGHT
 
             elif data == Struct.LEFT_EVENT_PLAYER:
-                player_data["x"] = player_data.get("x") - Player.SPEED
-                angle += Player.ANGLE * Player.ANGLE_RIGHT
+                # player_data["x"] = player_data.get("x") - Player.SPEED
+                angle -= Player.ANGLE * Player.ANGLE_RIGHT
 
             if data == Struct.UP_EVENT_PLAYER or data == Struct.DOWN_EVENT_PLAYER:
                 vlx = Player.SPEED * - math.sin(radians)

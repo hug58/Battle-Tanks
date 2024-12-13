@@ -32,7 +32,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
-        ip_text = "165.227.197.37"
+        # ip_text = "165.227.197.37"
         name = "John"
         user_text =  "8010"
         option_select = 0
