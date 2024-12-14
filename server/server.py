@@ -14,8 +14,17 @@ from scripts.commons.package import (Struct,
                                      BUFFER_SIZE_EVENT)
 
 q = queue.Queue()
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+
+
+logging.basicConfig(filename="battle_server.log",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
+
+logging.info("Running Battle Tanks")
+logger = logging.getLogger('BattleTanks')
+
 lock = th.Lock()
 TICK_INTERVAL = 0.05  # 50 ms por tick (20 ticks/segundo)
 POSITIONS = {
@@ -76,7 +85,7 @@ class Server:
                 sys.exit(1)
 
     def _conexions(self):
-        logger.warning("Waiting conexions...")
+        logger.warning("WAITING CONEXIONS...")
 
         while True:
             try:
@@ -95,9 +104,6 @@ class Server:
                 try:
                     if data != b'':
                         data = Struct.unpack(data)
-
-                        print(f"NOMBRE: {data}")
-
                         current = list(set(range(self._max_players)) - set([position for position, _ in self._data.items()]))[0]
                         searching_player = self.persistence.find("player", {"name": data})
 
@@ -151,15 +157,13 @@ class Server:
                     try:
                         data = sock.recv(BUFFER_SIZE_EVENT)
                         if data != b'':
-
                             if data == Struct.CLOSE_CONN:
                                 for position, player in self._data.items():
                                     if sock == player.get("conn"):
                                         player["deleted"] = True
                                         q.put(player)
-                                self.sockets.remove(sock)
-                                print("Closed...")
 
+                                logger.warning(f"CLOSED: {sock.getsockname()}")
 
                             position = self._get_player_position(sock)
                             if position >= 0:
@@ -171,7 +175,6 @@ class Server:
                             if sock == player.get("conn"):
                                 player["deleted"] = True
                                 q.put(player)
-                        self.sockets.remove(sock)
                     except ConnectionRefusedError as e:
                         logger.error(f"LOG ERROR: {e}")
                         for position, player in self._data.items():
@@ -179,7 +182,6 @@ class Server:
                                 player["deleted"] = True
                                 q.put(player)
 
-                        self.sockets.remove(sock)
 
 
             # elapsed_time = time.time() - start_time
@@ -194,6 +196,7 @@ class Server:
                 if new_player.get("deleted"):
                     del self._data[current]
                     self._filter_name.remove(new_player.get("name"))
+                    self.sockets.remove(new_player.get("conn"))
                     continue
 
                 others_players:Dict[int,dict] = self._data.copy()

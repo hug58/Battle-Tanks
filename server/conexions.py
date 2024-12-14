@@ -99,7 +99,7 @@ class ConnectMongo:
 
 
 class DatabaseManager:
-    _db:BasicDb = None
+    _db = None
 
     @classmethod
     def configure(cls, data:dict=None):
@@ -108,7 +108,7 @@ class DatabaseManager:
         #                            "host":"localhost",
         #                            "port":27017})
 
-        if isinstance(data, dict) :
+        if isinstance(data, dict):
             if data.get("database_name") in ["mongo","mongodb"]:
                 cls._db = ConnectMongo(data)
             else:

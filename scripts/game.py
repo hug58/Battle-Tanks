@@ -124,18 +124,25 @@ class Game(Client):
 
         elif recv.get("status") == Struct.UPDATE_PLAYER:
             print("VIEJO JUGADOR")
-
             position = recv["position"]
-            player = self._players[position]
 
-            player.rect.x = recv["x"]
-            player.rect.y = recv["y"]
+            if self._players.get(position):
+                player = self._players[position]
+                player.rect.x = recv["x"]
+                player.rect.y = recv["y"]
 
-            player.rect_cannon.x = recv["cannon_x"]
-            player.rect_cannon.y = recv["cannon_y"]
+                player.rect_cannon.x = recv["cannon_x"]
+                player.rect_cannon.y = recv["cannon_y"]
 
-            player.angle = recv["angle"]
-            player.angle_cannon = recv["angle_cannon"]
+                player.angle = recv["angle"]
+                player.angle_cannon = recv["angle_cannon"]
+
+            else:
+                print("TRAYENDO USUARIOS VIEJOS AL NUEVO CLIENTE")
+                pos = (recv["x"], recv["y"])
+                player = Player(pos, cannon_type=type_guns.get("BASIC"))
+                player.number_player = position
+                self._players[position] = player
 
 
 

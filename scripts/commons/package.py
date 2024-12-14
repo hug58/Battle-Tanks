@@ -85,12 +85,9 @@ class Struct:
 
 
         if data in Struct.MOVES:
-            print(data)
-
             if data == Struct.RIGHT_EVENT_PLAYER:
                 # player_data["x"] = player_data.get("x") + Player.SPEED
                 angle += Player.ANGLE * Player.ANGLE_RIGHT
-
             elif data == Struct.LEFT_EVENT_PLAYER:
                 # player_data["x"] = player_data.get("x") - Player.SPEED
                 angle -= Player.ANGLE * Player.ANGLE_RIGHT

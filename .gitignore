@@ -8,3 +8,4 @@ scripts/sprites/__pycache__/*
 .idea
 __pycache__
 database.json
+battle_server.log
