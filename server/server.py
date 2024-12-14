@@ -105,6 +105,7 @@ class Server:
                     if data != b'':
                         data = Struct.unpack(data)
                         current = list(set(range(self._max_players)) - set([position for position, _ in self._data.items()]))[0]
+
                         searching_player = self.persistence.find("player", {"name": data})
 
                         if len(searching_player) > 0:

@@ -2,30 +2,28 @@
 """ this is the manager game """
 
 import math
-from typing import Tuple,Dict
+from typing import Tuple, Dict
 import pygame as pg
 
 from scripts.commons.package import Struct
 from scripts.tile_map import TileMap
 from scripts.camera import Camera
-from scripts.sprites import Player,Bullet, Brick
+from scripts.sprites import Player, Bullet, Brick
 
 from scripts.commons.municion import CannonType
-from scripts.commons.tank_surface import create_tank_surface, colors
+from scripts.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors)
 
 from scripts.network import Client
 from scripts import ROUTE
 
-
-TANK = {}
-
-for i,value in colors.items():
-    _tank = create_tank_surface(value)
-    cannon = pg.image.load(ROUTE(f'ASSETS/images/c_0{0}.png'))
-    TANK[i] = {
-        0:pg.transform.scale(_tank,(30,30)),
-        1:pg.transform.scale(cannon,(8*2,16*2))
+TANK = {
+    i: {
+        0: pg.transform.scale(create_tank_surface(value), (30, 30)),
+        1: pg.transform.scale(create_cannon_surface(value), (6 * 2, 16 * 2))
     }
+    for i, value in colors.items()
+}
+
 
 type_guns = {
     "MEDIUM": CannonType(10,'ASSETS/images/bullets/bullet_basic.png',(8,10)),
@@ -60,7 +58,6 @@ class Game(Client):
         self.load()
 
         position = (self.player_data["x"],self.player_data["y"])
-        print(f"POSITION: {position}")
 
         self.player = Player(position, cannon_type=type_guns.get("BASIC"))
         self.player._num_player = self._number_player
@@ -91,7 +88,6 @@ class Game(Client):
 
 
         for key,player in self._players.items():
-
             if player.fire:
                 self._bullets.add(self._add_obj(Bullet,player))
                 player.fire = False
@@ -138,7 +134,6 @@ class Game(Client):
                 player.angle_cannon = recv["angle_cannon"]
 
             else:
-                print("TRAYENDO USUARIOS VIEJOS AL NUEVO CLIENTE")
                 pos = (recv["x"], recv["y"])
                 player = Player(pos, cannon_type=type_guns.get("BASIC"))
                 player.number_player = position
