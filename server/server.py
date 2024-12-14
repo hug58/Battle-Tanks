@@ -9,12 +9,15 @@ import select
 import logging
 import random
 from typing import Union, Dict, List, Optional
+from collections import defaultdict
 from .conexions import DatabaseManager
 from scripts.commons.package import (Struct,
                                      BUFFER_SIZE_EVENT)
 
 q = queue.Queue()
 
+if os.path.exists("battle_server.log"):
+    os.remove("battle_server.log")
 
 logging.basicConfig(filename="battle_server.log",
                     filemode='a',
@@ -38,11 +41,14 @@ def generate_random_numbers_from_time(n=5):
     return ''.join(map(str, random_numbers))
 
 
+
+
 class Server:
     """Server made in socket TCP"""
 
     def __init__(self,addr):
-        self._data:Dict[int,dict] = {}
+
+        self._data:Dict[int,dict] = defaultdict(dict)
         self._filter_name:list = []
         self._current_player = 0
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -50,7 +56,7 @@ class Server:
         self._socket.bind(addr)
         self._max_players = 10
         self._socket.listen(self._max_players)
-        self.sockets = []
+        self.sockets:List[socket.socket] = []
 
         DatabaseManager.configure({"database_name":"database.json"})
 
@@ -64,6 +70,8 @@ class Server:
 
         th_1.start()
         th_2.start()
+
+
 
         while True:
             try:
@@ -83,6 +91,34 @@ class Server:
                 self._socket.close()
                 os.remove("database.json")
                 sys.exit(1)
+
+    def handle_client(self,client_socket: socket.socket):
+        logger.warning(f"RUNNING NEW THREAD CLIENT: {client_socket}")
+        while True:
+            try:
+                data = client_socket.recv(Struct.BUFFER_SIZE_EVENT)
+                if not data:
+                    break
+                if data == Struct.CLOSE_CONN:
+                    for position, player in self._data.items():
+                        if client_socket == player.get("conn"):
+                            player["deleted"] = True
+                            q.put(player)
+
+                    logger.warning(f"CLOSED: {client_socket.getsockname()}")
+
+                position = self._get_player_position(client_socket)
+                if position >= 0:
+                    self._messages_client(data, position)
+
+            except (ConnectionResetError, ConnectionRefusedError) as e:
+                logger.error(f"LOG ERROR: {e}")
+                for position, player in self._data.items():
+                    if client_socket == player.get("conn"):
+                        player["deleted"] = True
+                        q.put(player)
+
+        client_socket.close()
 
     def _conexions(self):
         logger.warning("WAITING CONEXIONS...")
@@ -104,6 +140,9 @@ class Server:
                 try:
                     if data != b'':
                         data = Struct.unpack(data)
+                        logger.warning(f"ADD NEW CONEXIONS: {data}")
+
+
                         current = list(set(range(self._max_players)) - set([position for position, _ in self._data.items()]))[0]
 
                         searching_player = self.persistence.find("player", {"name": data})
@@ -115,6 +154,7 @@ class Server:
                                 continue
 
                         conn.send(Struct.JOIN_MESSAGE)
+                        logger.debug(f"SEND: {Struct.JOIN_MESSAGE}")
 
                         if len(searching_player) == 0:
                             player = self.persistence.save(
@@ -141,6 +181,8 @@ class Server:
                         """Current Player in Queue."""
                         q.put(player)
                         self._current_player +=1
+                        th.Thread(target=self.handle_client, args=(conn,)).start()
+
 
                 except EOFError as e:
                     logger.error(f"ERROR[{e}] CLIENT: {addr}" )
@@ -149,48 +191,7 @@ class Server:
 
     def _receive(self):
         while True:
-            # start_time = time.time()
-
-            if  len(self._data) > 0:
-                readable, _, _ = select.select(self.sockets, [], [], 0)
-                available: List[socket.socket] = readable
-                for sock in available:
-                    try:
-                        data = sock.recv(BUFFER_SIZE_EVENT)
-                        if data != b'':
-                            if data == Struct.CLOSE_CONN:
-                                for position, player in self._data.items():
-                                    if sock == player.get("conn"):
-                                        player["deleted"] = True
-                                        q.put(player)
-
-                                logger.warning(f"CLOSED: {sock.getsockname()}")
-
-                            position = self._get_player_position(sock)
-                            if position >= 0:
-                                self._messages_client(data, position)
-
-                    except ConnectionResetError as e:
-                        logger.error(f"LOG ERROR: {e}")
-                        for position, player in self._data.items():
-                            if sock == player.get("conn"):
-                                player["deleted"] = True
-                                q.put(player)
-                    except ConnectionRefusedError as e:
-                        logger.error(f"LOG ERROR: {e}")
-                        for position, player in self._data.items():
-                            if sock == player.get("conn"):
-                                player["deleted"] = True
-                                q.put(player)
-
-
-
-            # elapsed_time = time.time() - start_time
-            # max_time = max(0, TICK_INTERVAL - elapsed_time)
-            # time.sleep(max_time)
-
             if not q.empty():
-
                 new_player:dict = q.get()
                 current = new_player.get("position")
 
@@ -206,6 +207,7 @@ class Server:
                 encoded_message = Struct.pack_player(None, new_player)
                 conn_new_player:socket.socket = new_player.get("conn")
                 conn_new_player.send(encoded_message)
+                logger.debug(f"SEND PLAYER: {new_player}")
 
                 if len(others_players) > 0:
                     for position,player in others_players.items():
@@ -217,7 +219,6 @@ class Server:
                         encoded_message = Struct.pack_player(None, player, Struct.OLD_PLAYER)
                         conn_new_player.send(encoded_message)
 
-                self.sockets: List[socket.socket] = [player["conn"] for _, player in self._data.items()]
 
     def _messages_client(self,data:Union[bytes,None], player_number:int) -> None:
         """ :param data: events player[const bytes] or add new player

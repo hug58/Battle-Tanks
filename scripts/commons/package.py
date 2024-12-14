@@ -14,7 +14,7 @@ class Struct:
     """
         Class for packing and unpacking data
     """
-    BUFFER_SIZE_PLAYER = 16
+    BUFFER_SIZE_PLAYER = 14
     BUFFER_SIZE_NAME = 32
     BUFFER_SIZE_EVENT = 1
 
