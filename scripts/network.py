@@ -29,7 +29,11 @@ class Client:
                     print("USER NO AVAILABLE")
                     sys.exit(1)
 
-                data = Struct.unpack_player(self._socket_tcp.recv(16))
+                print("PROCESS START")
+                data = self._socket_tcp.recv(14)
+                print(f"LO LLEGADO: {data}")
+                data = Struct.unpack_player(data)
+                print("PROCESS END")
                 self._player_data = {
                     "position": data[1],
                     "x": data[2],
@@ -49,8 +53,7 @@ class Client:
         try:
             self._socket_tcp.setblocking(False)
             data = self._socket_tcp.recv(14)
-            self._socket_tcp.setblocking(True)
-            print(f"SIZE: {len(data)}")
+            # self._socket_tcp.setblocking(True)
 
             if data != b'':
                 data = Struct.unpack_player(data)
