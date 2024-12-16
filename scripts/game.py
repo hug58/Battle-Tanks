@@ -194,7 +194,7 @@ class Game(Client):
         # radians = math.radians(self.player.angle)
         # self.player.vlx = self.player.vl * - math.sin(radians)
         # self.player.vly = self.player.vl * - math.cos(radians)
-        if key[pg.K_w]:
+        elif key[pg.K_w]:
             self.send_move(Struct.UP_EVENT_PLAYER)
             # self.player.rect.centerx += self.player.vlx
             # self.player.rect.centery += self.player.vly
