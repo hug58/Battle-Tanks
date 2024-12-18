@@ -1,9 +1,9 @@
 
-from typing import Union
+from typing import Union,Dict
 import pickle
 import struct
 import math
-from scripts.sprites.player import Player
+from src.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
 BUFFER_SIZE_EVENT = 1
@@ -67,7 +67,8 @@ class Struct:
 
 
     @staticmethod
-    def pack_player(data: Union[bytes,None], player_data:dict, status = None) -> bytes:
+    def pack_player(data: Union[bytes,None],
+                    player_data:dict, status = None) -> bytes:
         """
         pack only the basics (max 6 bytes).
 
@@ -132,12 +133,29 @@ class Struct:
 
 
     @staticmethod
+    def unpack_without_conn(data: bytes):
+        """ decode data """
+        return pickle.loads(data)
+
+
+    @staticmethod
     def unpack(data: bytes):
         """ decode data """
         try:
+            print(data)
             return pickle.loads(data)
         except pickle.UnpicklingError as e:
             return data.decode('utf-8')
+
+    @staticmethod
+    def pack_without_conn(data: Dict[int,dict]):
+        dev = {}
+        for d, item in data.items():
+            new_player = item.copy()
+            new_player.pop("conn")
+            new_player["status"] = Struct.UPDATE_PLAYER
+            dev[d] = new_player
+        return pickle.dumps(dev)
 
 
     @staticmethod

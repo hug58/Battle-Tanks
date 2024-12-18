@@ -2,8 +2,8 @@
 
 import sys
 import pygame as pg
-from scripts import Text, ROUTE
-from scripts.menu import Menu
+from src import Text, ROUTE
+from src.menu import Menu
 
 
 def load_bullet(bullet):
@@ -13,7 +13,7 @@ def load_bullet(bullet):
 def main():
     """ Client game of server"""
 
-    map_tmp = "ASSETS/maps/zone_0.tmx"
+    map_tmp = "ASSETS/maps/zone_1.tmx"
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()
@@ -33,7 +33,7 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
-                game.socket_tcp.close()
+                game.network.socket_tcp.close()
                 sys.exit()
 
             if event.type == pg.KEYUP:

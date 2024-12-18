@@ -7,12 +7,11 @@ import os
 import queue
 import logging
 import random
-from typing import Union, Dict, List, Optional
+from typing import Dict,Tuple
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from .conexions import DatabaseManager
-from scripts.commons.package import (Struct,
-                                     BUFFER_SIZE_EVENT)
+from src.commons.package import (Struct,BUFFER_SIZE_EVENT)
 
 q = queue.SimpleQueue()
 
@@ -53,16 +52,23 @@ class Server:
 
     def __init__(self,addr):
         self.tick_last_sent = time.time()
-
         self._data:Dict[int,dict] = defaultdict(dict)
+        self._player:Dict[int,dict] = defaultdict(dict)
+
         self._filter_name:list = []
         self._current_player = 0
+
+
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
-
         self._socket.bind(addr)
+
+        self.socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket_udp.bind(("0.0.0.0", 12345))
+        self.address_udp = {}
+
         self._max_players = 2
         self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
         self._socket.listen(self._max_players)
@@ -74,9 +80,10 @@ class Server:
 
         # print(f"ROOM: {self.room}")
         th_1 = th.Thread(target = self._conexions, daemon = True)
-        # th_3 = th.Thread(target = self.handle_menu, daemon=True)
+        # th_2 = th.Thread(target = self.movements, daemon=True)
+
         th_1.start()
-        # th_3.start()
+        # th_2.start()
 
         self._receive()
 
@@ -146,8 +153,6 @@ class Server:
                 if len(self._data) >= self._max_players:
                     time.sleep(10)
                     continue
-
-
 
                 conn,addr = self._socket.accept()
                 conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -248,14 +253,13 @@ class Server:
                         for position,player in others_players.items():
                             encoded_message = Struct.pack_player(None, player, Struct.OLD_PLAYER)
                             conn_new_player.send(encoded_message)
-                    continue
 
                 elif isinstance(data,bytes):
                     if time.time() - self.tick_last_sent >= TICK_RATE:
                         self.tick_last_sent = time.time()
                         for position, player in self._data.items():
                             conn: socket.socket = player.get("conn")
-                            self.executor.submit(send_data, conn,data)
+                            self.executor.submit(send_data, conn,Struct.pack_without_conn(self._data))
                             # th.Thread(target=send_data,args=(conn,data,), daemon=True).start()
                             # conn.send(data)
 
@@ -273,6 +277,22 @@ class Server:
             if player.get("conn") == conn:
                 return position
         return -1
+
+    def movements(self):
+        logger.warning(f"THREAD INIT: {th.current_thread().name}")
+        while True:
+            data, address = self.socket_udp.recvfrom(100)
+            data_unpack = Struct.unpack(data)
+            # print(f"recv data {data_unpack} from: {address}")
+            pos = data_unpack["position"]
+
+            player = self._data[pos]
+            encoded_message = Struct.pack_player(data_unpack['move'], player)
+            self.address_udp[pos] = address
+            for pos, addressUdp in self.address_udp.items():
+                self.socket_udp.sendto(encoded_message, addressUdp)
+
+            print(f"data send: {encoded_message}")
 
 
 
