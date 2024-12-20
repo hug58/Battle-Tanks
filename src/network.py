@@ -46,35 +46,32 @@ class NetworkComponent:
                     "angle_cannon": data[7]
             }
 
-    def recv_move_player(self) -> dict:
+    def recv_move_player(self) :
         """ get data player """
         try:
+
             self._socket_tcp.setblocking(False)
             data = self._socket_tcp.recv(300)
             # self._socket_tcp.setblocking(True)
+            modify_data = lambda player_arr: {
+                                "status": player_arr[0],
+                                "position": player_arr[1],
+                                "x": player_arr[2],
+                                "y": player_arr[3],
+                                "cannon_x": player_arr[4],
+                                "cannon_y": player_arr[5],
+                                "angle": player_arr[6],
+                                "angle_cannon": player_arr[7]
+                            }
+
 
             if data != b'':
-                if len(data) > 20:
-                    return Struct.unpack_without_conn(data)
-                else:
-                    data = Struct.unpack_player(data)
-                    if (data[0] == Struct.UPDATE_PLAYER or
-                            data[0] == Struct.NEW_PLAYER):
-                        return {
-                            data[1]:{
-                                "status": data[0],
-                                "position": data[1],
-                                "x": data[2],
-                                "y": data[3],
-                                "cannon_x": data[4],
-                                "cannon_y": data[5],
-                                "angle": data[6],
-                                "angle_cannon": data[7]
-                            }
-                        }
-        except BlockingIOError:
+                players = list(map(modify_data, Struct.unpack_players(data)))
+                return players
+
+        except (BlockingIOError, socket.error) as e:
+            # print(f"THERE IS A ERROR: {e}")
             pass
-            # print("No hay datos disponibles para recibir en este momento.")
 
         return {
         }

@@ -1,5 +1,4 @@
-
-from typing import Union,Dict
+from typing import Union, Dict
 import pickle
 import struct
 import math
@@ -23,52 +22,47 @@ class Struct:
     USER_NOT_AVAILABLE = b'\x09'
     CLOSE_CONN = b'\x10'
 
-
-    LEFT_EVENT_PLAYER:bytes  = b'\x03'
-    RIGHT_EVENT_PLAYER:bytes = b'\x04'
-    UP_EVENT_PLAYER:bytes    = b'\x05'
-    DOWN_EVENT_PLAYER:bytes  = b'\x06'
-    SHOOT_EVENT_PLAYER:bytes = b'\x06'
+    LEFT_EVENT_PLAYER: bytes = b'\x03'
+    RIGHT_EVENT_PLAYER: bytes = b'\x04'
+    UP_EVENT_PLAYER: bytes = b'\x05'
+    DOWN_EVENT_PLAYER: bytes = b'\x06'
+    SHOOT_EVENT_PLAYER: bytes = b'\x06'
 
     """ LEFT TOWERS """
-    LEFT_ANGLE_EVENT_PLAYER:bytes  = b'\x07'
-    RIGHT_ANGLE_EVENT_PLAYER:bytes = b'\x08'
+    LEFT_ANGLE_EVENT_PLAYER: bytes = b'\x07'
+    RIGHT_ANGLE_EVENT_PLAYER: bytes = b'\x08'
 
-
-    UPDATE_PLAYER:int = 1
-    NEW_PLAYER:int = 2
-    OLD_PLAYER:int = 3
+    UPDATE_PLAYER: int = 1
+    NEW_PLAYER: int = 2
+    OLD_PLAYER: int = 3
 
     MOVES = [LEFT_EVENT_PLAYER, RIGHT_EVENT_PLAYER,
-             UP_EVENT_PLAYER,DOWN_EVENT_PLAYER,
+             UP_EVENT_PLAYER, DOWN_EVENT_PLAYER,
 
              #TOWERS MOVES
              LEFT_ANGLE_EVENT_PLAYER,
              RIGHT_ANGLE_EVENT_PLAYER
              ]
 
-
     @staticmethod
-    def unpack_single_data(data:bytes) -> tuple:
+    def unpack_single_data(data: bytes) -> tuple:
         """ :param data: bytes"""
         return struct.unpack('B', data)
-
 
     @staticmethod
     def pack_single_data(data) -> bytes:
         """ :param data: example: 1"""
         return struct.pack('B', data)
 
-
     @staticmethod
-    def unpack_player(data:bytes):
+    def unpack_player(data: bytes):
         """ :param data: bytes. a player is 6 bytes"""
         return struct.unpack('BBhhhhhh', data)
 
-
     @staticmethod
-    def pack_player(data: Union[bytes,None],
-                    player_data:dict, status = None) -> bytes:
+    def pack_player(data: Union[bytes, None],
+                    player_data: dict,
+                    status=None) -> bytes:
         """
         pack only the basics (max 6 bytes).
 
@@ -81,9 +75,7 @@ class Struct:
 
         angle = player_data["angle"]
         angle_cannon = player_data["angle_cannon"]
-
         radians = math.radians(angle)
-
 
         if data in Struct.MOVES:
             if data == Struct.RIGHT_EVENT_PLAYER:
@@ -111,7 +103,6 @@ class Struct:
             elif data == Struct.RIGHT_ANGLE_EVENT_PLAYER:
                 angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
 
-
         current = player_data["position"]
         pos_x = player_data["x"]
         pos_y = player_data["y"]
@@ -128,14 +119,9 @@ class Struct:
         player_data["angle_cannon"] = angle_cannon
 
 
+
         return struct.pack('BBhhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
                            current, int(pos_x), int(pos_y), cannon_x, cannon_y, angle, angle_cannon)
-
-
-    @staticmethod
-    def unpack_without_conn(data: bytes):
-        """ decode data """
-        return pickle.loads(data)
 
 
     @staticmethod
@@ -148,23 +134,37 @@ class Struct:
             return data.decode('utf-8')
 
     @staticmethod
-    def pack_without_conn(data: Dict[int,dict]):
-        dev = {}
-        for d, item in data.items():
-            new_player = item.copy()
-            new_player.pop("conn")
-            new_player["status"] = Struct.UPDATE_PLAYER
-            dev[d] = new_player
-        return pickle.dumps(dev)
+    def unpack_players(data: bytes):
+        """ Decode data in chunks of 14 bytes if data length is greater than 14. """
+        players = []
+        chunk_size = 14
 
+        # Check if data length is greater than 14
+        if len(data) > chunk_size:
+            for i in range(0, len(data), chunk_size):
+                chunk = data[i:i + chunk_size]
+                player = Struct.unpack_player(chunk)  # Assuming unpack_player is defined in Struct
+                players.append(player)
+        else:
+            # Handle case where data is less than or equal to 14 bytes
+            if len(data) > 0:
+                player = Struct.unpack_player(data)  # Unpack the entire data if it's less than or equal to 14 bytes
+                players.append(player)
+
+        return players
 
     @staticmethod
-    def pack(data: Union[str,dict]):
+    def pack_players(data: Dict[int, dict], status = None):
+        data_encoded = b''
+        for d, item in data.items():
+            data_encoded += Struct.pack_player(None, item, status)
+
+        return data_encoded
+
+    @staticmethod
+    def pack(data: Union[str, dict]):
         """:param data: str or object.  encode data. deprecate. """
         try:
             return pickle.dumps(data)
         except pickle.PicklingError as e:
             return data.encode('utf-8')
-
-
-

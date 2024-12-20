@@ -53,21 +53,16 @@ class Server:
     def __init__(self,addr):
         self.tick_last_sent = time.time()
         self._data:Dict[int,dict] = defaultdict(dict)
-        self._player:Dict[int,dict] = defaultdict(dict)
+        self._sockets = []
 
         self._filter_name:list = []
         self._current_player = 0
-
 
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
-
-        self.socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket_udp.bind(("0.0.0.0", 12345))
-        self.address_udp = {}
 
         self._max_players = 2
         self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
@@ -76,14 +71,11 @@ class Server:
         DatabaseManager.configure({"database_name":"database.json"})
 
         self.persistence = DatabaseManager.get()
-        self.room = str(generate_random_numbers_from_time())
-
+        # self.room = str(generate_random_numbers_from_time())
         # print(f"ROOM: {self.room}")
-        th_1 = th.Thread(target = self._conexions, daemon = True)
-        # th_2 = th.Thread(target = self.movements, daemon=True)
 
+        th_1 = th.Thread(target = self._conexions, daemon = True)
         th_1.start()
-        # th_2.start()
 
         self._receive()
 
@@ -121,19 +113,26 @@ class Server:
                     player = self._data[position]
                     player["deleted"] = True
                     q.put(player)
+
                 if data == Struct.CLOSE_CONN:
+                    logger.warning(f"CLOSED: {client_socket.getsockname()} "
+                                   f"THREAD -- {th.current_thread().name}")
+
                     for position, player in self._data.items():
                         if client_socket == player.get("conn"):
                             player["deleted"] = True
                             q.put(player)
 
-                    logger.warning(f"CLOSED: {client_socket.getsockname()} "
-                                   f"THREAD -- {th.current_thread().name}")
-
                 position = self._get_player_position(client_socket)
                 if position >= 0:
                     player_data: dict = self._data[position]
                     encoded_message = Struct.pack_player(data, player_data)
+
+                    # self.persistence.update(
+                    #     collection="players",
+                    #     query={"name": player_data.get("name")},
+                    #     new_data=player_data)
+                    
                     q.put(encoded_message)
 
             except (ConnectionResetError, ConnectionRefusedError) as e:
@@ -177,7 +176,7 @@ class Server:
                                 continue
 
                         conn.send(Struct.JOIN_MESSAGE)
-                        logger.debug(f"SEND: {Struct.JOIN_MESSAGE}")
+                        logger.debug(f"SEND JOIN: {Struct.JOIN_MESSAGE} TO {conn.getsockname()}")
 
                         if len(searching_player) == 0:
                             player = self.persistence.save(
@@ -207,8 +206,7 @@ class Server:
                         self._current_player +=1
 
                     logger.debug(f"SLEEPING THREAD BEFORE {th.current_thread().name}")
-                    time.sleep(1)
-
+                    time.sleep(2)
 
                 except EOFError as e:
                     logger.error(f"ERROR[{e}] CLIENT: {addr}" )
@@ -217,18 +215,23 @@ class Server:
                 logger.error(f"ERROR[{e}] BlockingIOError")
 
     def _receive(self):
-        logger.debug(f"START THREAD: --- [{th.current_thread().name}]")
+        logger.debug(f"START THREAD: ---[{th.current_thread().name}]")
 
         while True:
             try:
                 data = q.get(timeout=1)
-                if isinstance(data,dict):
+
+                if isinstance(data, dict):
+                    """
+                        QUEUE FOR NEW PLAYERS.
+                    """
                     new_player:dict = data
                     current = new_player.get("position")
 
                     if new_player.get("deleted") is not None:
                         try:
                             self._data.pop(current)
+                            self._sockets.remove(new_player.get("conn"))
                             self._filter_name.remove(new_player.get("name"))
                             logger.debug(f"Removed player at position {current}. THREAD: {th.current_thread().name}")
                         except (KeyError, ValueError) as e:
@@ -239,29 +242,32 @@ class Server:
                     self._data[current] = new_player
 
                     encoded_message = Struct.pack_player(None, new_player)
-                    logger.debug(f"BEFORE SEND TO PLAYER INIT: {encoded_message}")
+                    logger.debug(f"BEFORE SEND TO PLAYER INIT: {new_player}")
                     conn_new_player:socket.socket = new_player.get("conn")
+
+                    """ADD NEW CONN"""
+                    self._sockets.append(conn_new_player)
                     conn_new_player.send(encoded_message)
-                    logger.debug(f"SEND PLAYER: {new_player}")
+
+                    """SENDING OLD_PLAYERS TO NEW_PLAYER."""
+                    conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
 
                     if len(others_players) > 0:
-                        for position,player in others_players.items():
+                        """SENDING NEW_PLAYER TO OTHER OLD PLAYERS"""
+                        for position, player in others_players.items():
                             conn: socket.socket = player.get("conn")
                             encoded_message = Struct.pack_player(None, new_player, Struct.NEW_PLAYER)
                             conn.send(encoded_message)
 
-                        for position,player in others_players.items():
-                            encoded_message = Struct.pack_player(None, player, Struct.OLD_PLAYER)
-                            conn_new_player.send(encoded_message)
-
                 elif isinstance(data,bytes):
+                    """
+                        QUEUE FOR OLD PLAYERS
+                    """
                     if time.time() - self.tick_last_sent >= TICK_RATE:
                         self.tick_last_sent = time.time()
-                        for position, player in self._data.items():
-                            conn: socket.socket = player.get("conn")
-                            self.executor.submit(send_data, conn,Struct.pack_without_conn(self._data))
-                            # th.Thread(target=send_data,args=(conn,data,), daemon=True).start()
-                            # conn.send(data)
+                        for conn in self._sockets:
+                            """FOR MOMENTS USES 'self._data', soon only modify data."""
+                            self.executor.submit(send_data, conn,Struct.pack_players(self._data))
 
 
             except queue.Empty:
@@ -277,23 +283,6 @@ class Server:
             if player.get("conn") == conn:
                 return position
         return -1
-
-    def movements(self):
-        logger.warning(f"THREAD INIT: {th.current_thread().name}")
-        while True:
-            data, address = self.socket_udp.recvfrom(100)
-            data_unpack = Struct.unpack(data)
-            # print(f"recv data {data_unpack} from: {address}")
-            pos = data_unpack["position"]
-
-            player = self._data[pos]
-            encoded_message = Struct.pack_player(data_unpack['move'], player)
-            self.address_udp[pos] = address
-            for pos, addressUdp in self.address_udp.items():
-                self.socket_udp.sendto(encoded_message, addressUdp)
-
-            print(f"data send: {encoded_message}")
-
 
 
 if __name__ == '__main__':

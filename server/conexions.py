@@ -70,6 +70,30 @@ class BasicDb:
         self._save_data(db)
         return data
 
+    def update(self, collection: str, query: dict, new_data: dict) -> List[dict]:
+        """
+        Updates one or more documents in the JSON file based on a query.
+
+        :param collection: Name of the collection (key in the JSON).
+        :param query: Dictionary representing the search criteria.
+        :param new_data: Dictionary with the new data to update.
+        :return: List of updated documents or an empty list if no matches were found.
+        """
+
+        db = self._load_data()
+        updated_items = []
+
+        if collection in db:
+            for item in db[collection]:
+                if all(item.get(k) == v for k, v in query.items()):
+                    item.update(new_data)
+                    updated_items.append(item)
+
+            if updated_items:
+                self._save_data(db)
+
+        return updated_items
+
     def find(self, collection: str, query: dict) -> List[dict]:
         """
         Searches for documents in the collection that match the query.

@@ -66,6 +66,7 @@ class MovementComponent:
         # self.player.body_rect.center = self.player.rect.center
         # self.player.rect_cannon.center = self.player.body_rect.center
 
+
         if self.network and action:
             self.network.send_move_tcp(action)
 

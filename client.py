@@ -54,7 +54,10 @@ def main():
         bullets_renders = list(map(load_bullet,game.player.type_gun.render()))
         bullets.blits(bullets_renders)
 
-        clock.tick(30)
+        """
+        TICKS IN CLIENT
+        """
+        clock.tick(35)
         pg.display.flip()
 
 if __name__ == "__main__":

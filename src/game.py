@@ -2,7 +2,7 @@
 """ this is the manager game """
 
 import math
-from typing import Tuple, Dict, Union
+from typing import Tuple, Dict, Union, List
 import pygame as pg
 
 from src.commons.package import Struct
@@ -113,9 +113,10 @@ class Game:
         """ SEND MOVES BYTES """
         self.move.keys()
         if self.network:
-            recv_all:dict = self.network.recv_move_player()
+            recv_all:List[dict] = self.network.recv_move_player()
 
-            for pos, recv in recv_all.items():
+            for  recv in recv_all:
+                print(f"RECV: {recv}")
                 if recv.get("status") == Struct.NEW_PLAYER:
                     position = recv["position"]
                     pos = (recv["x"],recv["y"])
