@@ -64,7 +64,7 @@ class Server:
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
 
-        self._max_players = 2
+        self._max_players = 3
         self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
         self._socket.listen(self._max_players)
 
