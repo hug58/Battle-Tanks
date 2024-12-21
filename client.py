@@ -57,7 +57,7 @@ def main():
         """
         TICKS IN CLIENT
         """
-        clock.tick(35)
+        clock.tick(50)
         pg.display.flip()
 
 if __name__ == "__main__":

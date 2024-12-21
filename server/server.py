@@ -64,18 +64,18 @@ class Server:
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
 
-        self._max_players = 3
+        self._max_players = Struct.MAX_PLAYERS
         self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
         self._socket.listen(self._max_players)
 
         DatabaseManager.configure({"database_name":"database.json"})
-
         self.persistence = DatabaseManager.get()
-        # self.room = str(generate_random_numbers_from_time())
-        # print(f"ROOM: {self.room}")
 
         th_1 = th.Thread(target = self._conexions, daemon = True)
         th_1.start()
+
+        th_2 = th.Thread(target=self.handle_menu, daemon = True)
+        th_2.start()
 
         self._receive()
 
@@ -92,6 +92,7 @@ class Server:
                         print(data)
                 elif op == "exit":
                     self._socket.close()
+                    os.remove("database.json")
                     sys.exit(1)
                 elif op in ("help","h"):
                     print("OPTIONS: users and data")
@@ -132,7 +133,7 @@ class Server:
                     #     collection="players",
                     #     query={"name": player_data.get("name")},
                     #     new_data=player_data)
-                    
+
                     q.put(encoded_message)
 
             except (ConnectionResetError, ConnectionRefusedError) as e:
@@ -164,7 +165,7 @@ class Server:
                 try:
                     if data != b'':
                         data = Struct.unpack(data)
-                        logger.warning(f"ADD NEW CONEXIONS: {data}")
+                        logger.warning(f"ADD NEW_CONEXIONS: {data}")
 
                         current = list(set(range(self._max_players)) - set([position for position, _ in self._data.items()]))[0]
                         searching_player = self.persistence.find("player", {"name": data})
@@ -235,6 +236,7 @@ class Server:
                             self._filter_name.remove(new_player.get("name"))
                             logger.debug(f"Removed player at position {current}. THREAD: {th.current_thread().name}")
                         except (KeyError, ValueError) as e:
+                            data.clear()
                             logger.error(f"ERROR DELETING DATA: {e}")
                         continue
 
@@ -268,7 +270,6 @@ class Server:
                         for conn in self._sockets:
                             """FOR MOMENTS USES 'self._data', soon only modify data."""
                             self.executor.submit(send_data, conn,Struct.pack_players(self._data))
-
 
             except queue.Empty:
                 continue

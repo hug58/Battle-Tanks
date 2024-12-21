@@ -116,7 +116,6 @@ class Game:
             recv_all:List[dict] = self.network.recv_move_player()
 
             for  recv in recv_all:
-                print(f"RECV: {recv}")
                 if recv.get("status") == Struct.NEW_PLAYER:
                     position = recv["position"]
                     pos = (recv["x"],recv["y"])
@@ -128,14 +127,14 @@ class Game:
                 elif recv.get("status") == Struct.UPDATE_PLAYER:
                     position = recv["position"]
 
+
                     if self._players.get(position):
                         player = self._players[position]
                         player.rect.x = recv["x"]
                         player.rect.y = recv["y"]
 
-                        player.rect_cannon.x = recv["cannon_x"]
-                        player.rect_cannon.y = recv["cannon_y"]
-
+                        player.rect_cannon.x = player.rect.x
+                        player.rect_cannon.y = player.rect.y
                         player.angle = recv["angle"]
                         player.angle_cannon = recv["angle_cannon"]
 

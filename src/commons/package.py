@@ -2,6 +2,7 @@ from typing import Union, Dict
 import pickle
 import struct
 import math
+
 from src.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
@@ -13,7 +14,9 @@ class Struct:
     """
         Class for packing and unpacking data
     """
-    BUFFER_SIZE_PLAYER = 14
+    MAX_PLAYERS = 4
+
+    BUFFER_SIZE_PLAYER = 40 * MAX_PLAYERS
     BUFFER_SIZE_NAME = 32
     BUFFER_SIZE_EVENT = 1
 
@@ -36,7 +39,9 @@ class Struct:
     NEW_PLAYER: int = 2
     OLD_PLAYER: int = 3
 
-    MOVES = [LEFT_EVENT_PLAYER, RIGHT_EVENT_PLAYER,
+    MOVES = [
+            LEFT_EVENT_PLAYER,
+             RIGHT_EVENT_PLAYER,
              UP_EVENT_PLAYER, DOWN_EVENT_PLAYER,
 
              #TOWERS MOVES
@@ -57,7 +62,7 @@ class Struct:
     @staticmethod
     def unpack_player(data: bytes):
         """ :param data: bytes. a player is 6 bytes"""
-        return struct.unpack('BBhhhhhh', data)
+        return struct.unpack('BBhhhh', data)
 
     @staticmethod
     def pack_player(data: Union[bytes, None],
@@ -81,9 +86,12 @@ class Struct:
             if data == Struct.RIGHT_EVENT_PLAYER:
                 # player_data["x"] = player_data.get("x") + Player.SPEED
                 angle += Player.ANGLE * Player.ANGLE_RIGHT
+                angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
+
             elif data == Struct.LEFT_EVENT_PLAYER:
                 # player_data["x"] = player_data.get("x") - Player.SPEED
                 angle -= Player.ANGLE * Player.ANGLE_RIGHT
+                angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
 
             if data == Struct.UP_EVENT_PLAYER or data == Struct.DOWN_EVENT_PLAYER:
                 vlx = Player.SPEED * - math.sin(radians)
@@ -106,8 +114,6 @@ class Struct:
         current = player_data["position"]
         pos_x = player_data["x"]
         pos_y = player_data["y"]
-        cannon_x = player_data["cannon_x"]
-        cannon_y = player_data["cannon_y"]
 
         if math.sqrt(angle ** 2) >= 360:
             angle = 0
@@ -120,15 +126,14 @@ class Struct:
 
 
 
-        return struct.pack('BBhhhhhh', status if status is not None else Struct.UPDATE_PLAYER,
-                           current, int(pos_x), int(pos_y), cannon_x, cannon_y, angle, angle_cannon)
+        return struct.pack('BBhhhh', status if status is not None else Struct.UPDATE_PLAYER,
+                           current, int(pos_x), int(pos_y), angle, angle_cannon)
 
 
     @staticmethod
     def unpack(data: bytes):
         """ decode data """
         try:
-            print(data)
             return pickle.loads(data)
         except pickle.UnpicklingError as e:
             return data.decode('utf-8')
@@ -137,7 +142,7 @@ class Struct:
     def unpack_players(data: bytes):
         """ Decode data in chunks of 14 bytes if data length is greater than 14. """
         players = []
-        chunk_size = 14
+        chunk_size = 10
 
         # Check if data length is greater than 14
         if len(data) > chunk_size:

@@ -2,7 +2,7 @@
 
 import socket
 import sys
-from typing import Tuple
+from typing import Tuple, List
 from src.commons.package import (Struct,
                                      BUFFER_SIZE_INIT_PLAYER,
                                      )
@@ -23,7 +23,6 @@ class NetworkComponent:
         self._socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._addr_udp = ('localhost', 12345)
 
-
     def load_data(self) -> dict:
         """ Load player data init"""
         ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
@@ -40,30 +39,25 @@ class NetworkComponent:
                     "position": data[1],
                     "x": data[2],
                     "y": data[3],
-                    "cannon_x": data[4],
-                    "cannon_y": data[5],
-                    "angle": data[6],
-                    "angle_cannon": data[7]
+                    "angle": data[4],
+                    "angle_cannon": data[5]
             }
 
-    def recv_move_player(self) :
+    def recv_move_player(self) -> List[dict]:
         """ get data player """
         try:
-
             self._socket_tcp.setblocking(False)
-            data = self._socket_tcp.recv(300)
-            # self._socket_tcp.setblocking(True)
+
+            data = self._socket_tcp.recv(Struct.BUFFER_SIZE_PLAYER)
+            self._socket_tcp.setblocking(True)
             modify_data = lambda player_arr: {
                                 "status": player_arr[0],
                                 "position": player_arr[1],
                                 "x": player_arr[2],
                                 "y": player_arr[3],
-                                "cannon_x": player_arr[4],
-                                "cannon_y": player_arr[5],
-                                "angle": player_arr[6],
-                                "angle_cannon": player_arr[7]
+                                "angle": player_arr[4],
+                                "angle_cannon": player_arr[5]
                             }
-
 
             if data != b'':
                 players = list(map(modify_data, Struct.unpack_players(data)))
@@ -73,8 +67,7 @@ class NetworkComponent:
             # print(f"THERE IS A ERROR: {e}")
             pass
 
-        return {
-        }
+        return []
 
     def send_move_tcp(self, move:bytes):
         try:

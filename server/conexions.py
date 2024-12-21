@@ -1,4 +1,3 @@
-from pymongo import MongoClient
 from typing import List
 import json
 
@@ -105,21 +104,6 @@ class BasicDb:
         if collection not in db:
             return []
         return [item for item in db[collection] if all(item.get(k) == v for k, v in query.items())]
-
-
-class ConnectMongo:
-    def __init__(self, data:dict):
-        self.client = MongoClient(host=data.get("host"), port=data.get("port"))
-        self.db = self.client[data.get("db")]
-
-    def save(self, collection:str, data: dict):
-        collection = self.db[collection]
-        collection.insert_one(data)
-        return data
-
-    def find(self, collection:str, data: dict) -> list:
-        collection = self.db[collection]
-        return collection.find(data).to_list()
 
 
 class DatabaseManager:
