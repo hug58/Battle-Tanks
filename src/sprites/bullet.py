@@ -7,9 +7,9 @@ from .animation import Animation
 
 class Bullet(pg.sprite.Sprite,Animation):
     """it represents a projectile """
-    def __init__(self,position,angle,num_player):
+    def __init__(self,position,angle,player_number):
         pg.sprite.Sprite.__init__(self)
-        explosion = pg.image.load(ROUTE(f'ASSETS/images/explosion_bullet_0{num_player}.png'))
+        explosion = pg.image.load(ROUTE(f'ASSETS/images/explosion_bullet_0{player_number}.png'))
         explosion = pg.transform.scale(explosion,(16,48))
         size_e = (16,16)
         frames = {0:((0,0),size_e),1:((0,16),size_e),2:((0,32),size_e)}
@@ -25,10 +25,10 @@ class Bullet(pg.sprite.Sprite,Animation):
         self.vlx = self.vl * - math.sin(self.radians)
         self.vly = self.vl * - math.cos(self.radians)
         self.explosion = False 
-        self.num_player = num_player
+        self.player_number = player_number
         self._delay = 2
 
-        self.image.fill((2,218,136)) if num_player == 0 else self.image.fill((188,2,218))
+        self.image.fill((2,218,136)) if player_number == 0 else self.image.fill((188,2,218))
 
 
     def update(self):

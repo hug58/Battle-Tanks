@@ -13,7 +13,7 @@ def load_bullet(bullet):
 def main():
     """ Client game of server"""
 
-    map_tmp = "ASSETS/maps/zone_1.tmx"
+    map_tmp = "ASSETS/maps/zone_0.tmx"
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()

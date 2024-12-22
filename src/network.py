@@ -2,36 +2,31 @@
 
 import socket
 import sys
-from typing import Tuple, List
-from src.commons.package import (Struct,
-                                     BUFFER_SIZE_INIT_PLAYER,
-                                     )
+from typing import Tuple, List, Union
+from src.commons.package import Struct
 
 class NetworkComponent:
     """ Client TCP connection """
+
     def __init__(self,addr:Tuple[str,int], name:str="John"):
         print(f"Connecting to {addr}, Player: {name}")
-        self.data_udp:dict = {}
         self.name = name
         self.addr = addr
 
         self._socket_tcp = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket_tcp.connect(addr)
         self._socket_tcp.setsockopt(socket.SOL_SOCKET,socket.TCP_NODELAY,1)
-        self._player_data:dict = self.load_data()
+        self._player_data:Union[dict,bytes] = self.load_data()
 
-        self._socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._addr_udp = ('localhost', 12345)
 
-    def load_data(self) -> dict:
+    def load_data(self) -> Union[dict, bytes]:
         """ Load player data init"""
         ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
         if ok == Struct.OK_MESSAGE:
             self._socket_tcp.send(Struct.pack(self.name))
             join = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
             if  join == Struct.USER_NOT_AVAILABLE:
-                print("USER NO AVAILABLE")
-                sys.exit(1)
+                return Struct.USER_NOT_AVAILABLE
 
             data = self._socket_tcp.recv(14)
             data = Struct.unpack_player(data)
@@ -43,11 +38,11 @@ class NetworkComponent:
                     "angle_cannon": data[5]
             }
 
+
     def recv_move_player(self) -> List[dict]:
         """ get data player """
         try:
             self._socket_tcp.setblocking(False)
-
             data = self._socket_tcp.recv(Struct.BUFFER_SIZE_PLAYER)
             self._socket_tcp.setblocking(True)
             modify_data = lambda player_arr: {
@@ -69,48 +64,28 @@ class NetworkComponent:
 
         return []
 
+
     def send_move_tcp(self, move:bytes):
         try:
             self._socket_tcp.send(move)
         except socket.error as e:
             self._socket_tcp.close()
 
-    def send_move(self, move:bytes):
-        """ Send player moves"""
-        try:
-            data = {
-                "move": move,
-                "position": self.player_number
-            }
-            self._socket_udp.sendto(Struct.pack(data),self._addr_udp)
-            data, server = self._socket_udp.recvfrom(14)
-            data_player = Struct.unpack_player(data)
-
-            if (data_player[0] == Struct.UPDATE_PLAYER or
-                    data_player[0] == Struct.NEW_PLAYER):
-                self.data_udp[data_player[1]] = {
-                    "status": data_player[0],
-                    "position": data_player[1],
-                    "x": data_player[2],
-                    "y": data_player[3],
-                    "cannon_x": data_player[4],
-                    "cannon_y": data_player[5],
-                    "angle": data_player[6],
-                    "angle_cannon": data_player[7]
-                }
-
-        except socket.error as e:
-            self._socket_udp.close()
 
     @property
     def player_data(self):
         """ get number of player """
         return self._player_data
 
+
     @property
     def player_number(self):
         """ get number of player """
-        return self._player_data["position"] if self._player_data != {} else 0
+        if self._player_data == Struct.USER_NOT_AVAILABLE:
+            return 0
+
+        return self._player_data["position"]
+
 
     @property
     def socket_tcp(self):

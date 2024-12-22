@@ -42,7 +42,7 @@ def generate_random_numbers_from_time(n=5):
 
 def send_data(conn:socket.socket, data:bytes):
     try:
-        logger.debug(f"SEND DATA SUCCESS: {data}. TO: {th.current_thread().name}")
+        # logger.debug(f"SEND DATA SUCCESS: {data}. TO: {th.current_thread().name}")
         conn.send(data)
     except (TimeoutError,ConnectionResetError,BrokenPipeError) as e:
         logger.error(f"SEND DATA FAILED: {data}. TO: {th.current_thread().name}. EXCEPT: {e}")
@@ -72,14 +72,14 @@ class Server:
         self.persistence = DatabaseManager.get()
 
         th_1 = th.Thread(target = self._conexions, daemon = True)
-        th_1.start()
+        th_2 = th.Thread(target=self._handle_menu, daemon = True)
 
-        th_2 = th.Thread(target=self.handle_menu, daemon = True)
+        th_1.start()
         th_2.start()
 
         self._receive()
 
-    def handle_menu(self):
+    def _handle_menu(self):
         logger.debug(f"INIT HANDLE_MENU {th.current_thread().name}")
         while True:
             try:
@@ -101,7 +101,7 @@ class Server:
                 os.remove("database.json")
                 sys.exit(1)
 
-    def handle_client(self,client_socket: socket.socket):
+    def _handle_client(self,client_socket: socket.socket):
         logger.warning(f"RUNNING NEW THREAD CLIENT: {client_socket.getsockname()} - THREAD -- {th.current_thread().name}")
         while True:
             try:
@@ -173,6 +173,7 @@ class Server:
                         if len(searching_player) > 0:
                             """check user if exists in self._data"""
                             if data in self._filter_name:
+                                logger.debug(f"NAME IN DATA: {self._filter_name} TO: {Struct.USER_NOT_AVAILABLE}")
                                 conn.send(Struct.USER_NOT_AVAILABLE)
                                 continue
 
@@ -198,12 +199,11 @@ class Server:
                             player = searching_player[0]
                             player["addr"] = addr
 
-                        self._filter_name.append(player.get("name"))
                         player["conn"] = conn
 
                         """Current Player in Queue."""
                         q.put(player)
-                        self.executor.submit(self.handle_client, conn)
+                        self.executor.submit(self._handle_client, conn)
                         self._current_player +=1
 
                     logger.debug(f"SLEEPING THREAD BEFORE {th.current_thread().name}")
@@ -226,6 +226,10 @@ class Server:
                     """
                         QUEUE FOR NEW PLAYERS.
                     """
+
+                    if data == {}:
+                        continue
+
                     new_player:dict = data
                     current = new_player.get("position")
 
@@ -235,31 +239,47 @@ class Server:
                             self._sockets.remove(new_player.get("conn"))
                             self._filter_name.remove(new_player.get("name"))
                             logger.debug(f"Removed player at position {current}. THREAD: {th.current_thread().name}")
+                            continue
                         except (KeyError, ValueError) as e:
                             data.clear()
-                            logger.error(f"ERROR DELETING DATA: {e}")
+                            logger.error(f"DELETING DATA: {e}")
+                            continue
+
+
+                    others_players: Dict[int, dict] = self._data.copy()
+                    logger.debug(f"BEFORE SEND TO PLAYER INIT: {new_player}")
+
+                    try:
+                        conn_new_player: socket.socket = new_player.get("conn")
+                        encoded_message = Struct.pack_player(None, new_player)
+                        """ADD NEW CONN"""
+                        conn_new_player.send(encoded_message)
+
+                        """SENDING OLD_PLAYERS TO NEW_PLAYER."""
+                        conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
+                        self._data[current] = new_player
+                        self._filter_name.append(new_player.get("name"))
+
+                        self._sockets.append(conn_new_player)
+                    except socket.error as e:
+                        del new_player
                         continue
 
-                    others_players:Dict[int,dict] = self._data.copy()
-                    self._data[current] = new_player
 
-                    encoded_message = Struct.pack_player(None, new_player)
-                    logger.debug(f"BEFORE SEND TO PLAYER INIT: {new_player}")
-                    conn_new_player:socket.socket = new_player.get("conn")
-
-                    """ADD NEW CONN"""
-                    self._sockets.append(conn_new_player)
-                    conn_new_player.send(encoded_message)
-
-                    """SENDING OLD_PLAYERS TO NEW_PLAYER."""
-                    conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
-
-                    if len(others_players) > 0:
+                    if len(others_players) > 0 and new_player is not None:
                         """SENDING NEW_PLAYER TO OTHER OLD PLAYERS"""
                         for position, player in others_players.items():
                             conn: socket.socket = player.get("conn")
                             encoded_message = Struct.pack_player(None, new_player, Struct.NEW_PLAYER)
-                            conn.send(encoded_message)
+                            try:
+                                conn.send(encoded_message)
+                            except socket.error:
+                                logger.error(f" IN {th.current_thread().name} FAILED PLAYER: {player}")
+                                player["deleted"] = True
+                                q.put(player)
+
+
+
 
                 elif isinstance(data,bytes):
                     """
@@ -271,7 +291,7 @@ class Server:
                             """FOR MOMENTS USES 'self._data', soon only modify data."""
                             self.executor.submit(send_data, conn,Struct.pack_players(self._data))
 
-            except queue.Empty:
+            except (queue.Empty, ConnectionAbortedError) as e:
                 continue
 
             except KeyboardInterrupt:

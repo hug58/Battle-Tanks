@@ -37,6 +37,7 @@ class Menu:
         name = "John"
         user_text =  "8010"
         option_select = 0
+        status =  (0, 128, 0) # GREEN ->(0, 128, 0)
 
         while user_enter is not True:
             for event in pg.event.get():
@@ -66,13 +67,12 @@ class Menu:
                     elif event.key ==  pg.K_RETURN:
                         try:
                             if len(user_text) > 0:
-                                _socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-                                _socket.connect((ip_text, int(user_text)))
-                                _socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-                                ok = _socket.recv(BUFFER_SIZE_INIT_PLAYER)
-                                if ok == Struct.OK_MESSAGE:
-                                    user_enter = True
-                                    _socket.close()
+                                game = Game((ip_text, int(user_text)), self.map_tmp, game_screen, name)
+                                if game.network.player_data != Struct.USER_NOT_AVAILABLE:
+                                    return game
+
+                                status = (255,0,0)
+
 
                         except ConnectionRefusedError as e:
                             print(e)
@@ -97,6 +97,8 @@ class Menu:
             text_input_ip.draw(surface_input_ip)
 
             text_input_name = Text((50,20), name, (255,255,255))
+            pg.draw.circle(surface_input_name, status, (105, 20), 10)
+
             text_input_name.draw(surface_input_name)
 
             text_name = Text((70,60), "NAME: ")
@@ -145,7 +147,7 @@ class Menu:
         return Game(None,self.map_tmp,game_screen)
 
 
-    def  update(self, main_game) -> Game:
+    def update(self, main_game) -> Game:
         """ getting game state"""
         while self.select_option is None:
             for event in pg.event.get():

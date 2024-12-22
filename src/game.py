@@ -34,12 +34,11 @@ type_guns = {
 
 def _add_obj(obj, player: Player):
     position = player.rect_cannon.center
-    return obj(position, player.angle_cannon, player.number_player)
+    return obj(position, player.angle_cannon, player.player_number)
 
 
 class Game:
     """Class representing Game objects"""
-
     def __init__(self,addr:Union[Tuple[str,int], None],
                  lvl_map,
                  screen,
@@ -47,9 +46,10 @@ class Game:
 
 
         self.network = NetworkComponent(addr,player_name) if addr is not None else None
-        self._number_player = self.network.player_number if addr is not None else 0
+        self._player_number = self.network.player_number if addr is not None else 0
+        self.positions = {}
 
-        pg.display.set_caption(f"Lemon Tank - Client: {self._number_player} - User: {player_name}")
+        pg.display.set_caption(f"Lemon Tank - Client: {self._player_number} - User: {player_name}")
         pg.display.set_icon(pg.image.load(ROUTE('lemon.ico')))
 
         self.WIDTH,self.HEIGHT = screen.get_size()
@@ -63,15 +63,16 @@ class Game:
 
         self._bricks = pg.sprite.Group()
         self._bullets = pg.sprite.Group()
-
         self.load()
 
-        position = (self.network.player_data["x"],self.network.player_data["y"])
-        self.player = Player(position, cannon_type=type_guns.get("BASIC"))
-        self.player._num_player = self._number_player
-        self._players[self._number_player] = self.player
-        self.camera = Camera(self.tile.WIDTH,self.tile.HEIGHT,(self.WIDTH,self.HEIGHT))
+        if self.network and self.network.player_data != Struct.USER_NOT_AVAILABLE:
+            position = (self.network.player_data["x"],self.network.player_data["y"])
+        else:
+            position = self.positions[self._player_number]
 
+        self.player = Player(position, self._player_number, cannon_type=type_guns.get("BASIC"))
+        self._players[self._player_number] = self.player
+        self.camera = Camera(self.tile.WIDTH,self.tile.HEIGHT,(self.WIDTH,self.HEIGHT))
         self.move = MovementComponent(self.network, self.player)
 
     @property
@@ -83,8 +84,7 @@ class Game:
         """Load blocks, positions and players """
         for tile_object in self.tile.tmxdata.objects:
             if tile_object.name == 'player':
-                pass
-                # self.POSITIONS[tile_object.id] = (tile_object.x,tile_object.y)
+                self.positions[tile_object.id] = (tile_object.x,tile_object.y)
             elif tile_object.name == 'brick':
                 block: pg.sprite.Sprite = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
                 self._bricks.add(block)
@@ -121,7 +121,7 @@ class Game:
                     pos = (recv["x"],recv["y"])
 
                     player = Player(pos,cannon_type = type_guns.get("BASIC"))
-                    player.number_player = position
+                    player.player_number = position
                     self._players[position] = player
 
                 elif recv.get("status") == Struct.UPDATE_PLAYER:
@@ -141,7 +141,7 @@ class Game:
                     else:
                         pos = (recv["x"], recv["y"])
                         player = Player(pos, cannon_type=type_guns.get("BASIC"))
-                        player.number_player = position
+                        player.player_number = position
                         self._players[position] = player
 
         sprites = pg.sprite.groupcollide(self._bricks,self._bullets,1,0)
@@ -182,28 +182,19 @@ class Game:
 
         self.camera.update(self.player)
 
-
     def draw(self):
         """ Draw the player and scene. """
 
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self._players.items():
-            tank_surface = player.draw(TANK[player.number_player][0], player.angle)
-            cannon_surface = player.draw(TANK[player.number_player][1], player.angle_cannon)
+            tank_surface = player.draw(TANK[player.player_number][0], player.angle)
+            cannon_surface = player.draw(TANK[player.player_number][1], player.angle_cannon)
             self.SCREEN.blit(tank_surface,self.camera.apply(player))
             self.SCREEN.blit(cannon_surface,self.camera.apply_rect(player.rect_cannon))
 
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
-
-
-        main_tank = self.player.draw(TANK[self._number_player][0],self.player.angle)
-        main_cannon = self.player.draw(TANK[self._number_player][1],self.player.angle_cannon)
-        self.SCREEN.blit(main_tank,self.camera.apply(self.player))
-        self.SCREEN.blit(main_cannon,self.camera.apply_rect(self.player.rect_cannon))
-        pg.draw.rect(self.SCREEN,(0,100,0),self.camera.apply_rect(self.player.rect),1)
-        pg.draw.rect(self.SCREEN,(100,0,0),self.camera.apply_rect(self.player.body_rect),1)
 
         for bullet in self._bullets:
             self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
@@ -224,8 +215,8 @@ class Game:
             if bullet.done is not True:
                 bullet.explosion = True
 
-    def _collided_bullet_with_player(self,bullet):
-        if self._number_player != bullet.num_player:
+    def _collided_bullet_with_player(self,bullet:Bullet):
+        if self._player_number != bullet.player_number:
             if self.player.body_rect.colliderect(bullet.rect):
                 self.player.damage = self.player.damage + 2.5
                 bullet.kill()
@@ -247,6 +238,6 @@ class Game:
                 self.player.rect.bottom = object.rect.bottom
 
     def __str__(self):
-        return (f"\n\nPlayer Number: {self.network.player_number} "
+        return (f"\n\nPlayer Number: {self._player_number} "
                 f"\nPlayer Name: {self.network.name} "
                 f"\nStatus: {'Multiplayer' if self.network.addr else 'Single'}\n\n")

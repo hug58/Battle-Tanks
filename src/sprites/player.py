@@ -24,7 +24,7 @@ class Player(Cannon):
         for i, value in colors.items()
     }
 
-    def __init__(self,position, cannon_type: CannonType):
+    def __init__(self,position,number:int, cannon_type: CannonType):
         self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
         self.body_rect = pg.Rect(0,0,16,16)
         self.body_rect.center = self.rect.center
@@ -37,7 +37,7 @@ class Player(Cannon):
         self._dead = False
         self._fire = False
         self._damage = 0
-        self.number_player = 0
+        self.player_number = number
         Cannon.__init__(self,self.rect.center, cannon_type)
 
     @staticmethod
@@ -97,4 +97,4 @@ class Player(Cannon):
 
 
     def __str__(self):
-        return f"NUMBER: {self.number_player}  POS: {self.rect.center}"
+        return f"NUMBER: {self.player_number}  POS: {self.rect.center}"
