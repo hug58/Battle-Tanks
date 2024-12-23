@@ -14,7 +14,7 @@ class Struct:
     """
         Class for packing and unpacking data
     """
-    MAX_PLAYERS = 4
+    MAX_PLAYERS = 2
 
     BUFFER_SIZE_PLAYER = 40 * MAX_PLAYERS
     BUFFER_SIZE_NAME = 32

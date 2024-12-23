@@ -11,8 +11,8 @@ from src.commons.tank_surface import (create_tank_surface, create_cannon_surface
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
 
-    SPEED = 3
-    ANGLE = 10
+    SPEED = 5
+    ANGLE = 20
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
 
@@ -67,7 +67,8 @@ class Player(Cannon):
         rect.center = self.rect.center
         self.rect = rect
 
-    def draw(self,surface,angle):
+    @staticmethod
+    def draw(surface,angle):
         """ Draw the surface """
         return pg.transform.rotate(surface,angle)
 

@@ -4,6 +4,7 @@ import threading as th
 import time
 import sys
 import os
+import pygame as pg
 import queue
 import logging
 import random
@@ -11,6 +12,7 @@ from typing import Dict,Tuple
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 from .conexions import DatabaseManager
+
 from src.commons.package import (Struct,BUFFER_SIZE_EVENT)
 
 q = queue.SimpleQueue()
@@ -28,11 +30,7 @@ logging.info("Running Battle Tanks")
 logger = logging.getLogger('BattleTanks')
 
 lock = th.Lock()
-TICK_RATE = 1 / 20  # 5 times per second
-POSITIONS = {
-    0:[323,677],
-    1:[404, 161]
-}
+TICK_RATE = 1 / 40  # 5 times per second
 
 def generate_random_numbers_from_time(n=5):
     random.seed(int(time.time()))
@@ -50,7 +48,7 @@ def send_data(conn:socket.socket, data:bytes):
 class Server:
     """Server made in socket TCP"""
 
-    def __init__(self,addr):
+    def __init__(self,addr, lvl_map_tmx:str):
         self.tick_last_sent = time.time()
         self._data:Dict[int,dict] = defaultdict(dict)
         self._sockets = []
@@ -63,6 +61,7 @@ class Server:
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
+        self.positions = {}
 
         self._max_players = Struct.MAX_PLAYERS
         self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
@@ -78,6 +77,15 @@ class Server:
         th_2.start()
 
         self._receive()
+
+        self._bricks = pg.sprite.Group()
+        self._bullets = pg.sprite.Group()
+
+    def _get_position(self,current) -> tuple:
+        if self.positions.get(current) is None:
+            return 323,677
+
+        return self.positions.get(current)
 
     def _handle_menu(self):
         logger.debug(f"INIT HANDLE_MENU {th.current_thread().name}")
@@ -166,6 +174,11 @@ class Server:
                     if data != b'':
                         data = Struct.unpack(data)
                         logger.warning(f"ADD NEW_CONEXIONS: {data}")
+                        if data.find("-c") > -1:
+                            if data[:-2] in self._filter_name:
+                                conn.send(Struct.USER_NOT_AVAILABLE)
+                            conn.send(Struct.OK_MESSAGE)
+                            continue
 
                         current = list(set(range(self._max_players)) - set([position for position, _ in self._data.items()]))[0]
                         searching_player = self.persistence.find("player", {"name": data})
@@ -181,6 +194,8 @@ class Server:
                         logger.debug(f"SEND JOIN: {Struct.JOIN_MESSAGE} TO {conn.getsockname()}")
 
                         if len(searching_player) == 0:
+                            x,y = self._get_position(current)
+
                             player = self.persistence.save(
                                 "player",{
                                     # "status": "on",
@@ -188,8 +203,9 @@ class Server:
                                     "name": data,
                                     "position": current,
                                     # "addr": addr,
-                                    "x": 323,
-                                    "y": 677,
+                                    "x": x,
+                                    "y": y,
+
                                     "cannon_x":338,
                                     "cannon_y":692,
                                     "angle":0,
@@ -306,10 +322,4 @@ class Server:
         return -1
 
 
-if __name__ == '__main__':
-    ip_bind = os.getenv("IP_BIND","0.0.0.0")
-    port = os.getenv("SERVER_PORT",8500)
 
-    print('IP THE SERVER: {ip}'.format(ip = ip_bind))
-    print('PORT : {port}'.format(port = port))
-    Server((ip_bind,port))

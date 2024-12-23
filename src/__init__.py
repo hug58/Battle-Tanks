@@ -20,9 +20,9 @@ FONT = ROUTE("ASSETS/Pixel Digivolve.otf")
 
 class Text:
     """Surface for text rendering """
-    def __init__(self,position,text, color = None):
+    def __init__(self, position, text, color = None, font_size = 16*2):
         self._color:Tuple[int,int,int] = color if color is not None else (255,0,0)  #default
-        self.size_font =  16
+        self.size_font =  font_size
         self._surface = self.render(text,FONT,self._color, self.size_font)
         self._rect = self._surface.get_rect()
         self._rect.center = position

@@ -17,19 +17,18 @@ def main():
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()
-    main_surface = pg.Surface((WIDTH,HEIGHT))
+    main_game = pg.Surface((600,400))
     menu = Menu(SCREEN,map_tmp)
 
+    pg.display.set_caption(f"Lemon Tank")
+    pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
 
-    game = menu.update(main_surface)
+    game = menu.update(main_game)
 
     text_damage = Text((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
     bullets = pg.Surface((WIDTH,36))
 
     while True:
-        SCREEN.fill((110,0,0))
-
-
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
@@ -48,7 +47,8 @@ def main():
 
         game.update()
         game.draw()
-        SCREEN.blit(main_surface,(0,0))
+
+        SCREEN.blit(pg.transform.scale(main_game,(WIDTH,HEIGHT)),(0,0))
         SCREEN.blit(bullets,(0,HEIGHT))
         bullets.fill((0,0,0))
         bullets_renders = list(map(load_bullet,game.player.type_gun.render()))
@@ -57,7 +57,7 @@ def main():
         """
         TICKS IN CLIENT
         """
-        clock.tick(50)
+        clock.tick(30)
         pg.display.flip()
 
 if __name__ == "__main__":

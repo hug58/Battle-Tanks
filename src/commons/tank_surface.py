@@ -83,15 +83,28 @@ def darken_color(color: Tuple[int, int, int], factor: float = 0.2) -> Tuple[int,
         max(0, int(color[2] * (1 - factor)))
     )
 
-
-
 def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
-    DARK_GREEN_LOCAL = darken_color(color)
-    LIGHT_GREEN_LOCAL = darken_color(color, factor=0.1)
+    DARK_LOCAL = darken_color(color)
+    LIGHT_LOCAL = darken_color(color, factor=0.1)
     cannon_surface = pygame.Surface((20, 28), pygame.SRCALPHA)
-    pygame.draw.rect(cannon_surface, DARK_GREEN_LOCAL, (0, 12, 20, 16))
-    pygame.draw.rect(cannon_surface, LIGHT_GREEN_LOCAL, (4, 4, 12, 12))
-    pygame.draw.rect(cannon_surface, YELLOW, (8, 8, 4, 4))
-    pygame.draw.rect(cannon_surface, LIGHT_GREEN, (8, 0, 4, 8))
+
+    pygame.draw.rect(cannon_surface, DARK_LOCAL, (0, 12, 20, 16), border_radius=2)
+    pygame.draw.rect(cannon_surface, LIGHT_LOCAL, (4, 2, 12, 12), border_radius=2)
+    pygame.draw.rect(cannon_surface, YELLOW, (8, 8, 4, 4), border_radius=2)
+    pygame.draw.rect(cannon_surface, LIGHT_GREEN, (8, 0, 4, 8), border_radius=2)
 
     return cannon_surface
+
+
+def tank_cover(value,pos, screen: pygame.Surface, scale = 6):
+    tank_body = pygame.transform.scale(create_tank_surface(value), (30*scale, 30*scale))
+    tank_cannon = pygame.transform.scale(create_cannon_surface(value), (6 * 2 * scale, 16 * 2 * scale))
+
+    diffx = 55
+    diffy = 30
+
+    # screen.blit(tank_body, (250,250))
+    # screen.blit(tank_cannon, (278,230))
+
+    screen.blit(tank_body, pos)
+    screen.blit(tank_cannon,(pos[0] + diffx, pos[1] - diffy))

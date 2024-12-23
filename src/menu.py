@@ -5,8 +5,13 @@ import socket
 import pygame as pg
 from src import Text
 from src.game import Game
-from src.commons.package import BUFFER_SIZE_INIT_PLAYER, Struct
+from src.commons.package import Struct
+from src.commons.tank_surface import tank_cover,BLUE, RED
+from src.network import NetworkComponent
 
+GREEN_STATUS = (0, 128, 0)
+RED_STATUS = (255,0,0)
+NEU = (100,100,100)
 
 class Menu:
     """Menu """
@@ -16,13 +21,14 @@ class Menu:
         self.main_surface = main_surface
         self.map_tmp = map_tmp
         self.clock = pg.time.Clock()
+        self.cover = None
         self.options:dict =  {
             1:{
-                "text_draw": Text((70,100),"TESTING MODE"),
+                "text_draw": Text((200,100),"TESTING MODE", font_size=45),
                 "action": "SINGLE_PLAYER_MODE"
             },
             2:{
-                "text_draw": Text((100,200),"MULTIPLAYER MODE"),
+                "text_draw": Text((260,200),"MULTIPLAYER MODE", font_size=45),
                 "action": "MULTIPLAYER_MODE"
             },
         }
@@ -33,11 +39,10 @@ class Menu:
         user_enter = False
         # ip_text = "159.89.230.62"
         ip_text = "localhost"
-
         name = "John"
         user_text =  "8010"
         option_select = 0
-        status =  (0, 128, 0) # GREEN ->(0, 128, 0)
+        status =  NEU
 
         while user_enter is not True:
             for event in pg.event.get():
@@ -66,14 +71,11 @@ class Menu:
 
                     elif event.key ==  pg.K_RETURN:
                         try:
-                            if len(user_text) > 0:
+                            if len(user_text) > 0 and len(name) > 0:
                                 game = Game((ip_text, int(user_text)), self.map_tmp, game_screen, name)
                                 if game.network.player_data != Struct.USER_NOT_AVAILABLE:
                                     return game
-
-                                status = (255,0,0)
-
-
+                                status = RED_STATUS
                         except ConnectionRefusedError as e:
                             print(e)
 
@@ -84,40 +86,64 @@ class Menu:
                             elif option_select == 1:
                                 ip_text += event.dict.get("unicode")
                             elif option_select == 0:
-                                user_text += event.dict.get("unicode")
+                                try:
+                                    user_text += str(int(event.dict.get("unicode")))
+                                except ValueError:
+                                    pass
+
+
+                    if event.key != pg.K_DOWN and event.key != pg.K_UP:
+                        if len(name) > 0 and option_select == 2:
+                            try:
+                                port = int(user_text)
+                                if 0 < port < 65535:
+                                    check_name = NetworkComponent.check_name((ip_text, int(user_text)), name)
+                                    if check_name is True:
+                                        status = GREEN_STATUS
+                                    elif check_name is False:
+                                        status = RED_STATUS
+                                    else:
+                                        print(f"SOCKET NOT CONNECT: {check_name}")
+                                        status = NEU
+                            except ValueError as e:
+                                print(f"ERROR VALUE: {e}")
+
+
+
+
 
             self.main_surface.fill((0,50,0))
-            surface_input_port = pg.Surface((100,40))
-            surface_input_ip = pg.Surface((110,40))
-            surface_input_name = pg.Surface((120,40))
+
+            surface_input_port = pg.Surface((250,40))
+            surface_input_ip = pg.Surface((250,40))
+            surface_input_name = pg.Surface((250,40))
 
             text_input = Text((50,20), user_text, (255,255,255))
             text_input.draw(surface_input_port)
-            text_input_ip = Text((55,20), ip_text, (255,255,255))
+            text_input_ip = Text((100,20), ip_text, (255,255,255))
             text_input_ip.draw(surface_input_ip)
 
             text_input_name = Text((50,20), name, (255,255,255))
-            pg.draw.circle(surface_input_name, status, (105, 20), 10)
-
+            pg.draw.circle(surface_input_name, status, (230, 20), 15)
             text_input_name.draw(surface_input_name)
 
             text_name = Text((70,60), "NAME: ")
             text_ip = Text((70,120), "IP: ")
             text_port = Text((70,180), "PORT: ")
-            text_enter = Text((240,180), "ENTER", (255,255,255))
+            text_enter = Text((70,240), "ENTER", status)
 
             if option_select == 2:
                 text_name.color = (255,255,255)
-                text_ip.color   = (255,0,0)
-                text_port.color = (255,0,0)
+                text_ip.color   = NEU
+                text_port.color = NEU
             elif option_select == 1:
                 text_ip.color   = (255,255,255)
-                text_port.color = (255,0,0)
-                text_name.color = (255,0,0)
+                text_port.color = NEU
+                text_name.color = NEU
             else:
                 text_port.color = (255,255,255)
-                text_ip.color = (255,0,0)
-                text_name.color = (255,0,0)
+                text_ip.color = NEU
+                text_name.color = NEU
 
 
             """
@@ -131,9 +157,16 @@ class Menu:
             """
             INPUT
             """
-            self.main_surface.blit(surface_input_port, (100,160))
-            self.main_surface.blit(surface_input_ip, (100,100))
-            self.main_surface.blit(surface_input_name,(100,40))
+            self.main_surface.blit(surface_input_port, (120,160))
+            self.main_surface.blit(surface_input_ip, (120,100))
+            self.main_surface.blit(surface_input_name,(120,40))
+
+
+            """
+            TANK
+            """
+            # tank_cover(BLUE, (150, 300), self.main_surface)
+            # tank_cover(RED, (450, 300), self.main_surface)
 
             pg.display.flip()
             self.clock.tick(60)
@@ -152,21 +185,19 @@ class Menu:
         while self.select_option is None:
             for event in pg.event.get():
                 if event.type == pg.KEYDOWN:
-
                     key = event.dict.get('key')
-                    if key == pg.K_DOWN:
+
+                    if key == pg.K_DOWN or key == pg.K_s:
                         if self.position < len(self.options):
                             self.position +=1
 
-
-                    if key == pg.K_UP:
+                    if key == pg.K_UP or  key == pg.K_w:
                         if len(self.options) <= self.position:
                             self.position -=1
 
                     elif key == pg.K_RETURN:
                         select_option: dict = self.options.get(self.position)
                         self.select_option = select_option.get("action")
-
 
                 if event.type == pg.QUIT:
                     pg.quit()
@@ -176,16 +207,8 @@ class Menu:
             self.draw()
             pg.display.flip()
 
-        game_select = None
-        if self.select_option == "MULTIPLAYER_MODE":
-            game_select = self.multiplayer_mode(main_game)
-        else:
-            game_select = self.single_local_mode(main_game)
-
-        print("FUN")
-        print(f"GAME SELECT: {game_select}")
-
-        return game_select
+        return self.multiplayer_mode(main_game) if self.select_option == "MULTIPLAYER_MODE" \
+            else self.single_local_mode(main_game)
 
 
     def draw(self):
@@ -210,3 +233,6 @@ class Menu:
                 # op_draw.update(op)
             op_draw.update()
             op_draw.draw(self.main_surface)
+
+        tank_cover(BLUE,(150,300),self.main_surface)
+        tank_cover(RED,(450,300),self.main_surface)

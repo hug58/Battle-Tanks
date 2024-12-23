@@ -44,36 +44,39 @@ class Game:
                  screen,
                  player_name="John"):
 
-
         self.network = NetworkComponent(addr,player_name) if addr is not None else None
         self._player_number = self.network.player_number if addr is not None else 0
         self.positions = {}
 
         pg.display.set_caption(f"Lemon Tank - Client: {self._player_number} - User: {player_name}")
-        pg.display.set_icon(pg.image.load(ROUTE('lemon.ico')))
+        pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
 
         self.WIDTH,self.HEIGHT = screen.get_size()
         self.SCREEN = screen
+
         self.tile = TileMap(lvl_map)
         self.tile_image = self.tile.make_map()
         self.tile_rect = self.tile_image.get_rect()
 
         self._players: Dict[int,Player] = {}
-        self._damage = 0
-
         self._bricks = pg.sprite.Group()
         self._bullets = pg.sprite.Group()
+        self._damage = 0
         self.load()
 
-        if self.network and self.network.player_data != Struct.USER_NOT_AVAILABLE:
+
+        if (self.network and
+                self.network.player_data != Struct.USER_NOT_AVAILABLE):
             position = (self.network.player_data["x"],self.network.player_data["y"])
         else:
             position = self.positions[self._player_number]
 
         self.player = Player(position, self._player_number, cannon_type=type_guns.get("BASIC"))
         self._players[self._player_number] = self.player
+        print(f"camera: {self.tile.WIDTH}:::: {self.WIDTH}")
         self.camera = Camera(self.tile.WIDTH,self.tile.HEIGHT,(self.WIDTH,self.HEIGHT))
         self.move = MovementComponent(self.network, self.player)
+
 
     @property
     def damage(self):
@@ -86,7 +89,7 @@ class Game:
             if tile_object.name == 'player':
                 self.positions[tile_object.id] = (tile_object.x,tile_object.y)
             elif tile_object.name == 'brick':
-                block: pg.sprite.Sprite = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
+                block = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
                 self._bricks.add(block)
 
     def update(self):
@@ -115,33 +118,36 @@ class Game:
         if self.network:
             recv_all:List[dict] = self.network.recv_move_player()
 
-            for  recv in recv_all:
+            for recv in recv_all:
                 if recv.get("status") == Struct.NEW_PLAYER:
                     position = recv["position"]
                     pos = (recv["x"],recv["y"])
 
-                    player = Player(pos,cannon_type = type_guns.get("BASIC"))
-                    player.player_number = position
+                    player = Player(pos,position,cannon_type = type_guns.get("BASIC"))
                     self._players[position] = player
 
                 elif recv.get("status") == Struct.UPDATE_PLAYER:
                     position = recv["position"]
 
-
                     if self._players.get(position):
                         player = self._players[position]
+
+
                         player.rect.x = recv["x"]
                         player.rect.y = recv["y"]
 
+                        # player.body_rect.x = player.rect.x
+                        # player.body_rect.y = player.rect.y
+
                         player.rect_cannon.x = player.rect.x
                         player.rect_cannon.y = player.rect.y
+
                         player.angle = recv["angle"]
                         player.angle_cannon = recv["angle_cannon"]
 
                     else:
                         pos = (recv["x"], recv["y"])
-                        player = Player(pos, cannon_type=type_guns.get("BASIC"))
-                        player.player_number = position
+                        player = Player(pos, position, cannon_type=type_guns.get("BASIC"))
                         self._players[position] = player
 
         sprites = pg.sprite.groupcollide(self._bricks,self._bullets,1,0)
@@ -165,7 +171,7 @@ class Game:
             radius_sum = radius_block + radius_player
 
             dx =  brock.rect.right / 2 -( self.player.rect.right / 2)
-            dy =   brock.rect.bottom / 2 - (self.player.rect.bottom / 2)
+            dy =  brock.rect.bottom / 2 - (self.player.rect.bottom / 2)
 
             distance = math.sqrt(dx* dx  + dy*dy )
             separation = radius_sum - distance
@@ -180,11 +186,8 @@ class Game:
                     self.player.rect.x -= dx * separation * 0.125
                     self.player.rect.y -= dy  * separation * 0.125
 
-        self.camera.update(self.player)
-
     def draw(self):
         """ Draw the player and scene. """
-
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self._players.items():

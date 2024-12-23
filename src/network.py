@@ -92,3 +92,19 @@ class NetworkComponent:
         self._socket_tcp.send(Struct.CLOSE_CONN)
         return self._socket_tcp
 
+
+    @staticmethod
+    def check_name(addr:tuple,name:str) -> Union[bool,socket.error]:
+        try:
+            sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            sock.settimeout(0.1)
+            sock.connect(addr)
+
+            if sock.recv(Struct.BUFFER_SIZE_EVENT) == Struct.OK_MESSAGE:
+                sock.send(Struct.pack(name+"-c"))
+                return sock.recv(1) == Struct.OK_MESSAGE
+
+        except socket.error as e:
+            return e
+
+        return False

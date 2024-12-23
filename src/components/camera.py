@@ -26,3 +26,4 @@ class Camera:
         y_pos = max(-(self.height-self.screen_size[1]),y_pos)
         self.camera = pg.Rect(x_pos,y_pos,self.width,self.height)
 
+
