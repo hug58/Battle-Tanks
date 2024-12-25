@@ -1,13 +1,14 @@
 """Menu"""
 
 import sys
+from typing import Dict
 import pygame as pg
 from pygame.transform import scale
 
 from src import Text
 from src.game import Game
 from src.commons.package import Struct
-from src.commons.tank_surface import tank_cover,BLUE, RED,create_tank_with_cannon
+from src.commons.tank_surface import tank_cover
 from src.components.network import NetworkComponent
 
 GREEN_STATUS = (0, 128, 0)
@@ -24,11 +25,11 @@ class Menu:
         self.map_tmp = map_tmp
         self.clock = pg.time.Clock()
         self.cover = None
-        self.options:dict =  {
-            1:{
-                "text_draw": Text((200,100),"TESTING MODE", font_size=45, color=NEU),
-                "action": "SINGLE_PLAYER_MODE"
-            },
+        self.options:Dict[int,dict] =  {
+            # 1:{
+            #     "text_draw": Text((200,100),"TESTING MODE", font_size=45, color=NEU),
+            #     "action": "SINGLE_PLAYER_MODE"
+            # },
             2:{
                 "text_draw": Text((260,200),"MULTIPLAYER MODE", font_size=45, color=NEU),
                 "action": "MULTIPLAYER_MODE"
@@ -167,8 +168,8 @@ class Menu:
             """
             TANK
             """
-            # tank_cover(BLUE, (150, 300), self.main_surface)
-            # tank_cover(RED, (450, 300), self.main_surface)
+            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=0, angle_cannon=0)
+            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=360, angle_cannon=180)
 
             pg.display.flip()
             self.clock.tick(60)
@@ -184,6 +185,10 @@ class Menu:
 
     def update(self, main_game) -> Game:
         """ getting game state"""
+        if len(self.options) == 1:
+            self.select_option = [op for op in self.options.keys()][0]
+            self.select_option = self.options.get(self.select_option).get("action")
+
         while self.select_option is None:
             for event in pg.event.get():
                 if event.type == pg.KEYDOWN:
@@ -236,6 +241,6 @@ class Menu:
             op_draw.update()
             op_draw.draw(self.main_surface)
 
-        tank_cover(0,(150,300),self.main_surface,scale=(200,200))
-        tank_cover(1,(450,300),self.main_surface,scale=(200,200))
+        tank_cover(0,(150,300),self.main_surface,scale=(200,200),angle=0,angle_cannon=0)
+        tank_cover(1,(450,300),self.main_surface,scale=(200,200),angle=360,angle_cannon=180)
 

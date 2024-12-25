@@ -97,24 +97,6 @@ def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
 
     return cannon_surface
 
-def create_tank_with_cannon(tank_color: Tuple[int, int, int], cannon_color: Tuple[int, int, int], angle: float) -> pygame.Surface:
-    """ Create a tank with a cannon at a specified angle """
-    tank_surface = create_tank_surface(tank_color)
-    cannon_surface = create_cannon_surface(cannon_color)
-
-    combined_surface = pygame.Surface((32, 32), pygame.SRCALPHA)
-    combined_surface.blit(tank_surface, (0, 0))
-
-    cannon_width, cannon_height = cannon_surface.get_size()
-    center_x = 16  # Center of the tank
-    center_y = 16  # Center of the tank
-
-    cannon_x = center_x + (math.cos(math.radians(angle)) * 10) - (cannon_width / 2)
-    cannon_y = center_y - (math.sin(math.radians(angle)) * 10) - cannon_height
-
-    # Blit the cannon onto the combined surface
-    combined_surface.blit(cannon_surface, (cannon_x, cannon_y))
-    return combined_surface
 
 def tank_cover(color, pos, screen: pygame.Surface, scale=(32,32), angle=200, angle_cannon= 0):
     tank_surface = pygame.Surface((32, 32), pygame.SRCALPHA)

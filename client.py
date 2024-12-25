@@ -17,7 +17,8 @@ def main():
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
     clock = pg.time.Clock()
-    main_game = pg.Surface((600,400))
+    # main_game = pg.Surface((600,400))
+    main_game = pg.Surface((WIDTH,HEIGHT))
     menu = Menu(SCREEN,map_tmp)
 
     pg.display.set_caption(f"Lemon Tank")

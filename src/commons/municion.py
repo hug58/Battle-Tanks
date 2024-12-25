@@ -14,7 +14,7 @@ class CannonType:
         self.size = size
         self.damage = None
         self._reload_time = 100
-        self._count_realod = 0
+        self._count_reload = 0
 
     @property
     def count_available(self):
@@ -25,21 +25,20 @@ class CannonType:
     @count_available.setter
     def count_available(self, count_available):
         """ check count available """
-        print(f"Count available: {self._count_available}")
         self._count_available = count_available
 
 
     def render(self) -> List:
         """ getting bullets surfaces """
-        witdh = self.size[0]
+        width = self.size[0]
 
         if self._count_available <= 0:
-            self._count_realod +=1
+            self._count_reload +=1
 
-        if self._count_available <= 0 and self._count_realod >= self._reload_time:
-            self._count_realod = 0
+        if self._count_available <= 0 and self._count_reload >= self._reload_time:
+            self._count_reload = 0
             self._count_available = self.count
 
 
-        bullets = [(self.type, (witdh*i,0)) for i in range(0,self._count_available)]
+        bullets = [(self.type, (width*i,0)) for i in range(0,self._count_available)]
         return bullets
