@@ -11,10 +11,10 @@ from typing import Dict
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 
-from src.commons.collision import Collision
+from src.components.collision import Collision
 from .conexions import DatabaseManager
-
 from src.commons.package import Struct
+
 q = queue.SimpleQueue()
 
 if os.path.exists("battle_server.log"):
@@ -30,13 +30,12 @@ logging.info("Running Battle Tanks")
 logger = logging.getLogger('BattleTanks')
 
 lock = th.Lock()
-TICK_RATE = 1 / 40  # 5 times per second
+TICK_RATE = 1 / 40  # 4                                                                                          times per second
 
 def generate_random_numbers_from_time(n=5):
     random.seed(int(time.time()))
     random_numbers = [random.randint(0, 9) for _ in range(n)]
     return ''.join(map(str, random_numbers))
-
 
 def send_data(conn:socket.socket, data:bytes):
     try:
@@ -64,7 +63,7 @@ class Server:
         self.positions = {}
 
         self._max_players = Struct.MAX_PLAYERS
-        self.executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
+        self._executor = ThreadPoolExecutor(max_workers=10,thread_name_prefix="CLIENT_RECV")
         self._socket.listen(self._max_players)
 
         DatabaseManager.configure({"database_name":"database.json"})
@@ -78,7 +77,6 @@ class Server:
 
         Collision.load(lvl_map_tmx)
         self._receive()
-
 
     def _get_position(self,current) -> tuple:
         if self.positions.get(current) is None:
@@ -220,7 +218,7 @@ class Server:
 
                         """Current Player in Queue."""
                         q.put(player)
-                        self.executor.submit(self._handle_client, conn)
+                        self._executor.submit(self._handle_client, conn)
                         self._current_player +=1
 
                     logger.debug(f"SLEEPING THREAD BEFORE {th.current_thread().name}")
@@ -306,7 +304,7 @@ class Server:
                         self.tick_last_sent = time.time()
                         for conn in self._sockets:
                             """FOR MOMENTS USES 'self._data', soon only modify data."""
-                            self.executor.submit(send_data, conn,Struct.pack_players(self._data))
+                            self._executor.submit(send_data, conn,Struct.pack_players(self._data))
 
             except (queue.Empty, ConnectionAbortedError) as e:
                 continue

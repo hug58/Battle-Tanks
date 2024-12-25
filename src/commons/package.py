@@ -3,7 +3,7 @@ import pickle
 import struct
 import math
 
-from src.commons.collision import Collision
+from src.components.collision import Collision
 from src.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
