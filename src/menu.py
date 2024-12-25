@@ -2,10 +2,12 @@
 
 import sys
 import pygame as pg
+from pygame.transform import scale
+
 from src import Text
 from src.game import Game
 from src.commons.package import Struct
-from src.commons.tank_surface import tank_cover,BLUE, RED
+from src.commons.tank_surface import tank_cover,BLUE, RED,create_tank_with_cannon
 from src.components.network import NetworkComponent
 
 GREEN_STATUS = (0, 128, 0)
@@ -234,5 +236,6 @@ class Menu:
             op_draw.update()
             op_draw.draw(self.main_surface)
 
-        tank_cover(BLUE,(150,300),self.main_surface)
-        tank_cover(RED,(450,300),self.main_surface)
+        tank_cover(0,(150,300),self.main_surface,scale=(200,200))
+        tank_cover(1,(450,300),self.main_surface,scale=(200,200))
+

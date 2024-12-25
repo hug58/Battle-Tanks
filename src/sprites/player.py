@@ -4,7 +4,7 @@ import math
 import pygame as pg
 from .cannon import Cannon
 from src.commons.municion import CannonType
-from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors)
+from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors, tank_cover)
 
 
 
@@ -17,14 +17,6 @@ class Player(Cannon):
     ANGLE_LEFT = -1
 
     SIZE_BODY_RECT = (16,16)
-
-    TANK = {
-        i: {
-            0: pg.transform.scale(create_tank_surface(value), (30, 30)),
-            1: pg.transform.scale(create_cannon_surface(value), (6 * 2, 16 * 2))
-        }
-        for i, value in colors.items()
-    }
 
     def __init__(self,position,number:int, cannon_type: CannonType):
         self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used

@@ -1,4 +1,7 @@
-import  pygame
+from tkinter import Scale
+
+import pygame
+import math
 from typing import Tuple
 
 
@@ -55,6 +58,13 @@ colors = {
     22: GOLD,
     23: TURQUOISE
 }
+def darken_color(color: Tuple[int, int, int], factor: float = 0.2) -> Tuple[int, int, int]:
+    """Returns a darker color based on the original color."""
+    return (
+        max(0, int(color[0] * (1 - factor))),
+        max(0, int(color[1] * (1 - factor))),
+        max(0, int(color[2] * (1 - factor)))
+    )
 
 def create_tank_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     """ Create a new tank surface """
@@ -74,37 +84,54 @@ def create_tank_surface(color: Tuple[int, int, int]) -> pygame.Surface:
 
     return tank_surface
 
-
-def darken_color(color: Tuple[int, int, int], factor: float = 0.2) -> Tuple[int, int, int]:
-    """Returns a darker color based on the original color."""
-    return (
-        max(0, int(color[0] * (1 - factor))),
-        max(0, int(color[1] * (1 - factor))),
-        max(0, int(color[2] * (1 - factor)))
-    )
-
 def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     DARK_LOCAL = darken_color(color)
     LIGHT_LOCAL = darken_color(color, factor=0.1)
-    cannon_surface = pygame.Surface((20, 28), pygame.SRCALPHA)
+    cannon_surface = pygame.Surface((10, 26), pygame.SRCALPHA)
 
-    pygame.draw.rect(cannon_surface, DARK_LOCAL, (0, 12, 20, 16), border_radius=2)
-    pygame.draw.rect(cannon_surface, LIGHT_LOCAL, (4, 2, 12, 12), border_radius=2)
-    pygame.draw.rect(cannon_surface, YELLOW, (8, 8, 4, 4), border_radius=2)
-    pygame.draw.rect(cannon_surface, LIGHT_GREEN, (8, 0, 4, 8), border_radius=2)
+    # Adjust the drawing to fit the new size (10x26)
+    pygame.draw.rect(cannon_surface, DARK_LOCAL, (0, 14, 10, 12), border_radius=0)  # Main body
+    pygame.draw.rect(cannon_surface, LIGHT_LOCAL, (2, 0, 6, 14), border_radius=0)  # Top part
+    pygame.draw.rect(cannon_surface, YELLOW, (3, 8, 4, 4), border_radius=0)  # Center detail
+    pygame.draw.rect(cannon_surface, LIGHT_GREEN, (3, -2, 4, 10), border_radius=0)  # Top detail
 
     return cannon_surface
 
+def create_tank_with_cannon(tank_color: Tuple[int, int, int], cannon_color: Tuple[int, int, int], angle: float) -> pygame.Surface:
+    """ Create a tank with a cannon at a specified angle """
+    tank_surface = create_tank_surface(tank_color)
+    cannon_surface = create_cannon_surface(cannon_color)
 
-def tank_cover(value,pos, screen: pygame.Surface, scale = 6):
-    tank_body = pygame.transform.scale(create_tank_surface(value), (30*scale, 30*scale))
-    tank_cannon = pygame.transform.scale(create_cannon_surface(value), (6 * 2 * scale, 16 * 2 * scale))
+    combined_surface = pygame.Surface((32, 32), pygame.SRCALPHA)
+    combined_surface.blit(tank_surface, (0, 0))
 
-    diffx = 55
-    diffy = 30
+    cannon_width, cannon_height = cannon_surface.get_size()
+    center_x = 16  # Center of the tank
+    center_y = 16  # Center of the tank
 
-    # screen.blit(tank_body, (250,250))
-    # screen.blit(tank_cannon, (278,230))
+    cannon_x = center_x + (math.cos(math.radians(angle)) * 10) - (cannon_width / 2)
+    cannon_y = center_y - (math.sin(math.radians(angle)) * 10) - cannon_height
 
-    screen.blit(tank_body, pos)
-    screen.blit(tank_cannon,(pos[0] + diffx, pos[1] - diffy))
+    # Blit the cannon onto the combined surface
+    combined_surface.blit(cannon_surface, (cannon_x, cannon_y))
+    return combined_surface
+
+def tank_cover(color, pos, screen: pygame.Surface, scale=(32,32), angle=200, angle_cannon= 0):
+    tank_surface = pygame.Surface((32, 32), pygame.SRCALPHA)
+    tank_body = create_tank_surface(colors[color])
+    tank_cannon = create_cannon_surface(colors[color])
+
+    angle = angle % 360
+    angle_cannon = angle_cannon % 360
+
+    rotated_body = pygame.transform.rotate(tank_body, angle)
+    rotated_cannon = pygame.transform.rotate(tank_cannon, angle_cannon)
+
+    cannon_rect = rotated_cannon.get_rect(center=(tank_surface.get_width() // 2, tank_surface.get_height() // 2))
+    body_rect = rotated_body.get_rect(center=(tank_surface.get_width() // 2, tank_surface.get_height() // 2))
+
+
+    tank_surface.blit(rotated_body, body_rect.topleft)
+    tank_surface.blit(rotated_cannon, cannon_rect.topleft)
+
+    screen.blit(pygame.transform.scale(tank_surface, scale), pos)

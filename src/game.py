@@ -12,7 +12,7 @@ from src.components.camera import CameraComponent
 from src.sprites import Player, Bullet, Brick
 
 from src.commons.municion import CannonType
-from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors)
+from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors, tank_cover)
 from src.components.network import NetworkComponent
 from src import ROUTE
 
@@ -190,10 +190,12 @@ class Game:
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self._players.items():
-            tank_surface = player.draw(TANK[player.player_number][0], player.angle)
-            cannon_surface = player.draw(TANK[player.player_number][1], player.angle_cannon)
-            self.SCREEN.blit(tank_surface,self.camera.apply(player))
-            self.SCREEN.blit(cannon_surface,self.camera.apply_rect(player.rect_cannon))
+            tank_cover(player.player_number,self.camera.apply(player),self.SCREEN,
+                       angle=player.angle, angle_cannon=player.angle_cannon)
+            # tank_surface = player.draw(TANK[player.player_number][0], player.angle)
+            # cannon_surface = player.draw(TANK[player.player_number][1], player.angle_cannon)
+            # self.SCREEN.blit(tank_surface,self.camera.apply(player))
+            # self.SCREEN.blit(cannon_surface,self.camera.apply_rect(player.rect_cannon))
 
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
