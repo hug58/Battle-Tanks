@@ -41,7 +41,7 @@ class Menu:
         """ Menu mode """
         user_enter = False
         # ip_text = "159.89.230.62"
-        ip_text = "localhost"
+        ip_text = "10.116.0.2"
         name = "John"
         user_text =  "8010"
         option_select = 0
