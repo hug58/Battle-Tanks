@@ -4,17 +4,17 @@ import threading as th
 import time
 import sys
 import os
-import pygame as pg
 import queue
 import logging
 import random
-from typing import Dict,Tuple
+from typing import Dict
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
+
+from src.commons.collision import Collision
 from .conexions import DatabaseManager
 
-from src.commons.package import (Struct,BUFFER_SIZE_EVENT)
-
+from src.commons.package import Struct
 q = queue.SimpleQueue()
 
 if os.path.exists("battle_server.log"):
@@ -76,10 +76,9 @@ class Server:
         th_1.start()
         th_2.start()
 
+        Collision.load(lvl_map_tmx)
         self._receive()
 
-        self._bricks = pg.sprite.Group()
-        self._bullets = pg.sprite.Group()
 
     def _get_position(self,current) -> tuple:
         if self.positions.get(current) is None:
@@ -98,6 +97,8 @@ class Server:
                 elif op == "data":
                     for data in self._data.items():
                         print(data)
+                elif op == "bricks":
+                    print(Collision.bricks)
                 elif op == "exit":
                     self._socket.close()
                     os.remove("database.json")
@@ -320,6 +321,8 @@ class Server:
             if player.get("conn") == conn:
                 return position
         return -1
+
+
 
 
 

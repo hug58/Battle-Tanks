@@ -1,7 +1,7 @@
 import pygame as pg 
 
 
-class Camera:
+class CameraComponent:
     """ The camera object that will be used to render the scene and interact """
     def __init__(self,width,height,screen_size):
         self.camera = pg.Rect((0,0),(width,height))

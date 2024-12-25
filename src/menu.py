@@ -1,17 +1,17 @@
 """Menu"""
 
 import sys
-import socket
 import pygame as pg
 from src import Text
 from src.game import Game
 from src.commons.package import Struct
 from src.commons.tank_surface import tank_cover,BLUE, RED
-from src.network import NetworkComponent
+from src.components.network import NetworkComponent
 
 GREEN_STATUS = (0, 128, 0)
 RED_STATUS = (255,0,0)
 NEU = (100,100,100)
+BACKGROUND = (0,50,0)
 
 class Menu:
     """Menu """
@@ -24,11 +24,11 @@ class Menu:
         self.cover = None
         self.options:dict =  {
             1:{
-                "text_draw": Text((200,100),"TESTING MODE", font_size=45),
+                "text_draw": Text((200,100),"TESTING MODE", font_size=45, color=NEU),
                 "action": "SINGLE_PLAYER_MODE"
             },
             2:{
-                "text_draw": Text((260,200),"MULTIPLAYER MODE", font_size=45),
+                "text_draw": Text((260,200),"MULTIPLAYER MODE", font_size=45, color=NEU),
                 "action": "MULTIPLAYER_MODE"
             },
         }
@@ -112,7 +112,7 @@ class Menu:
 
 
 
-            self.main_surface.fill((0,50,0))
+            self.main_surface.fill(BACKGROUND)
 
             surface_input_port = pg.Surface((250,40))
             surface_input_ip = pg.Surface((250,40))
@@ -213,7 +213,7 @@ class Menu:
 
     def draw(self):
         """ Draw options"""
-        self.main_surface.fill((0,0,0))
+        self.main_surface.fill(BACKGROUND)
 
         if self.position != 0:
             select_option: dict = self.options.get(self.position)
@@ -228,7 +228,7 @@ class Menu:
         for op,values in self.options.items():
             op_draw = values.get("text_draw")
             if op != self.position:
-                op_draw.color=(255,0,0)
+                op_draw.color=NEU
 
                 # op_draw.update(op)
             op_draw.update()

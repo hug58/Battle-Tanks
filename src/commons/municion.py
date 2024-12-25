@@ -29,14 +29,14 @@ class CannonType:
         self._count_available = count_available
 
 
-    def render(self) -> List[Dict[str,dict]]:
+    def render(self) -> List:
         """ getting bullets surfaces """
         witdh = self.size[0]
 
         if self._count_available <= 0:
             self._count_realod +=1
 
-        if (self._count_available <= 0 and self._count_realod >= self._reload_time):
+        if self._count_available <= 0 and self._count_realod >= self._reload_time:
             self._count_realod = 0
             self._count_available = self.count
 

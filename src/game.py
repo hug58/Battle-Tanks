@@ -7,13 +7,13 @@ import pygame as pg
 
 from src.commons.package import Struct
 from src.components.movement import MovementComponent
-from src.tile_map import TileMap
-from src.components.camera import Camera
+from src.components.tile_map import TileMap
+from src.components.camera import CameraComponent
 from src.sprites import Player, Bullet, Brick
 
 from src.commons.municion import CannonType
 from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors)
-from src.network import NetworkComponent
+from src.components.network import NetworkComponent
 from src import ROUTE
 
 TANK = {
@@ -41,7 +41,7 @@ class Game:
     """Class representing Game objects"""
     def __init__(self,addr:Union[Tuple[str,int], None],
                  lvl_map,
-                 screen,
+                 screen:pg.Surface,
                  player_name="John"):
 
         self.network = NetworkComponent(addr,player_name) if addr is not None else None
@@ -73,8 +73,7 @@ class Game:
 
         self.player = Player(position, self._player_number, cannon_type=type_guns.get("BASIC"))
         self._players[self._player_number] = self.player
-        print(f"camera: {self.tile.WIDTH}:::: {self.WIDTH}")
-        self.camera = Camera(self.tile.WIDTH,self.tile.HEIGHT,(self.WIDTH,self.HEIGHT))
+        self.camera = CameraComponent(self.tile.WIDTH, self.tile.HEIGHT, (self.WIDTH, self.HEIGHT))
         self.move = MovementComponent(self.network, self.player)
 
 

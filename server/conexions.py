@@ -117,10 +117,10 @@ class DatabaseManager:
         #                            "port":27017})
 
         if isinstance(data, dict):
-            if data.get("database_name") in ["mongo","mongodb"]:
-                cls._db = ConnectMongo(data)
-            else:
-                cls._db = BasicDb(data.get("database_name"))
+            # if data.get("database_name") in ["mongo","mongodb"]:
+            #     cls._db = ConnectMongo(data)
+            # else:
+            cls._db = BasicDb(data.get("database_name"))
 
 
 

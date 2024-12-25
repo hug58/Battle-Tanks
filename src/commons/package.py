@@ -3,6 +3,7 @@ import pickle
 import struct
 import math
 
+from src.commons.collision import Collision
 from src.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
@@ -124,6 +125,7 @@ class Struct:
         player_data["angle"] = angle
         player_data["angle_cannon"] = angle_cannon
 
+        Collision.collide_with_objects(player_data)
 
 
         return struct.pack('BBhhhh', status if status is not None else Struct.UPDATE_PLAYER,

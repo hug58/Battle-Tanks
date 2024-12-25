@@ -1,7 +1,6 @@
 import pygame as pg
-import math
-from typing import Union,Callable
-from src.network import NetworkComponent
+from typing import Union
+from src.components.network import NetworkComponent
 from src.sprites import Player
 from src.commons.package import (Struct,)
 
