@@ -1,5 +1,3 @@
-from tkinter import Scale
-
 import pygame
 import math
 from typing import Tuple
