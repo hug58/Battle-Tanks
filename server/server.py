@@ -6,12 +6,12 @@ import sys
 import os
 import queue
 import logging
-import random
-from typing import Dict
+from typing import Dict, List
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 
 from src.components.collision import Collision
+from src.sprites import Brick
 from .conexions import DatabaseManager
 from src.commons.package import Struct
 
@@ -30,26 +30,30 @@ logging.info("Running Battle Tanks")
 logger = logging.getLogger('BattleTanks')
 
 lock = th.Lock()
-TICK_RATE = 1 / 40  # 4                                                                                          times per second
-
-def generate_random_numbers_from_time(n=5):
-    random.seed(int(time.time()))
-    random_numbers = [random.randint(0, 9) for _ in range(n)]
-    return ''.join(map(str, random_numbers))
+TICK_RATE = 1/15
 
 def send_data(conn:socket.socket, data:bytes):
     try:
-        # logger.debug(f"SEND DATA SUCCESS: {data}. TO: {th.current_thread().name}")
         conn.send(data)
     except (TimeoutError,ConnectionResetError,BrokenPipeError) as e:
-        logger.error(f"SEND DATA FAILED: {data}. TO: {th.current_thread().name}. EXCEPT: {e}")
+        logger.error(f"SEND DATA FAILED: {data}. TO:{th.current_thread().name}. EXCEPT:{e}")
+
+
+def split_bytes(byte_sequence) -> List[bytes]:
+    return [byte_sequence[i:i+Struct.BUFFER_SPLIT_MAP] for i in
+            range(0, len(byte_sequence),Struct.BUFFER_SPLIT_MAP)]
+
 
 class Server:
-    """Server made in socket TCP"""
+    """
+    Server made in socket TCP
+    TODO: socket with udp for players moves.
+    """
 
     def __init__(self,addr, lvl_map_tmx:str):
         self.tick_last_sent = time.time()
         self._data:Dict[int,dict] = defaultdict(dict)
+        self._buffer_state_events = []
         self._sockets = []
 
         self._filter_name:list = []
@@ -69,20 +73,39 @@ class Server:
         DatabaseManager.configure({"database_name":"database.json"})
         self.persistence = DatabaseManager.get()
 
+        Collision.load(lvl_map_tmx)
+        game_state = b''
+        for brick in Collision.bricks:
+            brick: Brick
+            data_tile = Struct.pack_tile({
+                "x": brick.rect.x,
+                "y": brick.rect.y,
+                "h": brick.rect.h,
+                "w": brick.rect.w,
+                "type": Struct.BRICK
+            })
+            brick.data = data_tile
+            game_state += data_tile
+
+        """
+        GAME STATE FOR OBJECTS.
+        """
+        Collision.game_state = game_state
+
         th_1 = th.Thread(target = self._conexions, daemon = True)
         th_2 = th.Thread(target=self._handle_menu, daemon = True)
-
-        th_1.start()
         th_2.start()
+        th_1.start()
 
-        Collision.load(lvl_map_tmx)
         self._receive()
+
 
     def _get_position(self,current) -> tuple:
         if self.positions.get(current) is None:
             return 323,677
 
         return self.positions.get(current)
+
 
     def _handle_menu(self):
         logger.debug(f"INIT HANDLE_MENU {th.current_thread().name}")
@@ -107,6 +130,7 @@ class Server:
                 self._socket.close()
                 os.remove("database.json")
                 sys.exit(1)
+
 
     def _handle_client(self,client_socket: socket.socket):
         logger.warning(f"RUNNING NEW THREAD CLIENT: {client_socket.getsockname()} - THREAD -- {th.current_thread().name}")
@@ -134,14 +158,24 @@ class Server:
                 position = self._get_player_position(client_socket)
                 if position >= 0:
                     player_data: dict = self._data[position]
-                    encoded_message = Struct.pack_player(data, player_data)
 
-                    # self.persistence.update(
-                    #     collection="players",
-                    #     query={"name": player_data.get("name")},
-                    #     new_data=player_data)
+                    """
+                    FIX THAT
+                    """
 
-                    q.put(encoded_message)
+                    if data in Struct.MOVES:
+                        encoded_message = Struct.pack_player(data, player_data)
+                        q.put(encoded_message)
+
+                    elif data == Struct.FIRE_EVENT_PLAYER:
+                        encoded_message = Struct.pack_event(player_data)
+                        if encoded_message:
+                            q.put(encoded_message)
+
+                    """
+                    SOON IN Struct 
+                    """
+
 
             except (ConnectionResetError, ConnectionRefusedError) as e:
                 logger.error(f"LOG ERROR: {e}")
@@ -153,6 +187,7 @@ class Server:
 
         client_socket.close()
 
+
     def _conexions(self):
         logger.warning(f"WAITING CONEXIONS --- {th.current_thread().name}")
         while True:
@@ -160,17 +195,17 @@ class Server:
                 if len(self._data) >= self._max_players:
                     time.sleep(10)
                     continue
-
                 conn,addr = self._socket.accept()
                 conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 conn.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+
                 conn.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
 
                 conn.send(Struct.OK_MESSAGE)
                 data = conn.recv(Struct.BUFFER_SIZE_NAME)
 
                 try:
-                    if data != b'':
+                    if data != b'': #NAME PLAYER
                         data = Struct.unpack(data)
                         logger.warning(f"ADD NEW_CONEXIONS: {data}")
                         if data.find("-c") > -1:
@@ -189,14 +224,16 @@ class Server:
                                 conn.send(Struct.USER_NOT_AVAILABLE)
                                 continue
 
-                        conn.send(Struct.JOIN_MESSAGE)
+                        conn.send(Struct.pack(Collision.lvl_map))
+
+
                         logger.debug(f"SEND JOIN: {Struct.JOIN_MESSAGE} TO {conn.getsockname()}")
 
                         if len(searching_player) == 0:
                             x,y = self._get_position(current)
-
                             player = self.persistence.save(
                                 "player",{
+                                    "damage_indicator":0,
                                     # "status": "on",
                                     # "room_id":self.room,
                                     "name": data,
@@ -215,20 +252,19 @@ class Server:
                             player["addr"] = addr
 
                         player["conn"] = conn
-
                         """Current Player in Queue."""
                         q.put(player)
                         self._executor.submit(self._handle_client, conn)
                         self._current_player +=1
 
                     logger.debug(f"SLEEPING THREAD BEFORE {th.current_thread().name}")
-                    time.sleep(2)
+                    time.sleep(4)
 
                 except EOFError as e:
                     logger.error(f"ERROR[{e}] CLIENT: {addr}" )
-
             except (OSError,BlockingIOError) as e:
                 logger.error(f"ERROR[{e}] BlockingIOError")
+
 
     def _receive(self):
         logger.debug(f"START THREAD: ---[{th.current_thread().name}]")
@@ -238,11 +274,9 @@ class Server:
                 data = q.get(timeout=1)
 
                 if isinstance(data, dict):
-                    """
-                        QUEUE FOR NEW PLAYERS.
-                    """
+                    """QUEUE FOR NEW PLAYERS."""
 
-                    if data == {}:
+                    if len(data.keys()) == 0:
                         continue
 
                     new_player:dict = data
@@ -270,11 +304,18 @@ class Server:
                         """ADD NEW CONN"""
                         conn_new_player.send(encoded_message)
 
+                        """SENDING MAP OBJECTS"""
+                        _game_state = split_bytes(Collision.game_state)
+                        conn_new_player.send(Struct.pack_single_data(len(_game_state)))
+
+                        for data in _game_state:
+                            conn_new_player.send(data)
+
+
                         """SENDING OLD_PLAYERS TO NEW_PLAYER."""
                         conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
                         self._data[current] = new_player
                         self._filter_name.append(new_player.get("name"))
-
                         self._sockets.append(conn_new_player)
                     except socket.error as e:
                         del new_player
@@ -295,32 +336,34 @@ class Server:
 
 
 
-
                 elif isinstance(data,bytes):
+                    """QUEUE FOR OLD PLAYERS"""
+
                     """
-                        QUEUE FOR OLD PLAYERS
+                    FIX TICKS WITH EVENTS
                     """
-                    if time.time() - self.tick_last_sent >= TICK_RATE:
+                    if len(data) == Struct.BUFFER_SIZE_EVENT_RESPONSE:
+                        for conn in self._sockets:
+                            self._executor.submit(send_data, conn, data)
+
+                    elif time.time() - self.tick_last_sent >= TICK_RATE:
                         self.tick_last_sent = time.time()
                         for conn in self._sockets:
                             """FOR MOMENTS USES 'self._data', soon only modify data."""
-                            self._executor.submit(send_data, conn,Struct.pack_players(self._data))
+                            self._executor.submit(send_data, conn, Struct.pack_players(self._data))
+
 
             except (queue.Empty, ConnectionAbortedError) as e:
                 continue
-
             except KeyboardInterrupt:
                 self._socket.close()
                 logger.warning(f"CLOSING SERVER IN MAIN THREAD...{th.current_thread().name}")
                 sys.exit(1)
+
 
     def _get_player_position(self, conn) -> int:
         for position, player in self._data.items():
             if player.get("conn") == conn:
                 return position
         return -1
-
-
-
-
 

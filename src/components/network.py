@@ -1,110 +1,142 @@
 """Server TCP connection"""
 
 import socket
-import sys
 from typing import Tuple, List, Union
 from src.commons.package import Struct
 
 class NetworkComponent:
     """ Client TCP connection """
 
-    def __init__(self,addr:Tuple[str,int], name:str="John"):
+    def __init__(self, addr: Tuple[str, int], name: str = "John"):
         print(f"Connecting to {addr}, Player: {name}")
         self.name = name
         self.addr = addr
+        self.lvl_map: str = ""
 
-        self._socket_tcp = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self._socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket_tcp.connect(addr)
-        self._socket_tcp.setsockopt(socket.SOL_SOCKET,socket.TCP_NODELAY,1)
-        self._player_data:Union[dict,bytes] = self.load_data()
+        # self._socket_tcp.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
+        self._socket_tcp.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
 
+        self.game_state: bytes = b""
+        self._player_data: Union[dict, bytes] = self.load_data()
 
     def load_data(self) -> Union[dict, bytes]:
         """ Load player data init"""
         ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
         if ok == Struct.OK_MESSAGE:
             self._socket_tcp.send(Struct.pack(self.name))
-            join = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
-            if  join == Struct.USER_NOT_AVAILABLE:
+            lvl_map = self._socket_tcp.recv(Struct.BUFFER_SIZE_LVL_MAP)
+            if lvl_map == Struct.USER_NOT_AVAILABLE:
                 return Struct.USER_NOT_AVAILABLE
 
-            data = self._socket_tcp.recv(14)
-            data = Struct.unpack_player(data)
+            self.lvl_map = Struct.unpack(lvl_map)
+
+            data = self._socket_tcp.recv(Struct.SIZE_PLAYER)
+            data_player = Struct.unpack_player(data)
+
+            size_map = Struct.unpack_single_data(self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT))
+
+            for i in range(size_map[0]):
+                split_map = self._socket_tcp.recv(Struct.BUFFER_SPLIT_MAP)
+                self.game_state += split_map
+
             return {
-                    "position": data[1],
-                    "x": data[2],
-                    "y": data[3],
-                    "angle": data[4],
-                    "angle_cannon": data[5]
+                "position": data_player[1],
+                "x": data_player[2],
+                "y": data_player[3],
+                "angle": data_player[4],
+                "angle_cannon": data_player[5]
             }
 
+    @staticmethod
+    def _modify_data(data_arr: list) -> dict:
+        """
+        MODIFY PLAYER AND EVENTS
+        """
+
+        if data_arr[0] in Struct.STATUS_PLAYER:
+            return {
+                "status": data_arr[0],
+                "position": data_arr[1],
+                "x": data_arr[2],
+                "y": data_arr[3],
+                "angle": data_arr[4],
+                "angle_cannon": data_arr[5],
+                "damage_indicator": data_arr[6]
+            }
+
+        elif data_arr[0] == Struct.BROKE_BRICK:
+            return {
+                "status": data_arr[0],
+                "x": data_arr[1],
+                "y": data_arr[2],
+                "w": data_arr[3],
+                "h": data_arr[4],
+            }
 
     def recv_move_player(self) -> List[dict]:
-        """ get data player """
+        """ get data player and states game"""
         try:
             self._socket_tcp.setblocking(False)
             data = self._socket_tcp.recv(Struct.BUFFER_SIZE_PLAYER)
             self._socket_tcp.setblocking(True)
-            modify_data = lambda player_arr: {
-                                "status": player_arr[0],
-                                "position": player_arr[1],
-                                "x": player_arr[2],
-                                "y": player_arr[3],
-                                "angle": player_arr[4],
-                                "angle_cannon": player_arr[5]
-                            }
 
             if data != b'':
-                players = list(map(modify_data, Struct.unpack_players(data)))
+                data_set = Struct.unpack_players(data) if len(data) > Struct.BUFFER_SIZE_EVENT_RESPONSE \
+                    else Struct.unpack_events(data)
+
+                players = list(map(NetworkComponent._modify_data, data_set))
                 return players
 
-        except (BlockingIOError, socket.error) as e:
-            # print(f"THERE IS A ERROR: {e}")
+
+        except BlockingIOError:
+            pass
+        except socket.error as e:
+            print(f"THERE IS A ERROR: {e}")
             pass
 
         return []
 
-
-    def send_move_tcp(self, move:bytes):
+    def send_move_tcp(self, move: bytes):
         try:
             self._socket_tcp.send(move)
         except socket.error as e:
             self._socket_tcp.close()
 
-
     @property
-    def player_data(self):
+    def player_data(self) -> Union[dict, bytes]:
         """ get number of player """
         return self._player_data
 
-
     @property
-    def player_number(self):
+    def player_number(self) -> int:
         """ get number of player """
         if self._player_data == Struct.USER_NOT_AVAILABLE:
             return 0
 
         return self._player_data["position"]
 
-
     @property
-    def socket_tcp(self):
-        self._socket_tcp.send(Struct.CLOSE_CONN)
+    def socket_tcp(self) -> socket.socket:
         return self._socket_tcp
 
-
     @staticmethod
-    def check_name(addr:tuple,name:str) -> Union[bool,socket.error]:
+    def check_name(addr: tuple, name: str) -> Union[bool, socket.error]:
         try:
-            sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(0.1)
             sock.connect(addr)
 
             if sock.recv(Struct.BUFFER_SIZE_EVENT) == Struct.OK_MESSAGE:
-                sock.send(Struct.pack(name+"-c"))
+                sock.send(Struct.pack(name + "-c"))
                 return sock.recv(1) == Struct.OK_MESSAGE
 
         except socket.error as e:
             return e
 
         return False
+
+    def get_events_to_game_state(self):
+        return Struct.unpack_events(self.game_state)
+

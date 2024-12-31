@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" tiledversion="1.0.3" orientation="orthogonal" renderorder="right-down" width="35" height="25" tilewidth="32" tileheight="32" nextobjectid="136">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="35" height="25" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="169">
  <tileset firstgid="1" source="tiles.tsx"/>
- <layer name="piso" width="35" height="25">
+ <layer id="1" name="piso" width="35" height="25">
   <data encoding="csv">
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
@@ -30,11 +30,11 @@
 3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 </data>
  </layer>
- <objectgroup name="player">
-  <object id="0" name="player" x="323" y="677" width="87" height="55"/>
+ <objectgroup id="2" name="player">
+  <object id="136" name="player" x="323" y="677" width="87" height="55"/>
   <object id="1" name="player" x="403.5" y="160.5" width="87" height="55"/>
  </objectgroup>
- <objectgroup name="bricks">
+ <objectgroup id="3" name="bricks">
   <object id="3" name="brick" x="128.125" y="639.5" width="31.75" height="32.25"/>
   <object id="4" name="brick" x="159.636" y="607.818" width="32.6818" height="32.1818"/>
   <object id="6" name="brick" x="447.636" y="576.182" width="32.1818" height="31.6364"/>
@@ -43,12 +43,11 @@
   <object id="15" name="brick" x="127.636" y="479.818" width="32.3636" height="32.3636"/>
   <object id="16" name="brick" x="256" y="448.25" width="31.9167" height="31.75"/>
   <object id="19" name="brick" x="671.818" y="448" width="32.3636" height="32.125"/>
-  <object id="20" name="brick" x="735.515" y="288.485" width="31.875" height="32"/>
+  <object id="20" name="brick" x="736.015" y="288.048" width="31.875" height="32"/>
   <object id="21" name="brick" x="383.75" y="384" width="32.5" height="32"/>
   <object id="22" name="brick" x="255.5" y="383.5" width="32.5" height="32.75"/>
-  <object id="23" name="brick" x="95.5" y="320" width="32.25" height="96"/>
+  <object id="23" name="brick" x="95.5" y="383.75" width="32.25" height="32.25"/>
   <object id="26" name="brick" x="672" y="192" width="32" height="32"/>
-  <object id="27" name="brick" x="799.625" y="96.125" width="128.125" height="32.125"/>
   <object id="30" name="brick" x="352.091" y="224" width="31.9091" height="31.6364"/>
   <object id="32" name="brick" x="192" y="256" width="32" height="32"/>
   <object id="34" name="brick" x="160" y="255.909" width="31.9091" height="32.0909"/>
@@ -99,9 +98,9 @@
   <object id="82" name="brick" x="480.878" y="512.135" width="32.167" height="31.999"/>
   <object id="83" name="brick" x="512.123" y="512.072" width="31.9167" height="31.75"/>
   <object id="84" name="brick" x="544.405" y="512.125" width="31.9167" height="31.75"/>
-  <object id="85" name="brick" x="767.544" y="288.451" width="31.875" height="32"/>
-  <object id="86" name="brick" x="767.759" y="256.303" width="31.875" height="32"/>
-  <object id="87" name="brick" x="735.669" y="256.485" width="31.875" height="32"/>
+  <object id="85" name="brick" x="767.856" y="288.014" width="31.875" height="32"/>
+  <object id="86" name="brick" x="767.947" y="255.865" width="31.875" height="32"/>
+  <object id="87" name="brick" x="736.106" y="256.173" width="31.875" height="32"/>
   <object id="88" name="brick" x="479.989" y="320.114" width="31.9167" height="31.75"/>
   <object id="89" name="brick" x="511.989" y="320.239" width="31.9167" height="31.75"/>
   <object id="90" name="brick" x="543.864" y="320.114" width="31.9167" height="31.75"/>
@@ -144,14 +143,43 @@
   <object id="127" name="brick" x="767.47" y="511.966" width="31.875" height="32"/>
   <object id="128" name="brick" x="767.685" y="479.818" width="31.875" height="32"/>
   <object id="129" name="brick" x="735.595" y="480" width="31.875" height="32"/>
-  <object id="131" name="block" x="799.542" y="127.125" width="31.9167" height="31.75"/>
-  <object id="132" name="block" x="799.042" y="256.625" width="31.9167" height="287.75"/>
-  <object id="133" name="block" x="1055.04" y="96.625" width="63.9167" height="31.75"/>
+  <object id="131" name="block" x="800.178" y="128.057" width="31.9167" height="31.75"/>
   <object id="134" name="block" x="800.042" y="640.625" width="31.9167" height="31.75"/>
-  <object id="135" name="block" x="800.042" y="672.125" width="128.917" height="31.75"/>
+  <object id="137" name="brick" x="832.199" y="384.227" width="31.875" height="32"/>
+  <object id="138" name="brick" x="864.29" y="384.227" width="31.875" height="32"/>
+  <object id="139" name="brick" x="898.063" y="384" width="31.875" height="32"/>
+  <object id="140" name="brick" x="930.063" y="384" width="31.875" height="32"/>
+  <object id="141" name="brick" x="961.063" y="383.5" width="31.875" height="32"/>
+  <object id="142" name="brick" x="994.063" y="383.5" width="31.875" height="32"/>
+  <object id="143" name="brick" x="1025.56" y="383.5" width="31.875" height="32"/>
+  <object id="144" name="brick" x="1057.06" y="383.5" width="31.875" height="32"/>
+  <object id="145" name="brick" x="1089.06" y="384" width="31.875" height="32"/>
+  <object id="146" name="brick" x="95.625" y="351.375" width="32.25" height="32.25"/>
+  <object id="147" name="brick" x="95.75" y="319.875" width="32.25" height="32.25"/>
+  <object id="148" name="block" x="800.314" y="672.034" width="31.9167" height="31.75"/>
+  <object id="149" name="block" x="831.985" y="672.17" width="31.9167" height="31.75"/>
+  <object id="150" name="block" x="864.042" y="672.216" width="31.9167" height="31.75"/>
+  <object id="151" name="block" x="896.314" y="672.398" width="31.9167" height="31.75"/>
+  <object id="152" name="block" x="1056.1" y="672.125" width="31.9167" height="31.75"/>
+  <object id="153" name="block" x="1088.17" y="672.188" width="31.9167" height="31.75"/>
+  <object id="154" name="block" x="800.019" y="512.091" width="31.9167" height="31.75"/>
+  <object id="155" name="block" x="800.167" y="480.188" width="31.9167" height="31.75"/>
+  <object id="156" name="block" x="800.135" y="448.313" width="31.9167" height="31.75"/>
+  <object id="157" name="block" x="800.077" y="416.255" width="31.9167" height="31.75"/>
+  <object id="158" name="block" x="799.979" y="383.875" width="31.9167" height="32.1875"/>
+  <object id="159" name="block" x="800.042" y="352.063" width="31.9167" height="31.75"/>
+  <object id="160" name="block" x="800.216" y="320.139" width="31.9167" height="31.75"/>
+  <object id="161" name="block" x="800.229" y="288.063" width="31.9167" height="31.75"/>
+  <object id="162" name="block" x="800.066" y="256.052" width="31.9167" height="31.75"/>
+  <object id="163" name="block" x="799.979" y="96.0625" width="31.9167" height="31.75"/>
+  <object id="164" name="block" x="831.917" y="96.1875" width="31.9167" height="31.75"/>
+  <object id="165" name="block" x="863.998" y="96.1005" width="31.9167" height="31.75"/>
+  <object id="166" name="block" x="896.042" y="96.0625" width="31.9167" height="31.75"/>
+  <object id="167" name="block" x="1056.08" y="96.1705" width="31.9167" height="31.75"/>
+  <object id="168" name="block" x="1088.17" y="96.125" width="31.9167" height="31.75"/>
  </objectgroup>
- <objectgroup name="blocks"/>
- <layer name="ladrillos" width="35" height="25" visible="0">
+ <objectgroup id="4" name="blocks"/>
+ <layer id="5" name="ladrillos" width="35" height="25" visible="0">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

@@ -14,15 +14,14 @@ from src.components.network import NetworkComponent
 GREEN_STATUS = (0, 128, 0)
 RED_STATUS = (255,0,0)
 NEU = (100,100,100)
-BACKGROUND = (0,50,0)
+BACKGROUND = (0,30,0)
 
 class Menu:
     """Menu """
-    def __init__(self, main_surface: pg.Surface, map_tmp:str):
+    def __init__(self, main_surface: pg.Surface):
         self.select_option = None
         self.position:int = 0
         self.main_surface = main_surface
-        self.map_tmp = map_tmp
         self.clock = pg.time.Clock()
         self.cover = None
         self.options:Dict[int,dict] =  {
@@ -40,9 +39,8 @@ class Menu:
     def multiplayer_mode(self,game_screen) -> Game:
         """ Menu mode """
         user_enter = False
-        # ip_text = "159.89.230.62"
-        ip_text = "10.116.0.2"
-        name = "John"
+        ip_text = "localhost"
+        name:str = "JOHN"
         user_text =  "8010"
         option_select = 0
         status =  NEU
@@ -75,7 +73,7 @@ class Menu:
                     elif event.key ==  pg.K_RETURN:
                         try:
                             if len(user_text) > 0 and len(name) > 0:
-                                game = Game((ip_text, int(user_text)), self.map_tmp, game_screen, name)
+                                game = Game((ip_text, int(user_text)),game_screen, name)
                                 if game.network.player_data != Struct.USER_NOT_AVAILABLE:
                                     return game
                                 status = RED_STATUS
@@ -86,6 +84,8 @@ class Menu:
                         if len(user_text) <= 7:
                             if option_select == 2:
                                 name += event.dict.get("unicode")
+                                name = name.upper()
+
                             elif option_select == 1:
                                 ip_text += event.dict.get("unicode")
                             elif option_select == 0:
@@ -110,9 +110,6 @@ class Menu:
                                         status = NEU
                             except ValueError as e:
                                 print(f"ERROR VALUE: {e}")
-
-
-
 
 
             self.main_surface.fill(BACKGROUND)
@@ -148,7 +145,6 @@ class Menu:
                 text_ip.color = NEU
                 text_name.color = NEU
 
-
             """
             LABELS: IP, PORT AND NAME
             """
@@ -164,12 +160,12 @@ class Menu:
             self.main_surface.blit(surface_input_ip, (120,100))
             self.main_surface.blit(surface_input_name,(120,40))
 
-
             """
             TANK
             """
-            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=0, angle_cannon=0)
-            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=360, angle_cannon=180)
+
+            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=90, angle_cannon=270)
+            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=90, angle_cannon=90)
 
             pg.display.flip()
             self.clock.tick(60)

@@ -4,18 +4,16 @@ import math
 import pygame as pg
 from .cannon import Cannon
 from src.commons.municion import CannonType
-from src.commons.tank_surface import (create_tank_surface, create_cannon_surface, colors, tank_cover)
+from src import sound_boom, sound_shot
 
 
 
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
-
     SPEED = 3
-    ANGLE = 20
+    ANGLE = 10
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
-
     SIZE_BODY_RECT = (16,16)
 
     def __init__(self,position,number:int, cannon_type: CannonType):
@@ -34,6 +32,7 @@ class Player(Cannon):
         self.player_number = number
         Cannon.__init__(self,self.rect.center, cannon_type)
 
+
     @staticmethod
     def rotate_external(xbool, angle, surface, rect):
         """ rotate the player around 360"""
@@ -45,10 +44,12 @@ class Player(Cannon):
         rect.center = rect.center
         return angle, rect
 
+
     def update(self):
         """ Update the position of the player and cannon"""   
         self.body_rect.center = self.rect.center
         self.rect_cannon.center = self.body_rect.center
+
 
     def rotate_rect(self,xbool,surface):
         """Rotate the rect player around"""
@@ -61,15 +62,18 @@ class Player(Cannon):
         rect.center = self.rect.center
         self.rect = rect
 
+
     @staticmethod
     def draw(surface,angle):
         """ Draw the surface """
         return pg.transform.rotate(surface,angle)
 
+
     @property
     def damage(self):
         """ return damage """
         return self._damage
+
 
     @damage.setter
     def damage(self, value:float):
@@ -82,14 +86,16 @@ class Player(Cannon):
         """ return fire """
         return self._fire
 
+
     @fire.setter
     def fire(self, value:bool):
         """ setter for fire """
         self._fire = value
         if self._fire is True:
+            sound_shot.play()
             self.type_gun.count_available -=1
 
 
 
     def __str__(self):
-        return f"NUMBER: {self.player_number}  POS: {self.rect.center}"
+        return f"---NUMBER: [{self.player_number}  ---POS: [{self.rect.center}]"

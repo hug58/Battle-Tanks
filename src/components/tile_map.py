@@ -8,8 +8,7 @@ from src import ROUTE
 class TileMap:
     """ Load tilemap with tmx"""
     def __init__(self,filename):
-        ruta = ROUTE(filename)
-        tm = pytmx.load_pygame(ruta,pixelaplha = True)
+        tm = pytmx.load_pygame(ROUTE(f"assets/maps/{filename}"),pixelaplha = True)
         self.WIDTH = tm.width * tm.tilewidth
         self.HEIGHT = tm.height * tm.tileheight
         self.tmxdata = tm

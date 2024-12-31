@@ -15,9 +15,12 @@ class Struct:
     """
         Class for packing and unpacking data
     """
+    SIZE_PLAYER = 11
     MAX_PLAYERS = 2
-
-    BUFFER_SIZE_PLAYER = 40 * MAX_PLAYERS
+    BUFFER_SIZE_PLAYER = SIZE_PLAYER * MAX_PLAYERS
+    BUFFER_SIZE_EVENT_RESPONSE = 10
+    BUFFER_SPLIT_MAP = BUFFER_SIZE_EVENT_RESPONSE * 8
+    BUFFER_SIZE_LVL_MAP = 40
     BUFFER_SIZE_NAME = 32
     BUFFER_SIZE_EVENT = 1
 
@@ -36,18 +39,30 @@ class Struct:
     LEFT_ANGLE_EVENT_PLAYER: bytes = b'\x07'
     RIGHT_ANGLE_EVENT_PLAYER: bytes = b'\x08'
 
+    """ FIRE EVENTS"""
+    FIRE_EVENT_PLAYER: bytes = b'\x11'
+
     UPDATE_PLAYER: int = 1
     NEW_PLAYER: int = 2
     OLD_PLAYER: int = 3
 
+
+    BROKE_BRICK:int = 4
+    BRICK:int = 5
+    BLOCK:int = 6
+
+    STATUS_PLAYER = [UPDATE_PLAYER,NEW_PLAYER,OLD_PLAYER]
+
     MOVES = [
             LEFT_EVENT_PLAYER,
-             RIGHT_EVENT_PLAYER,
-             UP_EVENT_PLAYER, DOWN_EVENT_PLAYER,
+            RIGHT_EVENT_PLAYER,
+            UP_EVENT_PLAYER,
+            DOWN_EVENT_PLAYER,
 
-             #TOWERS MOVES
-             LEFT_ANGLE_EVENT_PLAYER,
-             RIGHT_ANGLE_EVENT_PLAYER
+            #TOWERS MOVES
+            LEFT_ANGLE_EVENT_PLAYER,
+            RIGHT_ANGLE_EVENT_PLAYER,
+
              ]
 
     @staticmethod
@@ -63,7 +78,8 @@ class Struct:
     @staticmethod
     def unpack_player(data: bytes):
         """ :param data: bytes. a player is 6 bytes"""
-        return struct.unpack('BBhhhh', data)
+        return struct.unpack('BBhhhhb', data)
+
 
     @staticmethod
     def pack_player(data: Union[bytes, None],
@@ -76,60 +92,128 @@ class Struct:
         :param player_data: Player
         :param status: default is UPDATE_PLAYER
 
-        :return: bytes (STATUS, POSITION, POSX, POSY, CANNONX, CANNONY, ANGLE)
+        :return: bytes (STATUS, POSITION, X, Y, ANGLE, ANGLE_CANNON, DAMAGE_INDICATOR)
         """
-
         angle = player_data["angle"]
         angle_cannon = player_data["angle_cannon"]
         radians = math.radians(angle)
+        damage_indicator = player_data["damage_indicator"]
 
         if data in Struct.MOVES:
             if data == Struct.RIGHT_EVENT_PLAYER:
-                # player_data["x"] = player_data.get("x") + Player.SPEED
                 angle += Player.ANGLE * Player.ANGLE_RIGHT
                 angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
-
             elif data == Struct.LEFT_EVENT_PLAYER:
-                # player_data["x"] = player_data.get("x") - Player.SPEED
                 angle -= Player.ANGLE * Player.ANGLE_RIGHT
                 angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
+            elif data == Struct.LEFT_ANGLE_EVENT_PLAYER:
+                angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
+            elif data == Struct.RIGHT_ANGLE_EVENT_PLAYER:
+                angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
 
-            if data == Struct.UP_EVENT_PLAYER or data == Struct.DOWN_EVENT_PLAYER:
+            if (data == Struct.UP_EVENT_PLAYER or
+                    data == Struct.DOWN_EVENT_PLAYER):
+
                 vlx = Player.SPEED * - math.sin(radians)
                 vly = Player.SPEED * - math.cos(radians)
 
                 if data == Struct.UP_EVENT_PLAYER:
                     player_data["y"] += vly
                     player_data["x"] += vlx
-
-
                 elif data == Struct.DOWN_EVENT_PLAYER:
                     player_data["y"] -= vly
                     player_data["x"] -= vlx
 
-            if data == Struct.LEFT_ANGLE_EVENT_PLAYER:
-                angle_cannon += Player.ANGLE * Player.ANGLE_LEFT
-            elif data == Struct.RIGHT_ANGLE_EVENT_PLAYER:
-                angle_cannon += Player.ANGLE * Player.ANGLE_RIGHT
+                Collision.collide_with_objects(player_data)
 
         current = player_data["position"]
         pos_x = player_data["x"]
         pos_y = player_data["y"]
-
-        if math.sqrt(angle ** 2) >= 360:
-            angle = 0
-
-        if math.sqrt(angle_cannon ** 2) >= 360:
-            angle_cannon = 0
+        angle = angle % 360
+        angle_cannon = angle_cannon % 360
 
         player_data["angle"] = angle
         player_data["angle_cannon"] = angle_cannon
 
-        Collision.collide_with_objects(player_data)
+        return struct.pack('BBhhhhb', status if status is not None else Struct.UPDATE_PLAYER,
+                           current, int(pos_x), int(pos_y), angle, angle_cannon, damage_indicator)
 
 
-        return struct.pack('BBhhhh', status if status is not None else Struct.UPDATE_PLAYER,
-                           current, int(pos_x), int(pos_y), angle, angle_cannon)
+    @staticmethod
+    def unpack_players(data: bytes) -> list:
+        """ Decode data in chunks of 14 bytes if data length is greater than 14. """
+        players = []
+        chunk_size = Struct.BUFFER_SIZE_PLAYER
+
+        # Check if data length is greater than 14
+        if len(data) > chunk_size:
+            for i in range(0, len(data), chunk_size):
+                chunk = data[i:i + chunk_size]
+                player = Struct.unpack_player(chunk)
+                players.append(player)
+        else:
+            if len(data) > 0:
+                player = Struct.unpack_player(data)
+                players.append(player)
+
+        return players
+
+
+    @staticmethod
+    def pack_players(data: Dict[int, dict], status = None) -> bytes:
+        data_encoded = b''
+        for d, item in data.items():
+            data_encoded += Struct.pack_player(None, item, status)
+
+        return data_encoded
+
+    @staticmethod
+    def pack_tile(data: dict):
+        return struct.pack("bhhhh", data["type"],data["x"],
+                           data["y"],data["w"],data["h"])
+
+    @staticmethod
+    def pack_event(player_data: dict) -> Union[bytes, None]:
+        data_collided = Collision.check_collision_bullet(player_data, 30)
+        if len(data_collided.items()) > 0:
+            data_collided["type"] = Struct.BROKE_BRICK
+            return Struct.pack_tile(data_collided)
+
+        return None
+
+
+    @staticmethod
+    def unpack_event(data: bytes):
+        return struct.unpack('bhhhh', data)
+
+
+    @staticmethod
+    def unpack_events(data: bytes) -> list:
+        """ Decode data in chunks of 14 bytes if data length is greater than 14. """
+        events = []
+        chunk_size = Struct.BUFFER_SIZE_EVENT_RESPONSE
+
+        # Check if data length is greater than 14
+        if len(data) > chunk_size:
+            for i in range(0, len(data), chunk_size):
+                chunk = data[i:i + chunk_size]
+                _event = Struct.unpack_event(chunk)
+                events.append(_event)
+        else:
+            if len(data) > 0:
+                _event = Struct.unpack_event(data)
+                events.append(_event)
+
+        return events
+
+
+    @staticmethod
+    def pack(data: Union[str, dict]):
+        """:param data: str or object.  encode data. deprecate. """
+        try:
+            return pickle.dumps(data)
+        except pickle.PicklingError as e:
+            return data.encode('utf-8')
 
 
     @staticmethod
@@ -139,39 +223,3 @@ class Struct:
             return pickle.loads(data)
         except pickle.UnpicklingError as e:
             return data.decode('utf-8')
-
-    @staticmethod
-    def unpack_players(data: bytes):
-        """ Decode data in chunks of 14 bytes if data length is greater than 14. """
-        players = []
-        chunk_size = 10
-
-        # Check if data length is greater than 14
-        if len(data) > chunk_size:
-            for i in range(0, len(data), chunk_size):
-                chunk = data[i:i + chunk_size]
-                player = Struct.unpack_player(chunk)  # Assuming unpack_player is defined in Struct
-                players.append(player)
-        else:
-            # Handle case where data is less than or equal to 14 bytes
-            if len(data) > 0:
-                player = Struct.unpack_player(data)  # Unpack the entire data if it's less than or equal to 14 bytes
-                players.append(player)
-
-        return players
-
-    @staticmethod
-    def pack_players(data: Dict[int, dict], status = None):
-        data_encoded = b''
-        for d, item in data.items():
-            data_encoded += Struct.pack_player(None, item, status)
-
-        return data_encoded
-
-    @staticmethod
-    def pack(data: Union[str, dict]):
-        """:param data: str or object.  encode data. deprecate. """
-        try:
-            return pickle.dumps(data)
-        except pickle.PicklingError as e:
-            return data.encode('utf-8')

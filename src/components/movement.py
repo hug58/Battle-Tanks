@@ -62,6 +62,11 @@ class MovementComponent:
             #     -1, self.player.angle_cannon, Player.TANK[self.player.number_player][1], self.player.rect_cannon
             # )
 
+        # elif key[pg.K_o]:
+        #     if self.player.check_available_bullets():
+        #         action = Struct.FIRE_EVENT_PLAYER
+        #         self.player.fire = True
+
         # self.player.body_rect.center = self.player.rect.center
         # self.player.rect_cannon.center = self.player.body_rect.center
 

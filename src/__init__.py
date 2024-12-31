@@ -6,6 +6,8 @@ from typing import Tuple
 import pygame as pg
 
 pg.font.init()
+pg.mixer.init()
+
 
 def resolve_route(rute,relative = '.'):
     """resolve_route"""
@@ -15,7 +17,13 @@ def resolve_route(rute,relative = '.'):
 
 
 ROUTE = lambda route: os.path.join(os.path.abspath("."),route)
-FONT = ROUTE("ASSETS/Pixel Digivolve.otf")
+FONT = ROUTE("assets/Pixel Digivolve.otf")
+
+sound_shot = pg.mixer.Sound(ROUTE("assets/sound/shot.wav"))
+sound_boom = pg.mixer.Sound(ROUTE("assets/sound/boom.wav"))
+sound_boom.set_volume(0.1)
+
+
 
 
 class Text:
@@ -28,6 +36,7 @@ class Text:
         self._rect.center = position
         self._text = text
 
+
     @staticmethod
     def render(text:str, font: pg.font, color: Tuple[int,int,int], size):
         """ Render text """
@@ -38,10 +47,12 @@ class Text:
         """ Updates the surface """
         self._surface = self.render(self._text,FONT,self._color, self.size_font)
 
+
     @property
     def color(self):
         """getter color"""
         return self._color
+
 
     @color.setter
     def color(self,color:Tuple[int,int,int]):
@@ -55,10 +66,12 @@ class Text:
         """getting """
         return self._text
 
+
     @text.setter
     def text(self,text):
         """setter """
         self._text = text
+
 
     def draw(self,screen):
         """ draw"""

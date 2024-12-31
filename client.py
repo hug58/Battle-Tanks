@@ -1,8 +1,8 @@
 """ Client and Single Game"""
 
-import sys
 import pygame as pg
 from src import Text, ROUTE
+from src.commons.package import Struct
 from src.menu import Menu
 
 
@@ -12,18 +12,14 @@ def load_bullet(bullet):
 
 def main():
     """ Client game of server"""
-
-    map_tmp = "ASSETS/maps/zone_0.tmx"
-    WIDTH,HEIGHT = 800,600
-    SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
-    clock = pg.time.Clock()
-    # main_game = pg.Surface((600,400))
-    main_game = pg.Surface((WIDTH,HEIGHT))
-    menu = Menu(SCREEN,map_tmp)
-
     pg.display.set_caption(f"Lemon Tank")
     pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
+    clock = pg.time.Clock()
 
+    WIDTH,HEIGHT = 800,600
+    SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
+    main_game = pg.Surface((400,300))
+    menu = Menu(SCREEN)
     game = menu.update(main_game)
 
     text_damage = Text((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
@@ -32,16 +28,13 @@ def main():
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                pg.quit()
-                if game.network:
-                    game.network.socket_tcp.close()
-                sys.exit()
-
-            if event.type == pg.KEYUP:
+                game.close()
+            elif event.type == pg.KEYUP:
                 key = event.dict.get("key")
                 if key == pg.K_o and menu.select_option is not None:
                     if game.player.check_available_bullets():
                         game.player.fire = True
+                        game.network.send_move_tcp(Struct.FIRE_EVENT_PLAYER)
 
 
         text_damage.text = f"Damage: {game.damage} %"
@@ -59,7 +52,7 @@ def main():
         """
         TICKS IN CLIENT
         """
-        clock.tick(30)
+        clock.tick(40)
         pg.display.flip()
 
 if __name__ == "__main__":
