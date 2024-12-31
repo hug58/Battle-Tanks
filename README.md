@@ -20,10 +20,9 @@
 
 ## Multiplayer
 
-<p> I wanted to create a game that was multiplayer but not limited to a single pc, that is, to create a socket that would transmit status information from one player to the other (lan network if you prefer), and the result is quite good. </p> 
+<p> Creating a multiplayer videogame using only sockets and pygame as a base.  </p> 
   
-  <p> The socket works by receiving the Player class from the other players, while updating all the attributes of those players. 
-   A player can only send the object of the corresponding class, so there must be a minimum of 2 players for there to be an exchange of information.<p>
+  <p> The client sends keyboard events and the server sends game state changes. Everything is centered on the server as the authority.<p>
 </p>
 
 
