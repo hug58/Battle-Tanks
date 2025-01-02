@@ -12,7 +12,8 @@ class TileMap:
         self.WIDTH = tm.width * tm.tilewidth
         self.HEIGHT = tm.height * tm.tileheight
         self.tmxdata = tm
-        
+
+
     def render(self,surface):
         """ load tilemap with surface """
         ti = self.tmxdata.get_tile_image_by_gid
@@ -22,6 +23,7 @@ class TileMap:
                     tile = ti(gid)
                     if tile:
                         surface.blit(tile,(x* self.tmxdata.tilewidth,y* self.tmxdata.tileheight))
+
 
     def make_map(self):
         """ create surface object"""

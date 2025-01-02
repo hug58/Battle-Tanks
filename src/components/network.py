@@ -21,6 +21,7 @@ class NetworkComponent:
         self.game_state: bytes = b""
         self._player_data: Union[dict, bytes] = self.load_data()
 
+
     def load_data(self) -> Union[dict, bytes]:
         """ Load player data init"""
         ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
@@ -75,6 +76,7 @@ class NetworkComponent:
                 "h": data_arr[4],
             }
 
+
     def recv_move_player(self) -> List[dict]:
         """ get data player and states game"""
         try:
@@ -98,16 +100,19 @@ class NetworkComponent:
 
         return []
 
+
     def send_move_tcp(self, move: bytes):
         try:
             self._socket_tcp.send(move)
         except socket.error as e:
             self._socket_tcp.close()
 
+
     @property
     def player_data(self) -> Union[dict, bytes]:
         """ get number of player """
         return self._player_data
+
 
     @property
     def player_number(self) -> int:
@@ -117,9 +122,11 @@ class NetworkComponent:
 
         return self._player_data["position"]
 
+
     @property
     def socket_tcp(self) -> socket.socket:
         return self._socket_tcp
+
 
     @staticmethod
     def check_name(addr: tuple, name: str) -> Union[bool, socket.error]:
@@ -136,6 +143,7 @@ class NetworkComponent:
             return e
 
         return False
+
 
     def get_events_to_game_state(self):
         return Struct.unpack_events(self.game_state)

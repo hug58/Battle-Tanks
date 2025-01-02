@@ -84,6 +84,7 @@ class Collision:
     def load_game_state(cls, game_state:str):
         cls.game_state = game_state
 
+
     @classmethod
     def collide_with_objects(cls,player: dict):
         """

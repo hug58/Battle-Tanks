@@ -4,7 +4,7 @@ import math
 import pygame as pg
 from .cannon import Cannon
 from src.commons.municion import CannonType
-from src import sound_boom, sound_shot
+from src import sound_shot
 
 
 

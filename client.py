@@ -18,7 +18,7 @@ def main():
 
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
-    main_game = pg.Surface((400,300))
+    main_game = pg.Surface((WIDTH,HEIGHT))
     menu = Menu(SCREEN)
     game = menu.update(main_game)
 

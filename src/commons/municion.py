@@ -1,7 +1,7 @@
 
 """ MANAGEMENT OF THE MUNICION """
 
-from typing import Dict, List, Tuple
+from typing import  List,Tuple
 
 class CannonType:
     """ MANAGEMENT OF THE MUNICION """
@@ -15,6 +15,7 @@ class CannonType:
         self.damage = None
         self._reload_time = 100
         self._count_reload = 0
+
 
     @property
     def count_available(self):
@@ -38,7 +39,6 @@ class CannonType:
         if self._count_available <= 0 and self._count_reload >= self._reload_time:
             self._count_reload = 0
             self._count_available = self.count
-
 
         bullets = [(self.type, (width*i,0)) for i in range(0,self._count_available)]
         return bullets

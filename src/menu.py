@@ -1,9 +1,8 @@
 """Menu"""
 
 import sys
-from typing import Dict
+from typing import Dict, Union
 import pygame as pg
-from pygame.transform import scale
 
 from src import Text
 from src.game import Game
@@ -24,6 +23,7 @@ class Menu:
         self.main_surface = main_surface
         self.clock = pg.time.Clock()
         self.cover = None
+        self.angle = 0
         self.options:Dict[int,dict] =  {
             # 1:{
             #     "text_draw": Text((200,100),"TESTING MODE", font_size=45, color=NEU),
@@ -36,7 +36,7 @@ class Menu:
         }
 
 
-    def multiplayer_mode(self,game_screen) -> Game:
+    def multiplayer_mode(self,game_screen) -> Union[Game, None]:
         """ Menu mode """
         user_enter = False
         ip_text = "localhost"
@@ -76,9 +76,10 @@ class Menu:
                                 game = Game((ip_text, int(user_text)),game_screen, name)
                                 if game.network.player_data != Struct.USER_NOT_AVAILABLE:
                                     return game
-                                status = RED_STATUS
+
                         except ConnectionRefusedError as e:
                             print(e)
+                            status = RED_STATUS
 
                     else:
                         if len(user_text) <= 7:
@@ -164,14 +165,17 @@ class Menu:
             TANK
             """
 
-            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=90, angle_cannon=270)
-            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=90, angle_cannon=90)
+            self.angle += 0.5
+            self.angle = self.angle % 360
+
+            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle)
+            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle)
 
             pg.display.flip()
             self.clock.tick(60)
 
 
-        return Game((ip_text, int(user_text)), self.map_tmp, game_screen, name)
+        return None
 
 
     def single_local_mode(self, game_screen) -> Game:

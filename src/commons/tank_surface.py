@@ -97,9 +97,11 @@ def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
 
 
 def tank_cover(color, pos, screen: pygame.Surface, scale=(32,32), angle=200, angle_cannon= 0):
-    tank_surface = pygame.Surface((32, 32), pygame.SRCALPHA)
-    tank_body = create_tank_surface(colors[color])
-    tank_cannon = create_cannon_surface(colors[color])
+    tank_surface = pygame.Surface(scale, pygame.SRCALPHA)
+    tank_body = pygame.transform.scale(create_tank_surface(colors[color]), scale)
+
+    scale_cannon = (10* scale[0]//32, 26* scale[1]//32)
+    tank_cannon = pygame.transform.scale(create_cannon_surface(colors[color]),scale_cannon)
 
     angle = angle % 360
     angle_cannon = angle_cannon % 360
@@ -114,4 +116,4 @@ def tank_cover(color, pos, screen: pygame.Surface, scale=(32,32), angle=200, ang
     tank_surface.blit(rotated_body, body_rect.topleft)
     tank_surface.blit(rotated_cannon, cannon_rect.topleft)
 
-    screen.blit(pygame.transform.scale(tank_surface, scale), pos)
+    screen.blit(tank_surface, pos)
