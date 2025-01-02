@@ -17,9 +17,7 @@ from src import ROUTE
 
 
 type_guns = {
-    "BASIC": CannonType(10, 'assets/images/bullets/bullet_medium.png', (7, 8)),
-    "MEDIUM": CannonType(10,'assets/images/bullets/bullet_basic.png',(8,10)),
-    "BIG": CannonType(10,'assets/images/bullets/big_bullet.png',(8,10)),
+    "MEDIUM": CannonType(10,"MEDIUM",(8,10)),
 }
 
 
@@ -61,7 +59,7 @@ class Game:
         else:
             position = (0,0)
 
-        self.player = Player(position, self._player_number, cannon_type=type_guns.get("BASIC"))
+        self.player = Player(position, self._player_number, cannon_type=type_guns.get("MEDIUM"))
         self.players[self._player_number] = self.player
         self.camera = CameraComponent(self.tile.WIDTH, self.tile.HEIGHT, (self.WIDTH, self.HEIGHT))
         self.move = MovementComponent(self.network, self.player)

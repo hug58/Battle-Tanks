@@ -56,6 +56,34 @@ colors = {
     22: GOLD,
     23: TURQUOISE
 }
+
+
+def draw_bullet(surface, position, angle, size=(10, 50)):
+    """
+    :param surface: Surface on which the bullet is drawn
+    :param position: Tuple (x, y) for the central position of the bale
+    :param angle: Rotation angle in degrees
+    :param size: Size of the bale as a tuple (width, height)
+    """
+    width, height = size
+    bullet_surface = pygame.Surface((width, height), pygame.SRCALPHA)  # Crear superficie transparente
+
+    pygame.draw.rect(bullet_surface, YELLOW, (0, 10, width, height - 20))
+
+    pygame.draw.polygon(bullet_surface, YELLOW, [
+        (width // 2, 0),
+        (0, 10),
+        (width, 10)
+    ])
+
+    pygame.draw.rect(bullet_surface, BLACK, (2, 10, width - 4, 5))
+
+    rotated_bullet = pygame.transform.rotate(bullet_surface, -angle)
+    rect = rotated_bullet.get_rect(center=position)
+
+    surface.blit(rotated_bullet, rect.center)
+
+
 def darken_color(color: Tuple[int, int, int], factor: float = 0.2) -> Tuple[int, int, int]:
     """Returns a darker color based on the original color."""
     return (
@@ -63,6 +91,7 @@ def darken_color(color: Tuple[int, int, int], factor: float = 0.2) -> Tuple[int,
         max(0, int(color[1] * (1 - factor))),
         max(0, int(color[2] * (1 - factor)))
     )
+
 
 def create_tank_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     """ Create a new tank surface """
@@ -81,6 +110,7 @@ def create_tank_surface(color: Tuple[int, int, int]) -> pygame.Surface:
         pygame.draw.rect(tank_surface, light_gray, (22, i + 2, 6, 2), border_radius=1)  # Right
 
     return tank_surface
+
 
 def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     DARK_LOCAL = darken_color(color)

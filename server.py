@@ -2,7 +2,6 @@
 
 import os
 from server import Server 
-import pygame as pg
 
 if __name__ == "__main__":
 	ip_bind = os.getenv("IP_BIND", "0.0.0.0")

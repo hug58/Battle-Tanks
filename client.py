@@ -36,18 +36,17 @@ def main():
                         game.player.fire = True
                         game.network.send_move_tcp(Struct.FIRE_EVENT_PLAYER)
 
-
-        text_damage.text = f"Damage: {game.damage} %"
-        text_damage.draw(SCREEN)
-
         game.update()
         game.draw()
 
         SCREEN.blit(pg.transform.scale(main_game,(WIDTH,HEIGHT)),(0,0))
+
+        bullets.fill((0,50,0))
+        game.player.type_gun.render(bullets)
         SCREEN.blit(bullets,(0,HEIGHT))
-        bullets.fill((0,0,0))
-        bullets_renders = list(map(load_bullet,game.player.type_gun.render()))
-        bullets.blits(bullets_renders)
+
+        text_damage.text = f"Damage: {game.damage} %"
+        text_damage.draw(SCREEN)
 
         """
         TICKS IN CLIENT

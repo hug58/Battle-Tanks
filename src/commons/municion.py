@@ -2,6 +2,8 @@
 """ MANAGEMENT OF THE MUNICION """
 
 from typing import  List,Tuple
+import pygame as pg
+from src.commons.tank_surface import draw_bullet
 
 class CannonType:
     """ MANAGEMENT OF THE MUNICION """
@@ -29,9 +31,10 @@ class CannonType:
         self._count_available = count_available
 
 
-    def render(self) -> List:
+    def render(self, bullet_surface: pg.Surface) -> pg.Surface:
         """ getting bullets surfaces """
         width = self.size[0]
+        bullets = [ (width*i,0) for i in range(0,self._count_available)]
 
         if self._count_available <= 0:
             self._count_reload +=1
@@ -40,5 +43,8 @@ class CannonType:
             self._count_reload = 0
             self._count_available = self.count
 
-        bullets = [(self.type, (width*i,0)) for i in range(0,self._count_available)]
-        return bullets
+
+        for bullet in bullets:
+            draw_bullet(bullet_surface, bullet, 0, (4,10))
+
+        return bullet_surface

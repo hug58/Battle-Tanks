@@ -11,7 +11,7 @@ from src import sound_shot
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
     SPEED = 3
-    ANGLE = 10
+    ANGLE = 20
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
     SIZE_BODY_RECT = (16,16)

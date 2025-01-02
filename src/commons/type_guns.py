@@ -1,3 +1,0 @@
-""" TYPES OF THE GUNS """
-
-GUNS = ['BIG','SMALL','MEDIUM']
