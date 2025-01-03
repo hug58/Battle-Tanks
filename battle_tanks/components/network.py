@@ -2,7 +2,7 @@
 
 import socket
 from typing import Tuple, List, Union
-from src.commons.package import Struct
+from battle_tanks.commons.package import Struct
 
 class NetworkComponent:
     """ Client TCP connection """

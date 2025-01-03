@@ -3,8 +3,8 @@
 import math
 import pygame as pg
 from .cannon import Cannon
-from src.commons.municion import CannonType
-from src import sound_shot
+from battle_tanks.commons.municion import CannonType
+from battle_tanks import sound_shot
 
 
 

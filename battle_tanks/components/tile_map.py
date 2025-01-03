@@ -2,7 +2,7 @@
 import pygame as pg
 import pytmx 
 
-from src import ROUTE
+from battle_tanks import ROUTE
 
 
 class TileMap:

@@ -10,10 +10,10 @@ from typing import Dict, List
 from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 
-from src.components.collision import Collision
-from src.sprites import Brick
+from battle_tanks.components.collision import Collision
+from battle_tanks.sprites import Brick
 from .conexions import DatabaseManager
-from src.commons.package import Struct
+from battle_tanks.commons.package import Struct
 
 q = queue.SimpleQueue()
 

@@ -1,8 +1,8 @@
 import pygame as pg
 from typing import Union
-from src.components.network import NetworkComponent
-from src.sprites import Player
-from src.commons.package import Struct
+from battle_tanks.components.network import NetworkComponent
+from battle_tanks.sprites import Player
+from battle_tanks.commons.package import Struct
 
 
 

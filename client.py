@@ -1,9 +1,9 @@
 """ Client and Single Game"""
 
 import pygame as pg
-from src import Text, ROUTE
-from src.commons.package import Struct
-from src.menu import Menu
+from battle_tanks import Text, ROUTE
+from battle_tanks.commons.package import Struct
+from battle_tanks.menu import Menu
 
 
 def load_bullet(bullet):
@@ -14,10 +14,17 @@ def main():
     """ Client game of server"""
     pg.display.set_caption(f"Lemon Tank")
     pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
+    pg.event.set_allowed([
+        pg.QUIT,
+        pg.KEYDOWN,
+        pg.KEYUP,
+    ])
+
     clock = pg.time.Clock()
 
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
+
     main_game = pg.Surface((WIDTH,HEIGHT))
     menu = Menu(SCREEN)
     game = menu.update(main_game)

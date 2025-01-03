@@ -5,15 +5,15 @@ import sys
 from typing import Tuple, Dict, Union, List
 import pygame as pg
 
-from src.commons.package import Struct
-from src.components.movement import MovementComponent
-from src.components.tile_map import TileMap
-from src.components.camera import CameraComponent
-from src.sprites import Player, Brick
-from src.commons.municion import CannonType
-from src.commons.tank_surface import tank_cover
-from src.components.network import NetworkComponent
-from src import ROUTE
+from battle_tanks.commons.package import Struct
+from battle_tanks.components.movement import MovementComponent
+from battle_tanks.components.tile_map import TileMap
+from battle_tanks.components.camera import CameraComponent
+from battle_tanks.sprites import Player, Brick
+from battle_tanks.commons.municion import CannonType
+from battle_tanks.commons.tank_surface import tank_cover
+from battle_tanks.components.network import NetworkComponent
+from battle_tanks import ROUTE
 
 
 type_guns = {
@@ -41,6 +41,7 @@ class Game:
 
         pg.display.set_caption(f"Lemon Tank - Client: {self._player_number} - User: {player_name}")
         pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
+
 
         self.WIDTH,self.HEIGHT = screen.get_size()
         self.SCREEN = screen

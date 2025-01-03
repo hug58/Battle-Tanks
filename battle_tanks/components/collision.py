@@ -4,7 +4,7 @@ import math
 import pathlib
 
 from typing import Tuple
-from src.sprites import Brick, Player, Block
+from battle_tanks.sprites import Brick, Player, Block
 
 
 class Collision:

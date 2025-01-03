@@ -3,7 +3,7 @@
 
 from typing import  List,Tuple
 import pygame as pg
-from src.commons.tank_surface import draw_bullet
+from battle_tanks.commons.tank_surface import draw_bullet
 
 class CannonType:
     """ MANAGEMENT OF THE MUNICION """

@@ -1,5 +1,5 @@
 import pygame as pg
-from src import ROUTE, sound_boom
+from battle_tanks import ROUTE, sound_boom
 
 class Brick(pg.sprite.Sprite):
     """Class representing a Brick object"""

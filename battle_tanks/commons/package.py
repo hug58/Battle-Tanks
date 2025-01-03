@@ -3,8 +3,8 @@ import pickle
 import struct
 import math
 
-from src.components.collision import Collision
-from src.sprites.player import Player
+from battle_tanks.components.collision import Collision
+from battle_tanks.sprites.player import Player
 
 BUFFER_SIZE_INIT_PLAYER = 4
 BUFFER_SIZE_EVENT = 1

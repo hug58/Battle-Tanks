@@ -4,11 +4,11 @@ import sys
 from typing import Dict, Union
 import pygame as pg
 
-from src import Text
-from src.game import Game
-from src.commons.package import Struct
-from src.commons.tank_surface import tank_cover
-from src.components.network import NetworkComponent
+from battle_tanks import Text
+from battle_tanks.game import Game
+from battle_tanks.commons.package import Struct
+from battle_tanks.commons.tank_surface import tank_cover
+from battle_tanks.components.network import NetworkComponent
 
 GREEN_STATUS = (0, 128, 0)
 RED_STATUS = (255,0,0)
@@ -24,6 +24,8 @@ class Menu:
         self.clock = pg.time.Clock()
         self.cover = None
         self.angle = 0
+        self.angle_cannon = 0
+
         self.options:Dict[int,dict] =  {
             # 1:{
             #     "text_draw": Text((200,100),"TESTING MODE", font_size=45, color=NEU),
@@ -166,10 +168,13 @@ class Menu:
             """
 
             self.angle += 0.5
-            self.angle = self.angle % 360
+            self.angle_cannon -= 0.5
 
-            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle)
-            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle)
+            self.angle = self.angle % 360
+            self.angle_cannon = self.angle_cannon % 360
+
+            tank_cover(0, (150, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle_cannon)
+            tank_cover(1, (450, 300), self.main_surface, scale=(200, 200), angle=self.angle, angle_cannon=self.angle_cannon)
 
             pg.display.flip()
             self.clock.tick(60)

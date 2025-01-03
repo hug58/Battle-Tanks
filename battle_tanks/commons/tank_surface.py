@@ -1,5 +1,4 @@
 import pygame
-import math
 from typing import Tuple
 
 
@@ -98,7 +97,7 @@ def create_tank_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     dark_gray = (64, 64, 64)
     light_gray = (128, 128, 128)
     tank_surface = pygame.Surface((32, 32), pygame.SRCALPHA, 32)
-    pygame.draw.rect(tank_surface, color, (10, 4, 12, 24))  # Draw rect green
+    pygame.draw.rect(tank_surface, color, (10, 4, 12, 24), border_radius=2)  # Draw rect green
 
     # Draw gray rect on the sides, adjusted to connect with the green part
     pygame.draw.rect(tank_surface, dark_gray, (4, 4, 6, 24), border_radius=2)  # Left
@@ -118,9 +117,9 @@ def create_cannon_surface(color: Tuple[int, int, int]) -> pygame.Surface:
     cannon_surface = pygame.Surface((10, 26), pygame.SRCALPHA)
 
     # Adjust the drawing to fit the new size (10x26)
-    pygame.draw.rect(cannon_surface, DARK_LOCAL, (0, 14, 10, 12), border_radius=0)  # Main body
+    pygame.draw.rect(cannon_surface, DARK_LOCAL, (0, 14, 10, 12), border_radius=2)  # Main body
     pygame.draw.rect(cannon_surface, LIGHT_LOCAL, (2, 0, 6, 14), border_radius=0)  # Top part
-    pygame.draw.rect(cannon_surface, YELLOW, (3, 8, 4, 4), border_radius=0)  # Center detail
+    pygame.draw.rect(cannon_surface, YELLOW, (3, 8, 4, 6), border_radius=0)  # Center detail
     pygame.draw.rect(cannon_surface, LIGHT_GREEN, (3, -2, 4, 10), border_radius=0)  # Top detail
 
     return cannon_surface
