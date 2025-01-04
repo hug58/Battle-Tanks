@@ -1,9 +1,11 @@
+from collections.abc import Callable
+
 import pytmx
 import pygame as pg
 import math
 import pathlib
 
-from typing import Tuple
+from typing import Tuple, List
 from battle_tanks.sprites import Brick, Player, Block
 
 
@@ -11,7 +13,7 @@ class Collision:
     bricks = pg.sprite.Group()
     size_screen:tuple = (0,0)
     lvl_map:str = ""
-    game_state:str = ""
+    game_state:bytes = b""
 
 
     @staticmethod
@@ -35,35 +37,53 @@ class Collision:
 
 
     @classmethod
-    def check_collision_bullet(cls,player_data:dict, collision_radius:int)  -> dict:
+    def check_collision_bullet(cls, player_data: dict, collision_radius: int) -> dict:
         """
         :param player_data: getting x,y and angle_cannon
         :param collision_radius: radius of collision
         """
-        bullet_pos = Collision.calculate_bullet_position(player_data, 100)
+        bullet_start_pos = Collision.calculate_bullet_position(player_data, 0)  # Starting position
+        bullet_end_pos = Collision.calculate_bullet_position(player_data, 100)  # End position
 
-        for brick in cls.bricks:
-            target_pos = (brick.rect.x, brick.rect.y)
-            distance = math.sqrt((bullet_pos[0] - target_pos[0]) ** 2 +
-                                 (bullet_pos[1] - target_pos[1]) ** 2)
-            collided =  distance <= collision_radius
-            if collided:
-                print(f"BEFORE DELETED SPRITE:::{len(cls.bricks)}")
-                brick.remove(cls.bricks)
-                print(f"DELETE SPRITE:::{len(cls.bricks)}")
+        steps = 10
+        for step in range(steps + 1):
+            t = step / steps
+            bullet_pos = (
+                bullet_start_pos[0] + t * (bullet_end_pos[0] - bullet_start_pos[0]),
+                bullet_start_pos[1] + t * (bullet_end_pos[1] - bullet_start_pos[1])
+            )
 
-                print(f"COLLIDE!!!:: {distance}. BRICK: {target_pos}")
-                return {
-                    "x": brick.rect.x,
-                    "y": brick.rect.y,
-                    "w": brick.rect.w,
-                    "h": brick.rect.h,
-                }
+            for brick in cls.bricks:
+                brick: Brick
+                target_pos = (brick.rect.x, brick.rect.y)
+                distance = math.sqrt((bullet_pos[0] - target_pos[0]) ** 2 +
+                                     (bullet_pos[1] - target_pos[1]) ** 2)
+                collided = distance <= collision_radius
+                if collided:
+                    if isinstance(brick, Brick):
+                        list_game_state: List[bytes] = cls.game_state.split(brick.data)
+                        cls.game_state = b"".join(map(bytes,list_game_state))
+                        brick.remove(cls.bricks)
+                        return {
+                            "type":5,
+                            "x": brick.rect.x,
+                            "y": brick.rect.y,
+                            "w": brick.rect.w,
+                            "h": brick.rect.h,
+                        }
+
+                    # return {
+                    #         "type": 6,
+                    #         "x": brick.rect.x,
+                    #         "y": brick.rect.y,
+                    #         "w": brick.rect.w,
+                    #         "h": brick.rect.h,
+                    #     }
         return {}
 
 
     @classmethod
-    def load(cls,lvl_map_tmx:str):
+    def load(cls,lvl_map_tmx:str, func_tile_pack: Callable):
         _tile_map = pytmx.TiledMap(lvl_map_tmx)
         cls.lvl_map = pathlib.Path(lvl_map_tmx).name
         cls.size_screen = (_tile_map.width * _tile_map.tilewidth,
@@ -74,15 +94,26 @@ class Collision:
                 pass
             elif tile_object.name == "brick":
                 brick = Brick(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
+                data_tile = func_tile_pack({
+                    "x": brick.rect.x,
+                    "y": brick.rect.y,
+                    "h": brick.rect.h,
+                    "w": brick.rect.w,
+                    "type": 5
+                })
+                brick.data = data_tile
+
+                """
+                ONLY ADDED BRICK IN GAMESTATE.
+                """
+                cls.game_state += data_tile
                 cls.bricks.add(brick)
+
+
             elif tile_object.name == "block":
                 block = Block(tile_object.x,tile_object.y,tile_object.width,tile_object.height)
                 cls.bricks.add(block)
 
-
-    @classmethod
-    def load_game_state(cls, game_state:str):
-        cls.game_state = game_state
 
 
     @classmethod

@@ -15,12 +15,12 @@ class NetworkComponent:
 
         self._socket_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket_tcp.connect(addr)
-        # self._socket_tcp.setsockopt(socket.SOL_SOCKET, socket.TCP_NODELAY, 1)
         self._socket_tcp.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
 
         self.game_state: bytes = b""
         self._player_data: Union[dict, bytes] = self.load_data()
 
+        self._socket_tcp.setblocking(False)
 
     def load_data(self) -> Union[dict, bytes]:
         """ Load player data init"""
@@ -80,23 +80,17 @@ class NetworkComponent:
     def recv_move_player(self) -> List[dict]:
         """ get data player and states game"""
         try:
-            self._socket_tcp.setblocking(False)
             data = self._socket_tcp.recv(Struct.BUFFER_SIZE_PLAYER)
-            self._socket_tcp.setblocking(True)
-
             if data != b'':
-                data_set = Struct.unpack_players(data) if len(data) > Struct.BUFFER_SIZE_EVENT_RESPONSE \
-                    else Struct.unpack_events(data)
-
-                players = list(map(NetworkComponent._modify_data, data_set))
-                return players
-
-
-        except BlockingIOError:
+                data_set = Struct.unpack_all_data(data)
+                return list(map(NetworkComponent._modify_data, data_set))
+        except BlockingIOError as e:
+            # print(f"BLOCKING AS: {e}")
             pass
         except socket.error as e:
             print(f"THERE IS A ERROR: {e}")
             pass
+
 
         return []
 

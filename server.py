@@ -8,7 +8,6 @@ if __name__ == "__main__":
 	port = os.getenv("SERVER_PORT", 8010)
 	lvl_map = os.getenv("MAP", "assets/maps/zone_0.tmx")
 
-
 	print(f"IP THE SERVER: {ip_bind}")
 	print(f"PORT : {port}")
 	print(f"MAP : {lvl_map}")

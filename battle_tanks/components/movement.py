@@ -39,7 +39,8 @@ class MovementComponent:
             action = Struct.RIGHT_ANGLE_EVENT_PLAYER
 
 
-        if self.network and action:
+        if self.network and action is not None:
             self.network.send_move_tcp(action)
+
 
 

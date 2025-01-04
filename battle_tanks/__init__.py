@@ -16,13 +16,12 @@ def resolve_route(rute,relative = '.'):
     return os.path.join(os.path.abspath(relative),rute)
 
 
-ROUTE = lambda route: os.path.join(os.path.abspath("."),route)
+ROUTE = lambda route: os.path.join(os.path.abspath("."), route)
 FONT = ROUTE("assets/Pixel Digivolve.otf")
 
 sound_shot = pg.mixer.Sound(ROUTE("assets/sound/shot.wav"))
 sound_boom = pg.mixer.Sound(ROUTE("assets/sound/boom.wav"))
 sound_boom.set_volume(0.1)
-
 
 
 

@@ -1,5 +1,3 @@
-"""Menu"""
-
 import sys
 from typing import Dict, Union
 import pygame as pg
@@ -16,7 +14,6 @@ NEU = (100,100,100)
 BACKGROUND = (0,30,0)
 
 class Menu:
-    """Menu """
     def __init__(self, main_surface: pg.Surface):
         self.select_option = None
         self.position:int = 0
@@ -166,7 +163,6 @@ class Menu:
             """
             TANK
             """
-
             self.angle += 0.5
             self.angle_cannon -= 0.5
 
@@ -183,9 +179,9 @@ class Menu:
         return None
 
 
-    def single_local_mode(self, game_screen) -> Game:
+    def single_local_mode(self) -> Game:
         """ Single local game """
-        return Game(None,self.map_tmp,game_screen)
+        return Game(None, self.main_surface, "John")
 
 
     def update(self, main_game) -> Game:
@@ -220,7 +216,7 @@ class Menu:
             pg.display.flip()
 
         return self.multiplayer_mode(main_game) if self.select_option == "MULTIPLAYER_MODE" \
-            else self.single_local_mode(main_game)
+            else self.single_local_mode()
 
 
     def draw(self):
@@ -231,7 +227,7 @@ class Menu:
             select_option: dict = self.options.get(self.position)
             text_draw: Text = select_option.get("text_draw")
             text_draw.color=(255,255,255)
-            # self.options.pop(self.position)
+
             self.options.update({self.position: {
                 "text_draw": text_draw,
                 "action" : select_option.get("action")
@@ -242,7 +238,6 @@ class Menu:
             if op != self.position:
                 op_draw.color=NEU
 
-                # op_draw.update(op)
             op_draw.update()
             op_draw.draw(self.main_surface)
 

@@ -1,10 +1,11 @@
-from typing import Union, Dict
+from typing import Union, Dict, List
 import pickle
 import struct
 import math
 
 from battle_tanks.components.collision import Collision
 from battle_tanks.sprites.player import Player
+
 
 BUFFER_SIZE_INIT_PLAYER = 4
 BUFFER_SIZE_EVENT = 1
@@ -15,10 +16,10 @@ class Struct:
     """
         Class for packing and unpacking data
     """
-    SIZE_PLAYER = 11
+    SIZE_PLAYER = 11 + 1 # ADD 1 FOR SIZE
     MAX_PLAYERS = 2
-    BUFFER_SIZE_PLAYER = SIZE_PLAYER * MAX_PLAYERS
-    BUFFER_SIZE_EVENT_RESPONSE = 10
+    BUFFER_SIZE_PLAYER = 100
+    BUFFER_SIZE_EVENT_RESPONSE = 11 # ADD 1 FOR SIZE
     BUFFER_SPLIT_MAP = BUFFER_SIZE_EVENT_RESPONSE * 8
     BUFFER_SIZE_LVL_MAP = 40
     BUFFER_SIZE_NAME = 32
@@ -77,7 +78,8 @@ class Struct:
 
     @staticmethod
     def unpack_player(data: bytes):
-        """ :param data: bytes. a player is 6 bytes"""
+        """ :param data: bytes. a player is 10 bytes but size is 1 byte"""
+        data = data[1:]
         return struct.unpack('BBhhhhb', data)
 
 
@@ -135,8 +137,36 @@ class Struct:
         player_data["angle"] = angle
         player_data["angle_cannon"] = angle_cannon
 
-        return struct.pack('BBhhhhb', status if status is not None else Struct.UPDATE_PLAYER,
+        size_data = Struct.pack_single_data(Struct.SIZE_PLAYER)
+        size_data += struct.pack('BBhhhhb', status if status is not None else Struct.UPDATE_PLAYER,
                            current, int(pos_x), int(pos_y), angle, angle_cannon, damage_indicator)
+
+        return size_data
+
+
+    @staticmethod
+    def unpack_all_data(data: bytes) -> list:
+        """ Decode data in chunks of 14 bytes if data length is greater than 14. """
+        index = 0
+        step = 0
+        data_wrapped:List[tuple] = []
+
+        while index < len(data):
+            if data[index] == Struct.SIZE_PLAYER:
+                step +=  Struct.SIZE_PLAYER
+                chunk = data[index :step]
+                player = Struct.unpack_player(chunk)
+                data_wrapped.append(player)
+                index = step
+
+            elif data[index] == Struct.BUFFER_SIZE_EVENT_RESPONSE:
+                step +=  Struct.BUFFER_SIZE_EVENT_RESPONSE
+                chunk = data[index:step]
+                data_wrapped.append(Struct.unpack_event(chunk))
+                index = step
+
+
+        return data_wrapped
 
 
     @staticmethod
@@ -148,7 +178,7 @@ class Struct:
         # Check if data length is greater than 14
         if len(data) > chunk_size:
             for i in range(0, len(data), chunk_size):
-                chunk = data[i:i + chunk_size]
+                chunk = data[i+1:i + chunk_size]
                 player = Struct.unpack_player(chunk)
                 players.append(player)
         else:
@@ -161,29 +191,31 @@ class Struct:
 
     @staticmethod
     def pack_players(data: Dict[int, dict], status = None) -> bytes:
-        data_encoded = b''
-        for d, item in data.items():
-            data_encoded += Struct.pack_player(None, item, status)
-
-        return data_encoded
+        data_encoded = [ Struct.pack_player(None, item, status) for d, item in data.items()]
+        return b"".join(map(bytes,data_encoded))
 
     @staticmethod
     def pack_tile(data: dict):
-        return struct.pack("bhhhh", data["type"],data["x"],
+        data_size = Struct.pack_single_data(Struct.BUFFER_SIZE_EVENT_RESPONSE)
+        data_size += struct.pack("bhhhh", data["type"],data["x"],
                            data["y"],data["w"],data["h"])
 
+        return data_size
+
     @staticmethod
-    def pack_event(player_data: dict) -> Union[bytes, None]:
+    def pack_event(player_data: dict) -> Union[bytes, bool]:
         data_collided = Collision.check_collision_bullet(player_data, 30)
         if len(data_collided.items()) > 0:
-            data_collided["type"] = Struct.BROKE_BRICK
+            if data_collided["type"] == Struct.BRICK:
+                data_collided["type"] = Struct.BROKE_BRICK
             return Struct.pack_tile(data_collided)
 
-        return None
+        return False
 
 
     @staticmethod
     def unpack_event(data: bytes):
+        data = data[1:]
         return struct.unpack('bhhhh', data)
 
 
@@ -223,3 +255,6 @@ class Struct:
             return pickle.loads(data)
         except pickle.UnpicklingError as e:
             return data.decode('utf-8')
+
+
+

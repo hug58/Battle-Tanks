@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor
 from collections import defaultdict
 
 from battle_tanks.components.collision import Collision
-from battle_tanks.sprites import Brick
 from .conexions import DatabaseManager
 from battle_tanks.commons.package import Struct
 
@@ -61,8 +60,8 @@ class Server:
 
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
+        # self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
+        # self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
         self.positions = {}
 
@@ -73,24 +72,10 @@ class Server:
         DatabaseManager.configure({"database_name":"database.json"})
         self.persistence = DatabaseManager.get()
 
-        Collision.load(lvl_map_tmx)
-        game_state = b''
-        for brick in Collision.bricks:
-            brick: Brick
-            data_tile = Struct.pack_tile({
-                "x": brick.rect.x,
-                "y": brick.rect.y,
-                "h": brick.rect.h,
-                "w": brick.rect.w,
-                "type": Struct.BRICK
-            })
-            brick.data = data_tile
-            game_state += data_tile
-
+        Collision.load(lvl_map_tmx, Struct.pack_tile)
         """
         GAME STATE FOR OBJECTS.
         """
-        Collision.game_state = game_state
 
         th_1 = th.Thread(target = self._conexions, daemon = True)
         th_2 = th.Thread(target=self._handle_menu, daemon = True)
@@ -158,7 +143,6 @@ class Server:
                 position = self._get_player_position(client_socket)
                 if position >= 0:
                     player_data: dict = self._data[position]
-
                     """
                     FIX THAT
                     """
@@ -172,20 +156,33 @@ class Server:
                         if encoded_message:
                             q.put(encoded_message)
 
-                    """
-                    SOON IN Struct 
-                    """
-
-
-            except (ConnectionResetError, ConnectionRefusedError) as e:
+            except (ConnectionResetError, ConnectionRefusedError, socket.error) as e:
                 logger.error(f"LOG ERROR: {e}")
+                print(f"ERROR IN SOCKET: {e}")
+
                 for position, player in self._data.items():
                     if client_socket == player.get("conn"):
                         player["deleted"] = True
                         q.put(player)
+
+                client_socket.close()
                 break
 
-        client_socket.close()
+            except Exception as e:
+                print(e)
+                print(f"THREAD IS: {th.current_thread().is_alive()}")
+                print("SOCKET FAILED!")
+                print(f"SIZE: {q.qsize()}")
+                print(f"EMPTY: {q.empty()}")
+
+                for position, player in self._data.items():
+                    if client_socket == player.get("conn"):
+                        player["deleted"] = True
+                        q.put(player)
+
+                client_socket.close()
+                break
+
 
 
     def _conexions(self):
@@ -195,12 +192,9 @@ class Server:
                 if len(self._data) >= self._max_players:
                     time.sleep(10)
                     continue
+
                 conn,addr = self._socket.accept()
                 conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                conn.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
-
-                conn.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
-
                 conn.send(Struct.OK_MESSAGE)
                 data = conn.recv(Struct.BUFFER_SIZE_NAME)
 
@@ -272,9 +266,13 @@ class Server:
         while True:
             try:
                 data = q.get(timeout=1)
+                # len data == 12 is delete player
+                # len data == 11 is player data
+                # len data == 10 is event
 
                 if isinstance(data, dict):
                     """QUEUE FOR NEW PLAYERS."""
+
 
                     if len(data.keys()) == 0:
                         continue
@@ -311,7 +309,6 @@ class Server:
                         for data in _game_state:
                             conn_new_player.send(data)
 
-
                         """SENDING OLD_PLAYERS TO NEW_PLAYER."""
                         conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
                         self._data[current] = new_player
@@ -337,11 +334,13 @@ class Server:
 
 
                 elif isinstance(data,bytes):
+
                     """QUEUE FOR OLD PLAYERS"""
 
                     """
                     FIX TICKS WITH EVENTS
                     """
+
                     if len(data) == Struct.BUFFER_SIZE_EVENT_RESPONSE:
                         for conn in self._sockets:
                             self._executor.submit(send_data, conn, data)

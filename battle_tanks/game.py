@@ -17,7 +17,7 @@ from battle_tanks import ROUTE
 
 
 type_guns = {
-    "MEDIUM": CannonType(10,"MEDIUM",(8,10)),
+    "MEDIUM": CannonType(20,"MEDIUM",(8,10)),
 }
 
 
@@ -29,7 +29,6 @@ def find_sprite(rect: pg.Rect, group: pg.sprite.Group) -> Union[pg.sprite.Sprite
 
 
 class Game:
-    """Class representing Game objects"""
     def __init__(self,addr:Union[Tuple[str,int], None],
                  screen:pg.Surface,
                  player_name="John"):
@@ -131,14 +130,18 @@ class Game:
                         Brick.boom()
                         sprite_brick.kill()
 
+                elif recv.get("status") == Struct.BLOCK:
+                    Brick.boom() #Change for Block sound
+
+
 
     def draw(self):
         """ Draw the player and scene. """
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self.players.items():
-            tank_cover(player.player_number,self.camera.apply(player),self.SCREEN,
-angle=player.angle, angle_cannon=player.angle_cannon)
+            tank_cover(player.player_number,self.camera.apply(player),self.SCREEN, angle=player.angle,
+                       angle_cannon=player.angle_cannon)
 
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
