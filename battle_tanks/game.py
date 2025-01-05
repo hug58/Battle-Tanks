@@ -89,6 +89,7 @@ class Game:
 
         for key,player in self.players.items():
             if player.fire:
+                SHOT.play()
                 player.fire = False
 
 
@@ -131,7 +132,7 @@ class Game:
                     sprite_brick = find_sprite(brick_rect, self._bricks)
                     if sprite_brick:
                         self._bricks.remove(sprite_brick)
-                        Brick.boom()
+                        SOUND_BOOM.play()
                         sprite_brick.kill()
 
                 elif recv.get("status") == Struct.BLOCK:
