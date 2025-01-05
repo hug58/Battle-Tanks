@@ -1,5 +1,5 @@
 import pygame as pg
-from battle_tanks import ROUTE, sound_boom
+from battle_tanks import ROUTE
 
 
 class SpriteBasic(pg.sprite.Sprite):
@@ -9,9 +9,10 @@ class SpriteBasic(pg.sprite.Sprite):
         self.rect = pg.Rect((x_pos, y_pos), (width, height))
 
 
-    @staticmethod
-    def boom():
-        sound_boom.play()
+    @classmethod
+    def boom(cls):
+        pass
+        # cls.SOUND_BOOM.play()
 
 
     @property

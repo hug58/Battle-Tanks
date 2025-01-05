@@ -4,17 +4,16 @@ import math
 import pygame as pg
 from .cannon import Cannon
 from battle_tanks.commons.municion import CannonType
-from battle_tanks import sound_shot
-
 
 
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
     SPEED = 3
-    ANGLE = 5
+    ANGLE = 15
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
     SIZE_BODY_RECT = (16,16)
+
 
     def __init__(self,position,number:int, cannon_type: CannonType):
         self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
@@ -30,7 +29,10 @@ class Player(Cannon):
         self._fire = False
         self._damage = 0
         self.player_number = number
+
         Cannon.__init__(self,self.rect.center, cannon_type)
+
+
 
 
     @staticmethod
@@ -92,7 +94,6 @@ class Player(Cannon):
         """ setter for fire """
         self._fire = value
         if self._fire is True:
-            sound_shot.play()
             self.type_gun.count_available -=1
 
 

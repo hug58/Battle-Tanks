@@ -1,7 +1,8 @@
 """ Client and Single Game"""
 
 import pygame as pg
-from battle_tanks import Text, ROUTE
+from battle_tanks.components.text import TextComponent
+from battle_tanks import  ROUTE
 from battle_tanks.commons.package import Struct
 from battle_tanks.menu import Menu
 
@@ -13,6 +14,7 @@ def load_bullet(bullet):
 def main():
     """ Client game of server"""
     pg.display.set_caption(f"Lemon Tank")
+    pg.font.init()
     pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
     pg.event.set_allowed([
         pg.QUIT,
@@ -21,7 +23,6 @@ def main():
     ])
 
     clock = pg.time.Clock()
-
     WIDTH,HEIGHT = 800,600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
 
@@ -29,7 +30,7 @@ def main():
     menu = Menu(SCREEN)
     game = menu.update(main_game)
 
-    text_damage = Text((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
+    text_damage = TextComponent((WIDTH//2,HEIGHT +16 ),f"Damage: {game.damage} %")
     bullets = pg.Surface((WIDTH,36))
 
     while True:

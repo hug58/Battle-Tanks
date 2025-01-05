@@ -19,6 +19,10 @@ from battle_tanks import ROUTE
 type_guns = {
     "MEDIUM": CannonType(20,"MEDIUM",(8,10)),
 }
+pg.mixer.init()
+SOUND_BOOM = pg.mixer.Sound(ROUTE("assets/sound/boom.wav"))
+SHOT = pg.mixer.Sound(ROUTE("assets/sound/shot.wav"))
+
 
 
 def find_sprite(rect: pg.Rect, group: pg.sprite.Group) -> Union[pg.sprite.Sprite, bool]:

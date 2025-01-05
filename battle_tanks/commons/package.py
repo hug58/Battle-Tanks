@@ -151,19 +151,32 @@ class Struct:
         step = 0
         data_wrapped:List[tuple] = []
 
+        """
+        
+        FIX: BUFFER
+        
+        """
+
         while index < len(data):
             if data[index] == Struct.SIZE_PLAYER:
                 step +=  Struct.SIZE_PLAYER
                 chunk = data[index :step]
-                player = Struct.unpack_player(chunk)
-                data_wrapped.append(player)
+
+                if len(chunk) == Struct.SIZE_PLAYER:
+                    player = Struct.unpack_player(chunk)
+                    data_wrapped.append(player)
                 index = step
 
             elif data[index] == Struct.BUFFER_SIZE_EVENT_RESPONSE:
                 step +=  Struct.BUFFER_SIZE_EVENT_RESPONSE
                 chunk = data[index:step]
-                data_wrapped.append(Struct.unpack_event(chunk))
+
+
+                if len(chunk) == Struct.BUFFER_SIZE_EVENT_RESPONSE:
+                    data_wrapped.append(Struct.unpack_event(chunk))
+
                 index = step
+
 
 
         return data_wrapped

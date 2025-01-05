@@ -1,4 +1,3 @@
-from collections.abc import Callable
 
 import pytmx
 import pygame as pg
@@ -6,6 +5,7 @@ import math
 import pathlib
 
 from typing import Tuple, List
+from collections.abc import Callable
 from battle_tanks.sprites import Brick, Player, Block
 
 

@@ -38,6 +38,9 @@ class MovementComponent:
         elif key[pg.K_p]:
             action = Struct.RIGHT_ANGLE_EVENT_PLAYER
 
+        # else:
+        #     action = Struct.RIGHT_EVENT_PLAYER
+
 
         if self.network and action is not None:
             self.network.send_move_tcp(action)

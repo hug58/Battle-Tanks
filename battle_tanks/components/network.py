@@ -80,7 +80,7 @@ class NetworkComponent:
     def recv_move_player(self) -> List[dict]:
         """ get data player and states game"""
         try:
-            data = self._socket_tcp.recv(Struct.BUFFER_SIZE_PLAYER)
+            data = self._socket_tcp.recv(120)
             if data != b'':
                 data_set = Struct.unpack_all_data(data)
                 return list(map(NetworkComponent._modify_data, data_set))

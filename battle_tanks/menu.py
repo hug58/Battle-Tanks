@@ -2,7 +2,7 @@ import sys
 from typing import Dict, Union
 import pygame as pg
 
-from battle_tanks import Text
+from battle_tanks.components.text import TextComponent
 from battle_tanks.game import Game
 from battle_tanks.commons.package import Struct
 from battle_tanks.commons.tank_surface import tank_cover
@@ -14,6 +14,8 @@ NEU = (100,100,100)
 BACKGROUND = (0,30,0)
 
 class Menu:
+
+
     def __init__(self, main_surface: pg.Surface):
         self.select_option = None
         self.position:int = 0
@@ -29,7 +31,7 @@ class Menu:
             #     "action": "SINGLE_PLAYER_MODE"
             # },
             2:{
-                "text_draw": Text((260,200),"MULTIPLAYER MODE", font_size=45, color=NEU),
+                "text_draw": TextComponent((260,200),"MULTIPLAYER MODE", font_size=45, color=NEU),
                 "action": "MULTIPLAYER_MODE"
             },
         }
@@ -72,9 +74,13 @@ class Menu:
                     elif event.key ==  pg.K_RETURN:
                         try:
                             if len(user_text) > 0 and len(name) > 0:
-                                game = Game((ip_text, int(user_text)),game_screen, name)
-                                if game.network.player_data != Struct.USER_NOT_AVAILABLE:
-                                    return game
+                                check_name = NetworkComponent.check_name((ip_text, int(user_text)), name)
+                                if check_name:
+                                    game = Game((ip_text, int(user_text)),game_screen, name)
+                                    if game.network.player_data != Struct.USER_NOT_AVAILABLE:
+                                        return game
+                                else:
+                                    status = RED_STATUS
 
                         except ConnectionRefusedError as e:
                             print(e)
@@ -118,19 +124,19 @@ class Menu:
             surface_input_ip = pg.Surface((250,40))
             surface_input_name = pg.Surface((250,40))
 
-            text_input = Text((50,20), user_text, (255,255,255))
+            text_input = TextComponent((50,20), user_text, (255,255,255))
             text_input.draw(surface_input_port)
-            text_input_ip = Text((100,20), ip_text, (255,255,255))
+            text_input_ip = TextComponent((100,20), ip_text, (255,255,255))
             text_input_ip.draw(surface_input_ip)
 
-            text_input_name = Text((50,20), name, (255,255,255))
+            text_input_name = TextComponent((50,20), name, (255,255,255))
             pg.draw.circle(surface_input_name, status, (230, 20), 15)
             text_input_name.draw(surface_input_name)
 
-            text_name = Text((70,60), "NAME: ")
-            text_ip = Text((70,120), "IP: ")
-            text_port = Text((70,180), "PORT: ")
-            text_enter = Text((70,240), "ENTER", status)
+            text_name = TextComponent((70,60), "NAME: ")
+            text_ip = TextComponent((70,120), "IP: ")
+            text_port = TextComponent((70,180), "PORT: ")
+            text_enter = TextComponent((70,240), "ENTER", status)
 
             if option_select == 2:
                 text_name.color = (255,255,255)
@@ -225,7 +231,7 @@ class Menu:
 
         if self.position != 0:
             select_option: dict = self.options.get(self.position)
-            text_draw: Text = select_option.get("text_draw")
+            text_draw: TextComponent = select_option.get("text_draw")
             text_draw.color=(255,255,255)
 
             self.options.update({self.position: {

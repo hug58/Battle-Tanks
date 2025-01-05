@@ -33,7 +33,7 @@ TICK_RATE = 1/15
 
 def send_data(conn:socket.socket, data:bytes):
     try:
-        conn.send(data)
+        conn.sendall(data)
     except (TimeoutError,ConnectionResetError,BrokenPipeError) as e:
         logger.error(f"SEND DATA FAILED: {data}. TO:{th.current_thread().name}. EXCEPT:{e}")
 
@@ -60,8 +60,6 @@ class Server:
 
         self._socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self._socket.setsockopt(socket.IPPROTO_TCP,socket.TCP_NODELAY,1)
-        # self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 65536)
-        # self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)
         self._socket.bind(addr)
         self.positions = {}
 
@@ -184,7 +182,6 @@ class Server:
                 break
 
 
-
     def _conexions(self):
         logger.warning(f"WAITING CONEXIONS --- {th.current_thread().name}")
         while True:
@@ -300,17 +297,28 @@ class Server:
                         conn_new_player: socket.socket = new_player.get("conn")
                         encoded_message = Struct.pack_player(None, new_player)
                         """ADD NEW CONN"""
-                        conn_new_player.send(encoded_message)
+                        conn_new_player.sendall(encoded_message)
 
                         """SENDING MAP OBJECTS"""
                         _game_state = split_bytes(Collision.game_state)
-                        conn_new_player.send(Struct.pack_single_data(len(_game_state)))
+                        conn_new_player.sendall(Struct.pack_single_data(len(_game_state)))
 
                         for data in _game_state:
-                            conn_new_player.send(data)
+                            conn_new_player.sendall(data)
 
                         """SENDING OLD_PLAYERS TO NEW_PLAYER."""
-                        conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
+
+                        """
+                            FIX THAT. OTHERS PLAYERS SENDING BEFORE TIME
+                        """
+
+                        # conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
+
+                        """
+                        UP
+                        
+                        """
+
                         self._data[current] = new_player
                         self._filter_name.append(new_player.get("name"))
                         self._sockets.append(conn_new_player)
