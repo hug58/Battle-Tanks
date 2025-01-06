@@ -1,5 +1,3 @@
-from shutil import posix
-
 import pytmx
 import pygame as pg
 import math
