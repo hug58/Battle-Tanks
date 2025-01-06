@@ -51,8 +51,9 @@ class Struct:
     BROKE_BRICK:int = 4
     BRICK:int = 5
     BLOCK:int = 6
+    PLAYER_SHOT:int = 7
 
-    STATUS_PLAYER = [UPDATE_PLAYER,NEW_PLAYER,OLD_PLAYER]
+    STATUS_PLAYER = [UPDATE_PLAYER, NEW_PLAYER, OLD_PLAYER, PLAYER_SHOT]
 
     MOVES = [
             LEFT_EVENT_PLAYER,
@@ -217,6 +218,11 @@ class Struct:
 
     @staticmethod
     def pack_event(player_data: dict) -> Union[bytes, bool]:
+        player_collided = Collision.check_collision_player(player_data,collision_radius=30)
+
+        if player_collided.get("player") is not None:
+            return Struct.pack_player(None, player_collided.get("player"), player_collided.get("type"))
+
         data_collided = Collision.check_collision_bullet(player_data, 30)
         if len(data_collided.items()) > 0:
             if data_collided["type"] == Struct.BRICK:

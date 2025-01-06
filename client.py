@@ -14,8 +14,10 @@ def load_bullet(bullet):
 def main():
     """ Client game of server"""
     pg.display.set_caption(f"Lemon Tank")
-    pg.font.init()
     pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
+
+    pg.font.init()
+
     pg.event.set_allowed([
         pg.QUIT,
         pg.KEYDOWN,
@@ -54,6 +56,7 @@ def main():
         SCREEN.blit(bullets,(0,HEIGHT))
 
         text_damage.text = f"Damage: {game.damage} %"
+        text_damage.update()
         text_damage.draw(SCREEN)
 
         """

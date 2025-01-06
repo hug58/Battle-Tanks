@@ -13,6 +13,8 @@ class Player(Cannon):
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
     SIZE_BODY_RECT = (16,16)
+    DAMAGE =  15
+    MAX_DAMAGE = 120
 
 
     def __init__(self,position,number:int, cannon_type: CannonType):
@@ -99,4 +101,4 @@ class Player(Cannon):
 
 
     def __str__(self):
-        return f"---NUMBER: [{self.player_number}  ---POS: [{self.rect.center}]"
+        return f"---NUMBER: [{self.player_number}  ---POS: [{self.rect.center}] ---DAMAGE: {self._damage}"

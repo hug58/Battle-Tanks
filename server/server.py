@@ -96,7 +96,7 @@ class Server:
             try:
                 op = input("\n>")
                 if op == "users":
-                    for _,player in self._data.items():
+                    for player in Collision.players:
                         print(player.get("name"))
                 elif op == "data":
                     for data in self._data.items():
@@ -152,7 +152,10 @@ class Server:
                     elif data == Struct.FIRE_EVENT_PLAYER:
                         encoded_message = Struct.pack_event(player_data)
                         if encoded_message:
-                            q.put(encoded_message)
+                            if len(encoded_message) == Struct.SIZE_PLAYER:
+                                q.put(Struct.OK_MESSAGE + encoded_message)
+                            else:
+                                q.put(encoded_message)
 
             except (ConnectionResetError, ConnectionRefusedError, socket.error) as e:
                 logger.error(f"LOG ERROR: {e}")
@@ -282,6 +285,7 @@ class Server:
                             self._data.pop(current)
                             self._sockets.remove(new_player.get("conn"))
                             self._filter_name.remove(new_player.get("name"))
+                            Collision.players.remove(new_player)
                             logger.debug(f"Removed player at position {current}. THREAD: {th.current_thread().name}")
                             continue
                         except (KeyError, ValueError) as e:
@@ -321,6 +325,7 @@ class Server:
 
                         self._data[current] = new_player
                         self._filter_name.append(new_player.get("name"))
+                        Collision.add_player(new_player)
                         self._sockets.append(conn_new_player)
                     except socket.error as e:
                         del new_player

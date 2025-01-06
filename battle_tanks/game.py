@@ -43,7 +43,6 @@ class Game:
 
 
         pg.display.set_caption(f"Lemon Tank - Client: {self._player_number} - User: {player_name}")
-        pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
 
 
         self.WIDTH,self.HEIGHT = screen.get_size()
@@ -101,6 +100,7 @@ class Game:
             recv_all:List[dict] = self.network.recv_move_player()
 
             for recv in recv_all:
+
                 if (recv.get("status") == Struct.NEW_PLAYER or
                         recv.get("status") == Struct.OLD_PLAYER):
                     position = recv["position"]
@@ -137,6 +137,7 @@ class Game:
 
                 elif recv.get("status") == Struct.BLOCK:
                     Brick.boom() #Change for Block sound
+
 
 
 
