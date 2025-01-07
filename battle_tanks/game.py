@@ -42,7 +42,7 @@ class Game:
         self.positions = {}
 
 
-        pg.display.set_caption(f"Lemon Tank - Client: {self._player_number} - User: {player_name}")
+        pg.display.set_caption(f"Battle Tank - Client: {self._player_number} - User: {player_name}")
 
 
         self.WIDTH,self.HEIGHT = screen.get_size()
