@@ -13,7 +13,7 @@ def load_bullet(bullet):
 
 def main():
     """ Client game of server"""
-    pg.display.set_caption(f"Lemon Tank")
+    pg.display.set_caption(f"Battle Tank")
     pg.display.set_icon(pg.image.load(ROUTE("lemon.ico")))
 
     pg.font.init()
