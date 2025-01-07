@@ -12,7 +12,7 @@ class Player(Cannon):
     ANGLE = 15
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
-    SIZE_BODY_RECT = (16,16)
+    SIZE_BODY_RECT = (32,32)
     DAMAGE =  15
     MAX_DAMAGE = 120
 
