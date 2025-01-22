@@ -123,6 +123,7 @@ class Struct:
                 if data == Struct.UP_EVENT_PLAYER:
                     player_data["y"] += vly
                     player_data["x"] += vlx
+                    
                 elif data == Struct.DOWN_EVENT_PLAYER:
                     player_data["y"] -= vly
                     player_data["x"] -= vlx

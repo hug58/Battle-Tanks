@@ -1,21 +1,27 @@
 
 """ This is the Player [Tank] """
 import math
+import os
 import pygame as pg
 from .cannon import Cannon
 from battle_tanks.commons.municion import CannonType
 
+from typing import Callable
+
 
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
-    SPEED = 3
-    ANGLE = 15
+    SPEED = 2
+    ANGLE = 6
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
     SIZE_BODY_RECT = (32,32)
     DAMAGE =  15
     MAX_DAMAGE = 120
 
+
+    TELESCOPIC_SIGH = pg.image.load(os.path.join(os.path.abspath("."), "assets/images/telescopic_sight.png"))
+     
 
     def __init__(self,position,number:int, cannon_type: CannonType):
         self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
@@ -32,8 +38,9 @@ class Player(Cannon):
         self._damage = 0
         self.player_number = number
 
-        Cannon.__init__(self,self.rect.center, cannon_type)
 
+
+        Cannon.__init__(self,self.rect.center, cannon_type)
 
 
 
@@ -97,6 +104,16 @@ class Player(Cannon):
         self._fire = value
         if self._fire is True:
             self.type_gun.count_available -=1
+
+
+    def telescopic_sight(self):
+        """ Draw the telescopic sight """
+        return {
+                "x": self.rect.x,
+                "y": self.rect.y,
+                "angle_cannon": self.angle_cannon,
+        }
+        
 
 
 

@@ -5,7 +5,7 @@ import sys
 from typing import Tuple, Dict, Union, List
 import pygame as pg
 
-from battle_tanks.commons.package import Struct
+from battle_tanks.commons.package import Struct, Collision
 from battle_tanks.components.movement import MovementComponent
 from battle_tanks.components.tile_map import TileMap
 from battle_tanks.components.camera import CameraComponent
@@ -23,6 +23,9 @@ pg.mixer.init()
 SOUND_BOOM = pg.mixer.Sound(ROUTE("assets/sound/boom.wav"))
 SHOT = pg.mixer.Sound(ROUTE("assets/sound/shot.wav"))
 
+SOUND_BOOM.set_volume(0.1)
+SHOT.set_volume(0.1)
+
 
 
 def find_sprite(rect: pg.Rect, group: pg.sprite.Group) -> Union[pg.sprite.Sprite, bool]:
@@ -33,7 +36,8 @@ def find_sprite(rect: pg.Rect, group: pg.sprite.Group) -> Union[pg.sprite.Sprite
 
 
 class Game:
-    def __init__(self,addr:Union[Tuple[str,int], None],
+    def __init__(self,
+                 addr:Union[Tuple[str,int], None],
                  screen:pg.Surface,
                  player_name="John"):
 
@@ -84,6 +88,7 @@ class Game:
 
     def update(self):
         """ Update Game"""
+
         self.camera.update(self.player)
 
         for key,player in self.players.items():
@@ -97,10 +102,9 @@ class Game:
         """ MOVES RESPONSE """
 
         if self.network:
-            recv_all:List[dict] = self.network.recv_move_player()
+            recv_all:List[dict] = self.network.recv_to_queue()
 
             for recv in recv_all:
-
                 if (recv.get("status") == Struct.NEW_PLAYER or
                         recv.get("status") == Struct.OLD_PLAYER):
                     position = recv["position"]
@@ -141,7 +145,7 @@ class Game:
 
 
 
-    def draw(self):
+    def draw(self, main_screen: pg.Surface):
         """ Draw the player and scene. """
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
@@ -152,8 +156,13 @@ class Game:
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
 
-        for bullet in self._bullets:
-            self.SCREEN.blit(bullet.image,self.camera.apply(bullet))
+   
+        telescopic_pos = Collision.calculate_bullet_position(self.player.telescopic_sight(), 100)
+        telescopic_rect = self.camera.apply_rect(pg.rect.Rect(telescopic_pos[0],telescopic_pos[1],20,20))
+
+        self.SCREEN.blit(Player.TELESCOPIC_SIGH, telescopic_rect)
+        main_screen.blit(self.SCREEN, (0,0))
+        
 
 
     def close(self):

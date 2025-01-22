@@ -9,3 +9,4 @@ battle_tanks/sprites/__pycache__/*
 __pycache__
 database.json
 battle_server.log
+.venv

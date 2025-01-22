@@ -4,8 +4,14 @@ import socket
 from typing import Tuple, List, Union
 from battle_tanks.commons.package import Struct
 
+from queue import SimpleQueue
+
 class NetworkComponent:
     """ Client TCP connection """
+
+    SEND_Q = SimpleQueue()
+    UPDATE_Q = SimpleQueue()
+
 
     def __init__(self, addr: Tuple[str, int], name: str = "John"):
         print(f"Connecting to {addr}, Player: {name}")
@@ -20,10 +26,9 @@ class NetworkComponent:
         self.game_state: bytes = b""
         self._player_data: Union[dict, bytes] = self.load_data()
 
-        self._socket_tcp.setblocking(False)
 
     def load_data(self) -> Union[dict, bytes]:
-        """ Load player data init"""
+        """ Load player data INIT """
         ok = self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT)
         if ok == Struct.OK_MESSAGE:
             self._socket_tcp.send(Struct.pack(self.name))
@@ -35,7 +40,6 @@ class NetworkComponent:
 
             data = self._socket_tcp.recv(Struct.SIZE_PLAYER)
             data_player = Struct.unpack_player(data)
-
             size_map = Struct.unpack_single_data(self._socket_tcp.recv(Struct.BUFFER_SIZE_EVENT))
 
             for i in range(size_map[0]):
@@ -91,7 +95,6 @@ class NetworkComponent:
             print(f"THERE IS A ERROR: {e}")
             pass
 
-
         return []
 
 
@@ -140,5 +143,28 @@ class NetworkComponent:
 
 
     def get_events_to_game_state(self):
+        """
+        Extracts and returns the events from the current game state.
+
+        This method uses the Struct class to unpack events from the 
+        game_state attribute of the instance.
+
+        Returns:
+            list: A list of events extracted from the game state.
+        """
         return Struct.unpack_events(self.game_state)
 
+
+    @classmethod
+    def send_keys(cls, keys: List[bytes]) -> None:
+        for action in keys:
+            cls.SEND_Q.put(action)
+
+    
+    @classmethod
+    def recv_to_queue(cls) -> bytes:
+        data = []
+        while cls.UPDATE_Q.empty() is False:
+            data.extend(cls.UPDATE_Q.get())
+    
+        return data

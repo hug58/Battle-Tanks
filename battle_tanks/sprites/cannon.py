@@ -1,8 +1,7 @@
 """ GUNS """
-
+import os
 import pygame as pg
 from ..commons.municion import CannonType
-
 
 
 class Cannon:
@@ -12,6 +11,7 @@ class Cannon:
     def __init__(self,position,type_gun: CannonType):
         self.rect_cannon = pg.Rect(0,0,20*2,28*2)
         self.rect_cannon.center = position
+        # self.image_bullet: pg.Surface = pg.image.load(os.path.join(os.path.abspath("."), "assets/images/bullet"))
         self.angle_cannon = 0
         self.type_gun = type_gun
 

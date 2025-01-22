@@ -71,6 +71,7 @@ class Server:
         self.persistence = DatabaseManager.get()
 
         Collision.load(lvl_map_tmx, Struct.pack_tile)
+        
         """
         GAME STATE FOR OBJECTS.
         """
@@ -322,11 +323,11 @@ class Server:
                         UP
                         
                         """
-
                         self._data[current] = new_player
                         self._filter_name.append(new_player.get("name"))
                         Collision.add_player(new_player)
                         self._sockets.append(conn_new_player)
+                        
                     except socket.error as e:
                         del new_player
                         continue
