@@ -57,14 +57,14 @@ class Collision:
 
             for brick in cls.bricks:
                 brick: Brick
-                target_pos = (brick.rect.x, brick.rect.y)
+                target_pos = brick.rect.center
                 distance = math.sqrt((bullet_pos[0] - target_pos[0]) ** 2 +
                                      (bullet_pos[1] - target_pos[1]) ** 2)
                 collided = distance <= collision_radius
                 if collided:
                     if isinstance(brick, Brick):
                         list_game_state: List[bytes] = cls.game_state.split(brick.data)
-                        cls.game_state = b"".join(map(bytes,list_game_state))
+                        cls.game_state = b"".join(map(bytes, list_game_state))
                         brick.remove(cls.bricks)
                         return {
                             "type":5,

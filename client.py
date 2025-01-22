@@ -3,15 +3,65 @@
 import pygame as pg
 import queue 
 import threading as th
+import math
+from typing import Tuple, List
 
-
-from typing import Tuple
 from battle_tanks.components.text import TextComponent
 from battle_tanks import  ROUTE
 from battle_tanks.commons.package import Struct
 from battle_tanks.components import NetworkComponent
 from battle_tanks.menu import Menu
 
+
+class Collision:
+    @classmethod
+    def check_collision_bullet(cls, player_data: dict, collision_radius: int) -> dict:
+        """
+        :param player_data: getting x,y and angle_cannon
+        :param collision_radius: radius of collision
+        """
+        bullet_start_pos = cls.calculate_bullet_position(player_data, 0)  # Starting position
+        bullet_end_pos = cls.calculate_bullet_position(player_data, 100)  # End position
+
+        steps = 10
+        for step in range(steps + 1):
+            t = step / steps
+            bullet_pos = (
+                bullet_start_pos[0] + t * (bullet_end_pos[0] - bullet_start_pos[0]),
+                bullet_start_pos[1] + t * (bullet_end_pos[1] - bullet_start_pos[1])
+            )
+
+            for brick in cls.bricks:
+                brick: Brick
+                target_pos = (brick.rect.centerx, brick.rect.centery)
+                distance = math.sqrt((bullet_pos[0] - target_pos[0]) ** 2 +
+                                     (bullet_pos[1] - target_pos[1]) ** 2)
+                collided = distance <= collision_radius
+                if collided:
+                    if isinstance(brick, Brick):
+                        list_game_state: List[bytes] = cls.game_state.split(brick.data)
+                        cls.game_state = b"".join(map(bytes, list_game_state))
+                        brick.remove(cls.bricks)
+                        return {
+                            "type": 5,
+                            "x": brick.rect.x,
+                            "y": brick.rect.y,
+                            "w": brick.rect.w,
+                            "h": brick.rect.h,
+                        }
+                    break  # Eliminar solo el primer bloque en el rango de distancia
+
+        return {}
+
+    @staticmethod
+    def calculate_bullet_position(player_data: dict, distance: int) -> Tuple[int, int]:
+        """
+        Calculate the bullet position based on player data and distance.
+        """
+        angle = player_data['angle_cannon']
+        x = player_data['x'] + distance * math.cos(math.radians(angle))
+        y = player_data['y'] + distance * math.sin(math.radians(angle))
+        return x, y
 
 
 def network_client_consumer(client: NetworkComponent):
@@ -53,7 +103,7 @@ def main():
     ])
 
     clock = pg.time.Clock()
-    WIDTH,HEIGHT = 800,600
+    WIDTH,HEIGHT = 800, 600
     SCREEN = pg.display.set_mode((WIDTH,HEIGHT + 36))
 
     main_game = pg.Surface((WIDTH,HEIGHT))

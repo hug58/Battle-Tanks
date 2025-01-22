@@ -89,7 +89,6 @@ class Game:
     def update(self):
         """ Update Game"""
 
-        self.camera.update(self.player)
 
         for key,player in self.players.items():
             if player.fire:
@@ -143,6 +142,7 @@ class Game:
                     Brick.boom() #Change for Block sound
 
 
+        self.camera.update(self.player)
 
 
     def draw(self, main_screen: pg.Surface):
@@ -163,7 +163,6 @@ class Game:
         self.SCREEN.blit(Player.TELESCOPIC_SIGH, telescopic_rect)
         main_screen.blit(self.SCREEN, (0,0))
         
-
 
     def close(self):
         if self.network:
