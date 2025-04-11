@@ -34,17 +34,13 @@ class MovementComponent:
             action = Struct.DOWN_EVENT_PLAYER
             actions.append(action)
 
-
         if key[pg.K_i]:
             action = Struct.LEFT_ANGLE_EVENT_PLAYER
             actions.append(action)
-            
 
         elif key[pg.K_p]:
             action = Struct.RIGHT_ANGLE_EVENT_PLAYER
             actions.append(action)
-
-
 
         if self.network and len(actions) > 0:
             self.network.send_keys(actions)
