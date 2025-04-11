@@ -1,4 +1,3 @@
-
 import socket
 import threading as th
 import time
@@ -29,7 +28,7 @@ logging.info("Running Battle Tanks")
 logger = logging.getLogger('BattleTanks')
 
 lock = th.Lock()
-TICK_RATE = 1/15
+TICK_RATE = 1/60
 
 def send_data(conn:socket.socket, data:bytes):
     try:
@@ -127,6 +126,16 @@ class Server:
                         break
 
                     player = self._data[position]
+                    # Guardar la posición antes de marcar como eliminado
+                    self.persistence.update("player", 
+                        {"name": player.get("name")},
+                        {
+                            "x": player.get("x"),
+                            "y": player.get("y"),
+                            "angle": player.get("angle"),
+                            "angle_cannon": player.get("angle_cannon")
+                        }
+                    )
                     player["deleted"] = True
                     q.put(player)
 
@@ -136,6 +145,16 @@ class Server:
 
                     for position, player in self._data.items():
                         if client_socket == player.get("conn"):
+                            # Guardar la posición antes de marcar como eliminado
+                            self.persistence.update("player", 
+                                {"name": player.get("name")},
+                                {
+                                    "x": player.get("x"),
+                                    "y": player.get("y"),
+                                    "angle": player.get("angle"),
+                                    "angle_cannon": player.get("angle_cannon")
+                                }
+                            )
                             player["deleted"] = True
                             q.put(player)
 
@@ -147,6 +166,11 @@ class Server:
                     """
 
                     if data in Struct.MOVES:
+                        # Validar colisiones después del movimiento
+                        if data == Struct.UP_EVENT_PLAYER or data == Struct.DOWN_EVENT_PLAYER:
+                            Collision.collide_with_objects(player_data)
+                        
+                        # Enviar la posición validada al cliente
                         encoded_message = Struct.pack_player(data, player_data)
                         q.put(encoded_message)
 
@@ -221,7 +245,6 @@ class Server:
 
                         conn.send(Struct.pack(Collision.lvl_map))
 
-
                         logger.debug(f"SEND JOIN: {Struct.JOIN_MESSAGE} TO {conn.getsockname()}")
 
                         if len(searching_player) == 0:
@@ -229,14 +252,10 @@ class Server:
                             player = self.persistence.save(
                                 "player",{
                                     "damage_indicator":0,
-                                    # "status": "on",
-                                    # "room_id":self.room,
                                     "name": data,
                                     "position": current,
-                                    # "addr": addr,
                                     "x": x,
                                     "y": y,
-
                                     "cannon_x":338,
                                     "cannon_y":692,
                                     "angle":0,
@@ -245,6 +264,12 @@ class Server:
                         else:
                             player = searching_player[0]
                             player["addr"] = addr
+                            # Usar la posición guardada del jugador
+                            x = player.get("x", self._get_position(current)[0])
+                            y = player.get("y", self._get_position(current)[1])
+                            player["x"] = x
+                            player["y"] = y
+                            player["position"] = current
 
                         player["conn"] = conn
                         """Current Player in Queue."""
@@ -267,14 +292,9 @@ class Server:
         while True:
             try:
                 data = q.get(timeout=1)
-                # len data == 12 is delete player
-                # len data == 11 is player data
-                # len data == 10 is event
 
                 if isinstance(data, dict):
                     """QUEUE FOR NEW PLAYERS."""
-
-
                     if len(data.keys()) == 0:
                         continue
 
@@ -294,7 +314,6 @@ class Server:
                             logger.error(f"DELETING DATA: {e}")
                             continue
 
-
                     others_players: Dict[int, dict] = self._data.copy()
                     logger.debug(f"BEFORE SEND TO PLAYER INIT: {new_player}")
 
@@ -311,18 +330,6 @@ class Server:
                         for data in _game_state:
                             conn_new_player.sendall(data)
 
-                        """SENDING OLD_PLAYERS TO NEW_PLAYER."""
-
-                        """
-                            FIX THAT. OTHERS PLAYERS SENDING BEFORE TIME
-                        """
-
-                        # conn_new_player.send(Struct.pack_players(others_players,Struct.OLD_PLAYER))
-
-                        """
-                        UP
-                        
-                        """
                         self._data[current] = new_player
                         self._filter_name.append(new_player.get("name"))
                         Collision.add_player(new_player)
@@ -331,7 +338,6 @@ class Server:
                     except socket.error as e:
                         del new_player
                         continue
-
 
                     if len(others_players) > 0 and new_player is not None:
                         """SENDING NEW_PLAYER TO OTHER OLD PLAYERS"""
@@ -345,26 +351,19 @@ class Server:
                                 player["deleted"] = True
                                 q.put(player)
 
-
-
                 elif isinstance(data,bytes):
-
                     """QUEUE FOR OLD PLAYERS"""
-
-                    """
-                    FIX TICKS WITH EVENTS
-                    """
-
                     if len(data) == Struct.BUFFER_SIZE_EVENT_RESPONSE:
+                        # Enviar inmediatamente las actualizaciones de movimiento
                         for conn in self._sockets:
                             self._executor.submit(send_data, conn, data)
-
-                    elif time.time() - self.tick_last_sent >= TICK_RATE:
-                        self.tick_last_sent = time.time()
-                        for conn in self._sockets:
-                            """FOR MOMENTS USES 'self._data', soon only modify data."""
-                            self._executor.submit(send_data, conn, Struct.pack_players(self._data))
-
+                    else:
+                        # Para otros tipos de datos, mantener el tick rate
+                        current_time = time.time()
+                        if current_time - self.tick_last_sent >= TICK_RATE:
+                            self.tick_last_sent = current_time
+                            for conn in self._sockets:
+                                self._executor.submit(send_data, conn, Struct.pack_players(self._data))
 
             except (queue.Empty, ConnectionAbortedError) as e:
                 continue

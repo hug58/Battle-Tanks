@@ -1,4 +1,3 @@
-
 """ This is the Player [Tank] """
 import math
 import os
@@ -12,36 +11,40 @@ from typing import Callable
 class Player(Cannon):
     """ This class represents to tank (more cannon) """
     SPEED = 2
-    ANGLE = 6
+    ANGLE = 5
     ANGLE_RIGHT = 1
     ANGLE_LEFT = -1
     SIZE_BODY_RECT = (32,32)
-    DAMAGE =  15
-    MAX_DAMAGE = 120
+    DAMAGE =  10
+    MAX_DAMAGE = 100
 
 
     TELESCOPIC_SIGH = pg.image.load(os.path.join(os.path.abspath("."), "assets/images/telescopic_sight.png"))
      
 
-    def __init__(self,position,number:int, cannon_type: CannonType):
-        self.rect = pg.Rect(position,(30,30)) #get rect in img surface, value init is not used
-        self.body_rect = pg.Rect(0,0,16,16)
-        self.body_rect.center = self.rect.center
+    def __init__(self, position: tuple, number: int, cannon_type: dict):
+        super().__init__(position, cannon_type)
+        self.player_number = number
+        self.name = f"Player {number}"  # Nombre por defecto
+        self.damage = 0
+        self.fire = False
         self.angle = 0
+        self.angle_cannon = 0
+        self.type_gun = cannon_type
+
+        self.image = pg.Surface((32, 32), pg.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.x = position[0]
+        self.rect.y = position[1]
+
+        self.body_rect = pg.Rect(0, 0, 32, 32)
+        self.body_rect.center = self.rect.center
 
         self.vl = 3
         self.vlx = 0
         self.vly = 0
         self._life = 10
         self._dead = False
-        self._fire = False
-        self._damage = 0
-        self.player_number = number
-
-
-
-        Cannon.__init__(self,self.rect.center, cannon_type)
-
 
 
     @staticmethod

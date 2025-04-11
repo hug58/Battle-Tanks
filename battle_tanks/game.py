@@ -89,12 +89,10 @@ class Game:
     def update(self):
         """ Update Game"""
 
-
         for key,player in self.players.items():
             if player.fire:
                 SHOT.play()
                 player.fire = False
-
 
         """ SEND MOVES BYTES """
         self.move.keys()
@@ -108,6 +106,7 @@ class Game:
                         recv.get("status") == Struct.OLD_PLAYER):
                     position = recv["position"]
                     player = Player((recv["x"],recv["y"]), position, cannon_type = type_guns.get("BASIC"))
+                    player.name = recv.get("name", f"Player {position}")  # Establecer el nombre del jugador
                     self.players[position] = player
 
                 elif recv.get("status") == Struct.UPDATE_PLAYER:
@@ -128,6 +127,7 @@ class Game:
 
                     else:
                         player = Player((recv["x"], recv["y"]), position, cannon_type=type_guns.get("BASIC"))
+                        player.name = recv.get("name", f"Player {position}")  # Establecer el nombre del jugador
                         self.players[position] = player
 
                 elif recv.get("status") == Struct.BROKE_BRICK:
@@ -141,7 +141,6 @@ class Game:
                 elif recv.get("status") == Struct.BLOCK:
                     Brick.boom() #Change for Block sound
 
-
         self.camera.update(self.player)
 
 
@@ -150,13 +149,44 @@ class Game:
         self.SCREEN.blit(self.tile_image,self.camera.apply_rect(self.tile_rect))
 
         for _,player in self.players.items():
-            tank_cover(player.player_number,self.camera.apply(player),self.SCREEN, angle=player.angle,
+            # Dibujar el tanque
+            tank_rect = self.camera.apply(player)
+            tank_cover(player.player_number, tank_rect, self.SCREEN, angle=player.angle,
                        angle_cannon=player.angle_cannon)
+            
+            # Dibujar el nombre del jugador
+            font = pg.font.Font(None, 24)  # Crear una fuente
+            text_surface = font.render(player.name, True, (255, 255, 255))  # Texto blanco
+            text_rect = text_surface.get_rect()
+            
+            # Posicionar el texto encima del tanque
+            text_rect.centerx = tank_rect.centerx
+            text_rect.bottom = tank_rect.top - 5  # 5 píxeles arriba del tanque
+            
+            # Dibujar el texto
+            self.SCREEN.blit(text_surface, text_rect)
+
+            # Dibujar la barra de vida
+            health_width = 50  # Ancho de la barra de vida
+            health_height = 5  # Alto de la barra de vida
+            health_x = tank_rect.centerx - health_width // 2
+            health_y = text_rect.bottom + 2  # 2 píxeles debajo del nombre
+
+            # Barra de vida base (gris)
+            pg.draw.rect(self.SCREEN, (100, 100, 100), 
+                        (health_x, health_y, health_width, health_height))
+            
+            # Calcular el ancho de la barra de vida actual
+            health_percentage = 1 - (player.damage / Player.MAX_DAMAGE)
+            current_health_width = int(health_width * health_percentage)
+            
+            # Barra de vida actual (roja)
+            pg.draw.rect(self.SCREEN, (255, 0, 0), 
+                        (health_x, health_y, current_health_width, health_height))
 
         for brick in self._bricks:
             self.SCREEN.blit(brick.image,self.camera.apply(brick))
 
-   
         telescopic_pos = Collision.calculate_bullet_position(self.player.telescopic_sight(), 100)
         telescopic_rect = self.camera.apply_rect(pg.rect.Rect(telescopic_pos[0],telescopic_pos[1],20,20))
 
